@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-07-06T05:11:04.723Z</updated>
+  <updated>2023-07-07T16:02:33.876Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,43 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Using Ubuntu from scratch</title>
+    <link href="http://example.com/2023/07/06/Using-Ubuntu-from-scratch/"/>
+    <id>http://example.com/2023/07/06/Using-Ubuntu-from-scratch/</id>
+    <published>2023-07-06T09:32:40.000Z</published>
+    <updated>2023-07-07T16:02:33.876Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="ubuntu" scheme="http://example.com/tags/ubuntu/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>FasterTransformer</title>
+    <link href="http://example.com/2023/07/06/FasterTransformer/"/>
+    <id>http://example.com/2023/07/06/FasterTransformer/</id>
+    <published>2023-07-06T09:21:08.000Z</published>
+    <updated>2023-07-07T16:00:27.571Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录一下部署大模型的经历&lt;/p&gt;
+&lt;p&gt;【更新中】&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+  </entry>
   
   <entry>
     <title>ADAS</title>

@@ -166,6 +166,100 @@ href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动�
       </tags>
   </entry>
   <entry>
+    <title>FasterTransformer</title>
+    <url>/2023/07/06/FasterTransformer/</url>
+    <content><![CDATA[<p>记录一下部署大模型的经历</p>
+<p>【更新中】</p>
+<span id="more"></span>
+<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
+<p>查看<code>docs/bert_guide.md</code></p>
+<p>https://github.com/NVIDIA/nvidia-docker</p>
+<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
+的安装和使用</a> 好文！</p>
+<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
+<pre><code>遇到问题
+`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
+
+解决方式：
+
+docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
+<p>事实上，后来我跟着<a
+href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+<p>查看<code>nvidia-smi</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>LLM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Using Ubuntu from scratch</title>
+    <url>/2023/07/06/Using-Ubuntu-from-scratch/</url>
+    <content><![CDATA[<p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
+<span id="more"></span>
+<h1 id="系统安装">1.系统安装</h1>
+<h2 id="下载">1.1 下载</h2>
+<p><a href="http://mirrors.aliyun.com/ubuntu-releases/20.04/">Ubuntu
+20.4镜像</a></p>
+<h2 id="把iso镜像文件转换成dmg文件">1.2 把iso镜像文件转换成dmg文件</h2>
+<p><code>cd Downloads</code></p>
+<p><code>hdiutil convert -format UDRW -o ubuntu.iso ubuntu-20.04.6-desktop-amd64.iso</code></p>
+<ul>
+<li><p><code>-format</code>为生成文件的权限；</p></li>
+<li><p><code>UDRW</code> :表示转换成有read/write的权限的镜像。</p></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Reading Driver Descriptor Map (DDM : 0)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 1)…</span><br><span class="line">Reading Apple (Apple_partition_map : 2)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 3)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading EFI (Apple_HFS : 4)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 5)…</span><br><span class="line">...............................................................................</span><br><span class="line">Elapsed Time:  4.971s</span><br><span class="line">Speed: 834.8MB/s</span><br><span class="line">Savings: 0.0%</span><br><span class="line">created: /Users/zhaodongyu/Downloads/ubuntu.iso.dmg</span><br></pre></td></tr></table></figure>
+<h2 id="烧录至优盘">1.3 烧录至优盘</h2>
+<p>注意找到U盘的路径，使用<code>diskutil list</code>命令查询。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/dev/disk4 (external, physical):</span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">:                       TYPE NAME                    SIZE       IDENTIFIER</span></span><br><span class="line">   0:     FDisk_partition_scheme                        *16.0 GB    disk4</span><br><span class="line">   1:             Windows_FAT_32 NO NAME                 16.0 GB    disk4s1</span><br></pre></td></tr></table></figure>
+<p>找到U盘的路径为/dev/disk4，并使用命令行卸载U盘：</p>
+<p><code>diskutil unmountDisk /dev/disk4</code></p>
+<p>显示信息：Unmount of all volumes on disk4 was successful</p>
+<p>把iso文件写入U盘 <code>mv ubuntu.iso.dmg ubuntu.iso</code></p>
+<p><code>sudo dd if=./ubuntu.iso of=/dev/disk4 bs=1m</code></p>
+<p>等了几分钟后，显示 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">4149+1 records in</span><br><span class="line">4149+1 records out</span><br><span class="line">4351463424 bytes transferred in 369.833082 secs (11766020 bytes/sec)</span><br></pre></td></tr></table></figure></p>
+<p>弹出优盘</p>
+<p><code>sudo eject /dev/disk4</code></p>
+<h1 id="系统设置">2.系统设置</h1>
+<h2 id="开启ssh连接">2.1 开启SSH连接</h2>
+<p><a
+href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服务远程登录</a></p>
+<p><code>sudo apt-get install openssh-server</code></p>
+<p>可以ssh连接了</p>
+<h2 id="更新vim">2.2 更新vim</h2>
+<ul>
+<li><p>卸载旧版的vi：sudo apt-get remove vim-common</p></li>
+<li><p>安装新版的vim：sudo apt-get install vim</p></li>
+</ul>
+<h2 id="挂载硬盘">2.3 挂载硬盘</h2>
+<p>查看磁盘信息命令: <code>sudo fdisk -l</code></p>
+<p>其中有： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Disk /dev/sdb: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors</span><br><span class="line">Disk model: ST1000DM003-1SB1</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 4096 bytes</span><br><span class="line">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span><br></pre></td></tr></table></figure></p>
+<p>查看硬盘的UUID命令: <code>sudo blkid</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb: UUID=&quot;2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f&quot; BLOCK_SIZE=&quot;4096&quot; TYPE=&quot;ext4&quot;</span><br></pre></td></tr></table></figure>
+<p>mkdir创建挂载点data</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">zhaodongyu@portal:/$ sudo mkdir data</span><br><span class="line">zhaodongyu@portal:/$ ls</span><br><span class="line">bin   cdrom  dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr</span><br><span class="line">boot  data   etc  lib   lib64  lost+found  mnt    proc  run   snap  swapfile  tmp  var</span><br></pre></td></tr></table></figure>
+<p>手动挂载</p>
+<p><code>sudo mount /dev/sdb /data</code></p>
+<p>永久性挂载分区，修改分区文件，输入命令<code>sudo vi /etc/fstab</code>，增加
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UUID=2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f /data           ext4    defaults          0       0</span><br></pre></td></tr></table></figure></p>
+<p>查看挂载好的硬盘信息 <code>df -hT</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb       ext4   916G  207G  663G  24% /data</span><br></pre></td></tr></table></figure>
+<h2 id="安装-vs-code">2.4 安装 VS code</h2>
+<p>打开 Ubuntu
+软件中心，并且搜索<code>Visual Studio Code</code>,然后安装应用</p>
+<h2 id="安装make">2.5 安装make</h2>
+<p><code>sudo apt install make</code></p>
+]]></content>
+      <tags>
+        <tag>ubuntu</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2018/09/10/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very

@@ -20,31 +20,33 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Here is Zhao Dongyu&#39;s Blog">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Zhao Dongyu&#39;s Blog">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Using Ubuntu from scratch">
+<meta property="og:url" content="http://example.com/2023/07/06/Using-Ubuntu-from-scratch/index.html">
 <meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
-<meta property="og:description" content="Here is Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-07-06T09:32:40.000Z">
+<meta property="article:modified_time" content="2023-07-07T16:02:33.876Z">
 <meta property="article:author" content="Zhao Dongyu">
-<meta property="article:tag" content="Blog">
+<meta property="article:tag" content="ubuntu">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2023/07/06/Using-Ubuntu-from-scratch/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'en'
   };
 </script>
 
-  <title>Zhao Dongyu's Blog</title>
+  <title>Using Ubuntu from scratch | Zhao Dongyu's Blog</title>
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
     <script>
@@ -204,9 +206,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
@@ -222,10 +225,9 @@
       <meta itemprop="name" content="Zhao Dongyu's Blog">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/07/06/Using-Ubuntu-from-scratch/" class="post-title-link" itemprop="url">Using Ubuntu from scratch</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Using Ubuntu from scratch
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -244,7 +246,14 @@
                 <time title="Modified: 2023-07-08 00:02:33" itemprop="dateModified" datetime="2023-07-08T00:02:33+08:00">2023-07-08</time>
               </span>
 
-          <br>
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
             <span class="post-meta-item" title="Symbols count in article">
               <span class="post-meta-item-icon">
                 <i class="far fa-file-word"></i>
@@ -269,301 +278,95 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/07/06/Using-Ubuntu-from-scratch/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
+        <p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
+<span id="more"></span>
+<h1 id="系统安装">1.系统安装</h1>
+<h2 id="下载">1.1 下载</h2>
+<p><a target="_blank" rel="noopener" href="http://mirrors.aliyun.com/ubuntu-releases/20.04/">Ubuntu
+20.4镜像</a></p>
+<h2 id="把iso镜像文件转换成dmg文件">1.2 把iso镜像文件转换成dmg文件</h2>
+<p><code>cd Downloads</code></p>
+<p><code>hdiutil convert -format UDRW -o ubuntu.iso ubuntu-20.04.6-desktop-amd64.iso</code></p>
+<ul>
+<li><p><code>-format</code>为生成文件的权限；</p></li>
+<li><p><code>UDRW</code> :表示转换成有read/write的权限的镜像。</p></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Reading Driver Descriptor Map (DDM : 0)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 1)…</span><br><span class="line">Reading Apple (Apple_partition_map : 2)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 3)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading EFI (Apple_HFS : 4)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 5)…</span><br><span class="line">...............................................................................</span><br><span class="line">Elapsed Time:  4.971s</span><br><span class="line">Speed: 834.8MB/s</span><br><span class="line">Savings: 0.0%</span><br><span class="line">created: /Users/zhaodongyu/Downloads/ubuntu.iso.dmg</span><br></pre></td></tr></table></figure>
+<h2 id="烧录至优盘">1.3 烧录至优盘</h2>
+<p>注意找到U盘的路径，使用<code>diskutil list</code>命令查询。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/dev/disk4 (external, physical):</span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">:                       TYPE NAME                    SIZE       IDENTIFIER</span></span><br><span class="line">   0:     FDisk_partition_scheme                        *16.0 GB    disk4</span><br><span class="line">   1:             Windows_FAT_32 NO NAME                 16.0 GB    disk4s1</span><br></pre></td></tr></table></figure>
+<p>找到U盘的路径为/dev/disk4，并使用命令行卸载U盘：</p>
+<p><code>diskutil unmountDisk /dev/disk4</code></p>
+<p>显示信息：Unmount of all volumes on disk4 was successful</p>
+<p>把iso文件写入U盘 <code>mv ubuntu.iso.dmg ubuntu.iso</code></p>
+<p><code>sudo dd if=./ubuntu.iso of=/dev/disk4 bs=1m</code></p>
+<p>等了几分钟后，显示 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">4149+1 records in</span><br><span class="line">4149+1 records out</span><br><span class="line">4351463424 bytes transferred in 369.833082 secs (11766020 bytes/sec)</span><br></pre></td></tr></table></figure></p>
+<p>弹出优盘</p>
+<p><code>sudo eject /dev/disk4</code></p>
+<h1 id="系统设置">2.系统设置</h1>
+<h2 id="开启ssh连接">2.1 开启SSH连接</h2>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服务远程登录</a></p>
+<p><code>sudo apt-get install openssh-server</code></p>
+<p>可以ssh连接了</p>
+<h2 id="更新vim">2.2 更新vim</h2>
+<ul>
+<li><p>卸载旧版的vi：sudo apt-get remove vim-common</p></li>
+<li><p>安装新版的vim：sudo apt-get install vim</p></li>
+</ul>
+<h2 id="挂载硬盘">2.3 挂载硬盘</h2>
+<p>查看磁盘信息命令: <code>sudo fdisk -l</code></p>
+<p>其中有： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Disk /dev/sdb: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors</span><br><span class="line">Disk model: ST1000DM003-1SB1</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 4096 bytes</span><br><span class="line">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span><br></pre></td></tr></table></figure></p>
+<p>查看硬盘的UUID命令: <code>sudo blkid</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/dev/sdb: UUID=&quot;2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f&quot; BLOCK_SIZE=&quot;4096&quot; TYPE=&quot;ext4&quot;</span><br></pre></td></tr></table></figure>
+<p>mkdir创建挂载点data</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">zhaodongyu@portal:/$ sudo mkdir data</span><br><span class="line">zhaodongyu@portal:/$ ls</span><br><span class="line">bin   cdrom  dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr</span><br><span class="line">boot  data   etc  lib   lib64  lost+found  mnt    proc  run   snap  swapfile  tmp  var</span><br></pre></td></tr></table></figure>
+<p>手动挂载</p>
+<p><code>sudo mount /dev/sdb /data</code></p>
+<p>永久性挂载分区，修改分区文件，输入命令<code>sudo vi /etc/fstab</code>，增加
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UUID=2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f /data           ext4    defaults          0       0</span><br></pre></td></tr></table></figure></p>
+<p>查看挂载好的硬盘信息 <code>df -hT</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/dev/sdb       ext4   916G  207G  663G  24% /data</span><br></pre></td></tr></table></figure>
+<h2 id="安装-vs-code">2.4 安装 VS code</h2>
+<p>打开 Ubuntu
+软件中心，并且搜索<code>Visual Studio Code</code>,然后安装应用</p>
+<h2 id="安装make">2.5 安装make</h2>
+<p><code>sudo apt install make</code></p>
+
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+          <div class="post-tags">
+              <a href="/tags/ubuntu/" rel="tag"># ubuntu</a>
+          </div>
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/07/06/FasterTransformer/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/blog.jpg">
-      <meta itemprop="name" content="Zhao Dongyu">
-      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Zhao Dongyu's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/07/06/FasterTransformer/" class="post-title-link" itemprop="url">FasterTransformer</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2023-07-06 17:21:08" itemprop="dateCreated datePublished" datetime="2023-07-06T17:21:08+08:00">2023-07-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-07-08 00:00:27" itemprop="dateModified" datetime="2023-07-08T00:00:27+08:00">2023-07-08</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="Symbols count in article">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>2.5k</span>
-            </span>
-            <span class="post-meta-item" title="Reading time">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>2 mins.</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>记录一下部署大模型的经历</p>
-<p>【更新中】</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/07/06/FasterTransformer/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/04/23/ADAS/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/blog.jpg">
-      <meta itemprop="name" content="Zhao Dongyu">
-      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Zhao Dongyu's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/23/ADAS/" class="post-title-link" itemprop="url">ADAS</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-04-23 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-23T00:00:00+08:00">2020-04-23</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-07-06 13:11:04" itemprop="dateModified" datetime="2023-07-06T13:11:04+08:00">2023-07-06</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="Symbols count in article">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3.7k</span>
-            </span>
-            <span class="post-meta-item" title="Reading time">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>3 mins.</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>最近调研了一下ADAS，感觉是一个不错的方向。然而个人认为自动驾驶的<code>corner case</code>太多，未来充满挑战。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/04/23/ADAS/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/07/06/FasterTransformer/" rel="prev" title="FasterTransformer">
+      <i class="fa fa-chevron-left"></i> FasterTransformer
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/09/10/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/blog.jpg">
-      <meta itemprop="name" content="Zhao Dongyu">
-      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Zhao Dongyu's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/09/10/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-09-10 00:00:00" itemprop="dateCreated datePublished" datetime="2018-09-10T00:00:00+08:00">2018-09-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-07-06 13:21:52" itemprop="dateModified" datetime="2023-07-06T13:21:52+08:00">2023-07-06</time>
-              </span>
-
-          <br>
-            <span class="post-meta-item" title="Symbols count in article">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>367</span>
-            </span>
-            <span class="post-meta-item" title="Reading time">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very
-first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for
-more info. If you get any problems when using Hexo, you can find the
-answer in <a
-target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
-you can ask me on <a
-target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/09/10/hello-world/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-
   
 
 
 
           </div>
           
+    <div class="comments" id="gitalk-container"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -610,6 +413,7 @@ target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitH
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">1.系统安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%8Aiso%E9%95%9C%E5%83%8F%E6%96%87%E4%BB%B6%E8%BD%AC%E6%8D%A2%E6%88%90dmg%E6%96%87%E4%BB%B6"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 把iso镜像文件转换成dmg文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%83%A7%E5%BD%95%E8%87%B3%E4%BC%98%E7%9B%98"><span class="nav-number">1.3.</span> <span class="nav-text">1.3 烧录至优盘</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%AE%BE%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">2.系统设置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%90%AFssh%E8%BF%9E%E6%8E%A5"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 开启SSH连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0vim"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 更新vim</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%82%E8%BD%BD%E7%A1%AC%E7%9B%98"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 挂载硬盘</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-vs-code"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 安装 VS code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85make"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 安装make</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -772,6 +576,25 @@ target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitH
 
   
 
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhaodongyu-ak47.github.io',
+      owner       : 'zhaodongyu-ak47',
+      admin       : ['zhaodongyu-ak47'],
+      id          : '2138a32709285ac5b61ac8c07dce84b6',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
 
 
   
