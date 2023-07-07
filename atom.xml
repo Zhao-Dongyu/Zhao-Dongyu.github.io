@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-07-07T16:02:33.876Z</updated>
+  <updated>2023-07-07T16:10:04.018Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,17 +17,65 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Crawler</title>
+    <link href="http://example.com/2023/07/08/Crawler/"/>
+    <id>http://example.com/2023/07/08/Crawler/</id>
+    <published>2023-07-07T16:08:51.000Z</published>
+    <updated>2023-07-07T16:10:04.018Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;背景：国内表情识别的数据集太少了 &amp;amp;
+表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。&lt;/p&gt;
+&lt;p&gt;于是，在百度上爬了一批数据下来补充到数据集里面。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Final_cut-study_notes</title>
+    <link href="http://example.com/2023/07/08/Final-cut-study-notes/"/>
+    <id>http://example.com/2023/07/08/Final-cut-study-notes/</id>
+    <published>2023-07-07T16:04:56.000Z</published>
+    <updated>2023-07-07T16:06:18.254Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;span</summary>
+        
+      
+    
+    
+    
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Using Ubuntu from scratch</title>
     <link href="http://example.com/2023/07/06/Using-Ubuntu-from-scratch/"/>
     <id>http://example.com/2023/07/06/Using-Ubuntu-from-scratch/</id>
     <published>2023-07-06T09:32:40.000Z</published>
-    <updated>2023-07-07T16:02:33.876Z</updated>
+    <updated>2023-07-07T16:05:13.735Z</updated>
     
     
     <summary type="html">&lt;p&gt;原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～&lt;/p&gt;</summary>
     
     
     
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
     <category term="ubuntu" scheme="http://example.com/tags/ubuntu/"/>
     
@@ -38,7 +86,7 @@
     <link href="http://example.com/2023/07/06/FasterTransformer/"/>
     <id>http://example.com/2023/07/06/FasterTransformer/</id>
     <published>2023-07-06T09:21:08.000Z</published>
-    <updated>2023-07-07T16:00:27.571Z</updated>
+    <updated>2023-07-07T16:05:29.673Z</updated>
     
     
     <summary type="html">&lt;p&gt;记录一下部署大模型的经历&lt;/p&gt;
@@ -47,9 +95,11 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
@@ -58,7 +108,7 @@
     <link href="http://example.com/2020/04/23/ADAS/"/>
     <id>http://example.com/2020/04/23/ADAS/</id>
     <published>2020-04-22T16:00:00.000Z</published>
-    <updated>2023-07-06T05:11:04.723Z</updated>
+    <updated>2023-07-07T16:05:48.716Z</updated>
     
     
     <summary type="html">&lt;p&gt;最近调研了一下ADAS，感觉是一个不错的方向。然而个人认为自动驾驶的&lt;code&gt;corner case&lt;/code&gt;太多，未来充满挑战。&lt;/p&gt;</summary>
@@ -68,7 +118,7 @@
     
     <category term="ADAS" scheme="http://example.com/tags/ADAS/"/>
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="tech， research" scheme="http://example.com/tags/tech%EF%BC%8C-research/"/>
     
   </entry>
   
