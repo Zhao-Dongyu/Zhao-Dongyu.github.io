@@ -173,90 +173,65 @@ href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动�
 <span id="more"></span>
 <table>
 <colgroup>
-<col style="width: 35%" />
-<col style="width: 35%" />
-<col style="width: 28%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: center;">Hero</th>
-<th style="text-align: center;">Achievement</th>
+<th style="text-align: right;">Hero</th>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Achievement</th>
 <th style="text-align: left;">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
+<td style="text-align: right;">A.F.Kay</td>
 <td
-style="text-align: center;"><img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/8f9f341289ba4279f8eb37f97f56abb4306ec379b16837830a2ac1b688558820.png" width="20%">
-<br> A.F.Kay</td>
-<td style="text-align: center;">brb</td>
+style="text-align: left;"><img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/8f9f341289ba4279f8eb37f97f56abb4306ec379b16837830a2ac1b688558820.png" width="20%"></td>
+<td style="text-align: left;">brb</td>
 <td style="text-align: left;">Finish in 1st place after AFKing your
-third turn as A.F.Kay ｜</td>
+third turn as A.F.Kay</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;"></td>
-<td style="text-align: center;">Idle Idol</td>
-<td style="text-align: left;">Finish in 1st place as A.F.Kay ｜</td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Idle Idol</td>
+<td style="text-align: left;">Finish in 1st place as A.F.Kay</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">AI’Akir</td>
+<td
+style="text-align: left;"><img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/208f628c6ae4340ca6889ff5ba883a919c021429b75f73c4903a4c647e4e6bcd.png" width="20%"></td>
+<td style="text-align: left;">Wrath of the Windlord</td>
+<td style="text-align: left;">Finish in 1st place as AI’Akir</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">Alextrasza</td>
+<td
+style="text-align: left;"><img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/d7a061e5ab1c9c132725aaabe271d9fd60e0ce39d7831d7706e80171bce8e5f3.png" width="20%"></td>
+<td style="text-align: left;">Life and Hope</td>
+<td style="text-align: left;">Finish in 1st place as Alextrasza</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">Ambassador Farlin</td>
+<td
+style="text-align: left;"><img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/812794e11850309243ae674e2523d8492a85d922a2dfd796ae317826ac090c32.png" width="20%"></td>
+<td style="text-align: left;">[2023/05/30]All According To Plan</td>
+<td style="text-align: left;">Finish in 1st place as Ambassador
+Farlin</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">Aranna Starseeker</td>
+<td
+style="text-align: left;"><img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/432b5f6dee120335d8c37258e03083cf559659af8196d32dc54a3581c209774e.png" width="20%"></td>
+<td style="text-align: left;">[2023/06/04] Outlandish</td>
+<td style="text-align: left;">Finish in 1st place as Aranna
+Starseeker</td>
 </tr>
 </tbody>
-</table>
-<table>
-<tr>
-<td align="center">
-Hero
-</td>
-<td>
-Achievement
-</td>
-<td>
-Description
-</td>
-</tr>
-<tr>
-<!-- A.F.Kay -->
-<pre><code>    &lt;td rowspan=&quot;2&quot; align=&quot;center&quot;&gt;
-        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/8f9f341289ba4279f8eb37f97f56abb4306ec379b16837830a2ac1b688558820.png&quot; width=&quot;20%&quot;&gt;
-        &lt;!-- &lt;br&gt;A.F.Kay&lt;/br&gt;  --&gt;
-    &lt;/td&gt;    
-    &lt;td &gt;brb&lt;/td&gt;  
-    &lt;td &gt;Finish in 1st place after AFKing your third turn as A.F.Kay&lt;/td&gt;  
-&lt;/tr&gt;
-&lt;tr&gt;
-    &lt;td &gt;Idle Idol&lt;/td&gt;  
-    &lt;td &gt;Finish in 1st place as A.F.Kay&lt;/td&gt;  
-&lt;/tr&gt;
-&lt;tr&gt;&lt;!-- AI’Akir --&gt;
-    &lt;td align=&quot;center&quot;&gt;
-        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/208f628c6ae4340ca6889ff5ba883a919c021429b75f73c4903a4c647e4e6bcd.png&quot; width=&quot;20%&quot;&gt;
-        &lt;br&gt;AI’Akir&lt;/br&gt; 
-    &lt;/td&gt;    
-    &lt;td &gt;Wrath of the Windlord&lt;/td&gt;  
-    &lt;td &gt;Finish in 1st place as AI’Akir&lt;/td&gt;  
-&lt;/tr&gt;
-&lt;tr&gt;&lt;!-- Alextrasza --&gt;
-    &lt;td  align=&quot;center&quot;&gt;
-        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/d7a061e5ab1c9c132725aaabe271d9fd60e0ce39d7831d7706e80171bce8e5f3.png&quot; width=&quot;20%&quot;&gt;
-        &lt;br&gt;Alextrasza&lt;/br&gt; 
-    &lt;/td&gt;    
-    &lt;td &gt;Life and Hope&lt;/td&gt;  
-    &lt;td &gt;Finish in 1st place as Alextrasza&lt;/td&gt;  
-&lt;/tr&gt;
-&lt;tr&gt;&lt;!-- Ambassador Farlin --&gt;
-    &lt;td  align=&quot;center&quot;&gt;
-        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/812794e11850309243ae674e2523d8492a85d922a2dfd796ae317826ac090c32.png&quot; width=&quot;20%&quot;&gt;
-        &lt;br&gt;Ambassador Farlin&lt;/br&gt; 
-    &lt;/td&gt;    
-    &lt;td &gt;[2023/05/30]All According To Plan&lt;/td&gt;  
-    &lt;td &gt;Finish in 1st place as Ambassador Farlin&lt;/td&gt;  
-&lt;/tr&gt;
-&lt;tr&gt;&lt;!-- Aranna Starseeker --&gt;
-    &lt;td  align=&quot;center&quot;&gt;
-        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/432b5f6dee120335d8c37258e03083cf559659af8196d32dc54a3581c209774e.png&quot; width=&quot;20%&quot;&gt;
-        &lt;br&gt;Aranna Starseeker&lt;/br&gt; 
-    &lt;/td&gt;    
-    &lt;td &gt;[2023/06/04] Outlandish&lt;/td&gt;  
-    &lt;td &gt;Finish in 1st place as Aranna Starseeker&lt;/td&gt;  
-&lt;/tr&gt;</code></pre>
 </table>
 <hr />
 <ul>
@@ -502,39 +477,6 @@ Description
       </tags>
   </entry>
   <entry>
-    <title>FasterTransformer</title>
-    <url>/2023/07/06/FasterTransformer/</url>
-    <content><![CDATA[<p>记录一下部署大模型的经历</p>
-<p>【更新中】</p>
-<span id="more"></span>
-<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
-<p>查看<code>docs/bert_guide.md</code></p>
-<p>https://github.com/NVIDIA/nvidia-docker</p>
-<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
-的安装和使用</a> 好文！</p>
-<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
-<pre><code>遇到问题
-`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
-
-解决方式：
-
-docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
-<p>事实上，后来我跟着<a
-href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
-<p>查看<code>nvidia-smi</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
-]]></content>
-      <tags>
-        <tag>tech</tag>
-        <tag>LLM</tag>
-        <tag>notes</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Final Cut study notes</title>
     <url>/2023/07/08/Final-cut-study-notes/</url>
     <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
@@ -572,9 +514,38 @@ href="https://commandpost.io">Commandpost</a>最强辅助</h2>
 <p>资源库 右键 显示包内容</p>
 ]]></content>
       <tags>
-        <tag>notes</tag>
         <tag>finalcut</tag>
+        <tag>notes</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2018/09/10/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a
+href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a
+href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<span id="more"></span>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
   </entry>
   <entry>
     <title>Using Ubuntu from scratch</title>
@@ -640,32 +611,36 @@ href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2018/09/10/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
-first post. Check <a href="https://hexo.io/docs/">documentation</a> for
-more info. If you get any problems when using Hexo, you can find the
-answer in <a
-href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
-you can ask me on <a
-href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+    <title>FasterTransformer</title>
+    <url>/2023/07/06/FasterTransformer/</url>
+    <content><![CDATA[<p>记录一下部署大模型的经历</p>
+<p>【更新中】</p>
 <span id="more"></span>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="run-server">Run server</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
+<p>查看<code>docs/bert_guide.md</code></p>
+<p>https://github.com/NVIDIA/nvidia-docker</p>
+<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
+的安装和使用</a> 好文！</p>
+<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
+<pre><code>遇到问题
+`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
+
+解决方式：
+
+docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
+<p>事实上，后来我跟着<a
+href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+<p>查看<code>nvidia-smi</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
 ]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>notes</tag>
+        <tag>LLM</tag>
+      </tags>
   </entry>
 </search>
