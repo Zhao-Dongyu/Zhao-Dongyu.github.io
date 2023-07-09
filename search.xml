@@ -171,6 +171,76 @@ href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动�
     <content><![CDATA[<p>Set up a flag: the completion progress reaches 100%</p>
 <p>Now at <strong>48%</strong></p>
 <span id="more"></span>
+<table>
+<tr>
+<td align="center">
+Hero
+</td>
+<td>
+Achievement
+</td>
+<td>
+Description
+</td>
+</tr>
+<tr>
+<td rowspan="2" align="center">
+<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/8f9f341289ba4279f8eb37f97f56abb4306ec379b16837830a2ac1b688558820.png" width="20%">
+<br>A.F.Kay</br>
+</td>
+<td>
+brb
+</td>
+<td>
+Finish in 1st place after AFKing your third turn as A.F.Kay
+</td>
+</tr>
+<tr>
+<td>
+Idle Idol
+</td>
+<td>
+Finish in 1st place as A.F.Kay
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/208f628c6ae4340ca6889ff5ba883a919c021429b75f73c4903a4c647e4e6bcd.png" width="20%">
+<br>AI’Akir</br>
+</td>
+<td>
+Wrath of the Windlord
+</td>
+<td>
+Finish in 1st place as AI’Akir
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/d7a061e5ab1c9c132725aaabe271d9fd60e0ce39d7831d7706e80171bce8e5f3.png" width="20%">
+<br>Alextrasza</br>
+</td>
+<td>
+Life and Hope
+</td>
+<td>
+Finish in 1st place as Alextrasza
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/812794e11850309243ae674e2523d8492a85d922a2dfd796ae317826ac090c32.png" width="20%">
+<br>Ambassador Farlin</br>
+</td>
+<td>
+[2023/05/30]All According To Plan
+</td>
+<td>
+Finish in 1st place as Ambassador Farlin
+</td>
+</tr>
+</table>
+<hr />
 <ul>
 <li><del>A.F.Kay</del>
 <ul>
@@ -504,6 +574,35 @@ href="https://commandpost.io">Commandpost</a>最强辅助</h2>
       </tags>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2018/09/10/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a
+href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a
+href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<span id="more"></span>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>Using Ubuntu from scratch</title>
     <url>/2023/07/06/Using-Ubuntu-from-scratch/</url>
     <content><![CDATA[<p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
@@ -565,34 +664,5 @@ href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服
         <tag>notes</tag>
         <tag>ubuntu</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2018/09/10/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
-first post. Check <a href="https://hexo.io/docs/">documentation</a> for
-more info. If you get any problems when using Hexo, you can find the
-answer in <a
-href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
-you can ask me on <a
-href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<span id="more"></span>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="run-server">Run server</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
   </entry>
 </search>
