@@ -1,175 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ADAS</title>
-    <url>/2020/04/23/ADAS/</url>
-    <content><![CDATA[<p>最近调研了一下ADAS，感觉是一个不错的方向。然而个人认为自动驾驶的<code>corner case</code>太多，未来充满挑战。</p>
-<span id="more"></span>
-<h2 id="自动驾驶汽车">自动驾驶汽车</h2>
-<p><code>自动驾驶汽车(Autonomous vehicles; Self-piloting automobile)</code>是一种通过电脑系统实现无人驾驶的智能汽车。</p>
-<p>自动驾驶汽车可以实现<code>驾驶员驾驶</code>、<code>系统辅助驾驶员驾驶</code>以及<code>系统自动驾驶</code>。而无人驾驶汽车是不需要驾驶员的，即便在紧急情况时也能自行处理。</p>
-<p><img src="/images/adas/1.png" width="80%"></p>
-<h2 id="自动驾驶的五个等级">自动驾驶的五个等级</h2>
-<pre><code>NHTSA：美国国家交通管理局
-SAE：美国汽车工程师学会</code></pre>
-<p><img src="/images/adas/2.png" width="80%"></p>
-<p>在车企们万众一心向L3级自动驾驶冲刺的关口，以自动驾驶为最终目标的<code>ADAS系统</code>自然而然的火了。</p>
-<p>目前世界上大部分的汽车，都处于<code>L1</code>级别，只有少数汽车，比如<code>特斯拉</code>，已经可以处于<code>L2</code>级别，并在不断完善当中。</p>
-<p><code>ADAS</code>实现的是<code>第3级</code>，而<code>自动驾驶</code>实现的是<code>第4级</code>。想要从第3级发展到第4级，还需要更多的汽车上配有自动驾驶技术，而且得配合道路基础设施建设（道路上的摄像头，清晰的车道线），以及需要汽车互联，汽车手机互联等等，是个非常庞大的工程.</p>
-<h2 id="adas">ADAS</h2>
-<p>高级驾驶辅助系统<code>ADAS(Advanced Driver Assistance System)</code></p>
-<blockquote>
-<p>利用安装在车上的各式各样传感器（毫米波雷达、激光雷达、单），在汽车行驶过程中随时来感应周围的环境，收集数据，进行静态、动态物体的辨识、侦测与追踪，并结合导航仪地图数据，进行系统的运算与分析，从而预先让驾驶者察觉到可能发生的危险，有效增加汽车驾驶的<code>舒适性</code>和<code>安全性</code>。</p>
-</blockquote>
-<ul>
-<li><p>ADAS核心是<code>环境感知</code></p></li>
-<li><p>自动驾驶是<code>人工智能</code></p></li>
-<li><p>ADAS可以视作自动驾驶汽车的<code>前提</code></p></li>
-</ul>
-<p><strong>虽然ADAS被很多人视作自动驾驶汽车的前提，但就其本质而言，ADAS是辅助驾驶，核心是环境感知，而自动驾驶是人工智能，两者体系有很大差别。</strong></p>
-<hr />
-<p>ADAS是最接近于自动驾驶的智能辅助系统。但是目前生活中比较常用的是<code>ADAS防碰撞预警</code>+<code>DSM防疲劳驾驶检测系统</code>。</p>
-<h2 id="adas分类">ADAS分类</h2>
-<p><img src="/images/adas/3.png" width="90%"></p>
-<h3 id="adas前车碰撞预警fcw">ADAS——前车碰撞预警FCW</h3>
-<p><img src="/images/adas/4.png" width="30%"></p>
-<p>由安装在车头的雷达，侦测自车和前方车辆的距离及速度，初期会发出警告声来提醒驾驶人注意车距，若车距依然持续拉近，车辆便会先自动轻踩刹车，并轻拉安全带2-3次，警告驾驶人。</p>
-<p>若系统判定追撞是没办法避免，启动自动紧急刹车（AEB）后，会同时立刻拉紧安全带固定驾驶人，降低意外发生后的伤害。</p>
-<h3 id="adas盲点侦测系统">ADAS——盲点侦测系统</h3>
-<p><img src="/images/adas/5.png" width="30%"></p>
-<p>汽车驾驶人的盲点是指三面后视镜，左、右、内看不到的区域</p>
-<p>盲点侦测系统就是运用雷达和传感器，来侦测车辆后方的盲点区，在盲点区侦测到车辆靠近时会向驾驶员提供警示，帮助驾驶人将意外的机率降至最低。</p>
-<h3 id="adas停车辅助系统">ADAS——停车辅助系统</h3>
-<p><img src="/images/adas/6.png" width="30%"></p>
-<p>停车辅助系统又分为 2种，分别是主动式与被动式 -
-主动式系统自动控制方向盘以帮助驾驶完成停车，当然油门、刹车与档位切换还是要车主自行操控。
--
-被动式是以影像（摄影机）与影音（超音波）为感测单元所组成的，提供更多车身周围信息给车主掌握，减少碰撞机会。</p>
-<h3 id="adas车道偏离警示系统ldw">ADAS——车道偏离警示系统LDW</h3>
-<p><img src="/images/adas/7.png" width="30%"></p>
-<p>由摄影机、传感器及控制器所组成，原理是运用在车身侧面或后视镜的摄影机，采样目前行驶车道的标识线，再通过图像处理取得当前汽车在车道的位子，这时只要汽车偏离车道，控制器就会发出警报信号。</p>
-<p>从感测到发出警报，过程只需约0.5
-秒的时间，以实时提醒、叫醒驾驶，避免意外的发生。</p>
-<h3 id="adas适应性车灯系统">ADAS——适应性车灯系统</h3>
-<p><img src="/images/adas/8.png" width="30%"></p>
-<p>这套系统可依照不同的路况、环境、车速及天气状况，自动调整车灯的照明范围及角度，让车灯照射范围可以更深远下，又不会影像到其他用路人的视线，以提供驾驶人与对向来车更安全及舒适的照明。</p>
-<p>从过去的AFS主动转向式头灯，到现在结合传感器的多颗LED智能型头灯，都是属于此系统的范畴。</p>
-<h3 id="adas夜视系统">ADAS——夜视系统</h3>
-<p><img src="/images/adas/9.png" width="30%"></p>
-<p>可帮助驾驶可以在视线不明、看不清楚的夜晚或恶劣天气时，自动识别动物或大型异物，同时警告驾驶前方路况，以避免意外的发生。</p>
-<p>辨别方式为以红外线来感知热量的不同，区分人、动物、车辆以及环境的差异，经过处理转变成图像，将原本看不清楚的物体清楚呈现在驾驶眼前，以降低行车风险。</p>
-<h3 id="adas主动车距控制巡航系统-acc">ADAS——主动车距控制巡航系统
-ACC</h3>
-<p><img src="/images/adas/10.png" width="30%"></p>
-<p>通过安装在车辆前部的车距传感器，持续扫描车辆前方道路来得知前车的车速与相对距离，行驶中会自动侦测车速，当与前车的距离越来越小时，会对应调整自身车速，与前方车辆保持安全距离，减少碰撞意外的发生，也就是所谓的高级版自动巡航系统。</p>
-<p>目前许多车款上都已可看见此系统的踪影。</p>
-<h3 id="adas驾驶人生理状态监视">ADAS——驾驶人生理状态监视</h3>
-<p><img src="/images/adas/11.png" width="30%"></p>
-<p>目前系统大多都是利用摄影机侦测驾驶者脸部，判断专注力程度、是否有打瞌睡的象征，还有系统更是利用驾驶人眼睛开闭频率情况，来辨别安全等级，提供适合的警告或是协助动作。</p>
-<p>如果驾驶者的脸部表情变化减少，甚至出现闭眼的情况，车辆就会透过声响与灯号来警示车主注意，以减少意外事故发生。</p>
-<h2 id="adas关键节点">ADAS关键节点</h2>
-<ul>
-<li><p>感知</p>
-<p>目前ADAS主要采用的<code>传感器</code>有摄像头、雷达、激光和超声波等，可以探测光、热、压力或其它用于监测汽车状态的变量，通常位于车辆的前后保险杠、侧视镜、驾驶杆内部或者挡风玻璃上。</p>
-<p>大部份ADAS采用<code>摄像头</code>+<code>雷达</code>的组合方式，以实现雷达测距与摄像头图像识别功能的互补。主动式与被动式红外夜视系统是两种主流的技术路线。<code>主动式</code>通过CCD接受物体反射的对应敏感频谱成像，而<code>被动式</code>的红外焦平面探测器接受物体的红外辐射成像。两者各有优势，将在较长时间内共存。</p>
-<p>不同的系统需要使用不同类型的车用传感器，包含毫米波雷达、超声波雷达、红外雷达、激光雷达、CCD
-CMOS影像传感器及轮速传感器等，来收集整车的工作状态及其参数变化情形，并将不断变化的机械运动变成电子参数(电压、电阻及电流)。</p>
-<ul>
-<li>举例来说，车道偏离警告系统使用CMOS影像传感器、夜视系统则使用红外线传感器、适应性定速控制通常使用雷达、停车辅助系统则会使用超声波等。</li>
-</ul></li>
-<li><p>判断</p>
-<p>算法是ADAS系统可靠性、准确度的<code>决定性因素</code>，主要包括摄像头/雷达测距、行人识别、道路交通标志识别等，针对前装应用的可靠性要求高，需要进行大量的场景测试与标定。其中雷达标定的门槛最高。</p>
-<p>电子控制单元(ECU)会在针对传感器所收集到的信息进行分析处理，然后再向控制的执行装置下达动作指令。</p></li>
-<li><p>执行
-包含油门、刹车、灯光、声响等系统都是属于执行器的范畴内，会依据ECU输出的讯号，来执行各种反应动作，让汽车安全行驶于道路上。</p>
-<p>ADAS系统通过传感器获取数据，主芯片完成判断后，初级应用通过声音、图像、振动对驾驶者进行<code>警示</code>。</p>
-<p>与电子控制功能结合后，逐渐进化到对车辆的<code>自动控制</code>。</p></li>
-</ul>
-<h2 id="adas产业链">ADAS产业链</h2>
-<p><img src="/images/adas/12.png" width="60%"></p>
-<p>在产业链中，<code>传感器技术</code>(摄像头与雷达)、<code>芯片</code>与<code>算法</code>是其中的关键。</p>
-<ul>
-<li><p>其中，摄像头核心部件CMOS感光芯片主要掌握在以索尼、三星为代表的日韩企业中。</p></li>
-<li><p>雷达分为超声波雷达、毫米波雷达、激光雷达</p>
-<ul>
-<li>超声波雷达技术门槛较低，供应商较多；</li>
-<li>激光雷达成本高昂，未商业化；</li>
-<li>毫米波雷达成本在两者之间，技术门槛较高，主要掌握在ZF
-TRW、博世等行业领先公司手中。</li>
-</ul></li>
-<li><p>而芯片、算法在ADAS系统中至关重要，行业集中度高，主要有Mobileeye、ADI等公司</p></li>
-</ul>
-<h2 id="视觉adas">视觉ADAS</h2>
-<ul>
-<li><p>原理</p>
-<p>图像处理，将图片转换为<code>二维数据</code></p>
-<p>模式识别，通过图像匹配进行识别，如车辆、行人、车道线、交通标志</p>
-<p>利用物体的运动模式，或双目定位，估算目标物体与本车的相对距离和相对速度</p></li>
-<li><p>优点</p>
-<p>像素级别的颜色、偏移、距离等信息</p>
-<p>成本低，信息量丰富、特征识别好</p></li>
-<li><p>缺点</p>
-<p>获取准确<code>三维信息</code>难度大</p>
-<p>受环境光限制比较大，速度、距离分辨率差</p></li>
-</ul>
-<p>目前在行车辅助功能中，摄像头可用来单独实现很多功能，并且按照自动驾驶发展规律逐渐演进。</p>
-<p><img src="/images/adas/13.png" width="60%"></p>
-<p>这些功能更加强调对输入图像的处理，从拍摄的视频流中提取<code>有效目标运动信息</code>做进一步分析，给出预警信息或直接调动控制机构。相比视频输出类功能，强调<code>高速下的实时性</code>，这部分技术正处在发展上升期。</p>
-<h2 id="视觉adas软硬需求">视觉ADAS软硬需求</h2>
-<ul>
-<li><p>摄像头模组</p>
-<p>需要定制化开发，一般要满足宽动态、高感光、不一味追求高像素
-ADAS的摄像头更讲究为行车时预留更多判断时间，需要看得更远。</p></li>
-<li><p>核心算法芯片</p>
-<p>如果在算法上叠加深度学习来帮助识别率提升，对硬件性能的要求只增不减，主要考虑的性能指标是运算速度、功耗、以及成本。</p></li>
-<li><p>软件算法</p>
-<p>源头是计算机视觉-&gt;深度学习的渗透</p>
-<p>在感知方面，深度学习将会弯道超车传统视觉算法</p>
-<p>无论哪种算法，数据都是用来训练测试的宝贵资源，而且不是单纯的越多越好，而是越有效越好（符合实际用车环境并保证多样化）。</p></li>
-</ul>
-<h2 id="小结">小结</h2>
-<p>本次调研对<code>ADAS</code>有了一个系统的认知，感觉是<code>非常有潜力</code>以及<code>非常有挑战</code>的发展方向。</p>
-<p>视觉ADAS相比于毫米波雷达识别效果更好，可以充分利用<code>视觉信息</code>进行车辆、路标等识别。</p>
-<p>我们的重点在于利用<code>感知的信息</code>做决策，其中算法是ADAS系统可靠性、准确度的决定性因素，高效的部署会影响实时性。</p>
-<p>接下来会对<code>FCW</code>及相关算法进行进一步调研</p>
-<h2 id="参考博客">参考博客</h2>
-<p><a
-href="https://blog.csdn.net/u010607947/article/details/70847028?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0">一篇文章看懂ADAS</a></p>
-<p><a
-href="https://blog.csdn.net/zhanshen112/article/details/80374815?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-6">ADAS的八大系统</a></p>
-<p><a
-href="https://blog.csdn.net/sinat_32970179/article/details/99833646?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-13">特斯拉、吉利车上的那些ADAS系统你都会用吗？</a></p>
-<p><a
-href="https://blog.csdn.net/wanzew/article/details/82828579?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-4">ADAS功能盘点及实现过程解析</a></p>
-<p><a
-href="https://blog.csdn.net/usstmiracle/article/details/95461183?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-3">ADAS是什么？</a></p>
-<p><a
-href="https://blog.csdn.net/weixin_42229404/article/details/82623742?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-1">ADAS各功能模块及ADAS解决方案提供商详解</a></p>
-<p><a
-href="https://blog.csdn.net/Gary_Yan_cc/article/details/80717069?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-12">车载摄像头在ADAS中的应用</a></p>
-<p><a
-href="https://blog.csdn.net/u011776903/article/details/72866442">ADAS视觉方案盘点上篇：摄像头、芯片和算法</a></p>
-<h2 id="参考视频">参考视频</h2>
-<p><a
-href="https://haokan.baidu.com/v?vid=6343999001934023106&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS自动辅助驾驶系统为何如此受青睐？看看它到底有多强大！</a></p>
-<p><a
-href="https://haokan.baidu.com/v?vid=3780861684865301120&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS智能驾驶辅助系统</a></p>
-<p><a
-href="https://haokan.baidu.com/v?vid=8288616481555786115&amp;tab=recommend">WEY
-VV6智能驾驶辅助系统深度体验</a></p>
-<p><a
-href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动驾驶第二弹</a></p>
-]]></content>
-      <tags>
-        <tag>ADAS</tag>
-        <tag>tech， research</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Battlegrounds</title>
     <url>/2023/07/09/Battlegrounds/</url>
     <content><![CDATA[<p>Set up a flag: the completion progress reaches 100%</p>
-<p>Now at <strong>48%</strong></p>
+<p>Now at <strong>49%</strong></p>
 <span id="more"></span>
 <table>
 <tr>
@@ -184,79 +19,53 @@ Description
 </td>
 </tr>
 <tr>
-<td rowspan="2" align="center">
-<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/8f9f341289ba4279f8eb37f97f56abb4306ec379b16837830a2ac1b688558820.png" width="20%">
-<br>A.F.Kay</br>
-</td>
-<td>
-brb
-</td>
-<td>
-Finish in 1st place after AFKing your third turn as A.F.Kay
-</td>
-</tr>
-<tr>
-<td>
-Idle Idol
-</td>
-<td>
-Finish in 1st place as A.F.Kay
-</td>
-</tr>
-<tr>
-<td align="center">
-<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/208f628c6ae4340ca6889ff5ba883a919c021429b75f73c4903a4c647e4e6bcd.png" width="20%">
-<br>AI’Akir</br>
-</td>
-<td>
-Wrath of the Windlord
-</td>
-<td>
-Finish in 1st place as AI’Akir
-</td>
-</tr>
-<tr>
-<td align="center">
-<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/d7a061e5ab1c9c132725aaabe271d9fd60e0ce39d7831d7706e80171bce8e5f3.png" width="20%">
-<br>Alextrasza</br>
-</td>
-<td>
-Life and Hope
-</td>
-<td>
-Finish in 1st place as Alextrasza
-</td>
-</tr>
-<tr>
-<td align="center">
-<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/812794e11850309243ae674e2523d8492a85d922a2dfd796ae317826ac090c32.png" width="20%">
-<br>Ambassador Farlin</br>
-</td>
-<td>
-[2023/05/30]All According To Plan
-</td>
-<td>
-Finish in 1st place as Ambassador Farlin
-</td>
-</tr>
+<!-- A.F.Kay -->
+<pre><code>    &lt;td rowspan=&quot;2&quot; align=&quot;center&quot;&gt;
+        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/8f9f341289ba4279f8eb37f97f56abb4306ec379b16837830a2ac1b688558820.png&quot; width=&quot;20%&quot;&gt;
+        &lt;br&gt;A.F.Kay&lt;/br&gt; 
+    &lt;/td&gt;    
+    &lt;td &gt;brb&lt;/td&gt;  
+    &lt;td &gt;Finish in 1st place after AFKing your third turn as A.F.Kay&lt;/td&gt;  
+&lt;/tr&gt;
+&lt;tr&gt;
+    &lt;td &gt;Idle Idol&lt;/td&gt;  
+    &lt;td &gt;Finish in 1st place as A.F.Kay&lt;/td&gt;  
+&lt;/tr&gt;
+&lt;tr&gt;&lt;!-- AI’Akir --&gt;
+    &lt;td align=&quot;center&quot;&gt;
+        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/208f628c6ae4340ca6889ff5ba883a919c021429b75f73c4903a4c647e4e6bcd.png&quot; width=&quot;20%&quot;&gt;
+        &lt;br&gt;AI’Akir&lt;/br&gt; 
+    &lt;/td&gt;    
+    &lt;td &gt;Wrath of the Windlord&lt;/td&gt;  
+    &lt;td &gt;Finish in 1st place as AI’Akir&lt;/td&gt;  
+&lt;/tr&gt;
+&lt;tr&gt;&lt;!-- Alextrasza --&gt;
+    &lt;td  align=&quot;center&quot;&gt;
+        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/d7a061e5ab1c9c132725aaabe271d9fd60e0ce39d7831d7706e80171bce8e5f3.png&quot; width=&quot;20%&quot;&gt;
+        &lt;br&gt;Alextrasza&lt;/br&gt; 
+    &lt;/td&gt;    
+    &lt;td &gt;Life and Hope&lt;/td&gt;  
+    &lt;td &gt;Finish in 1st place as Alextrasza&lt;/td&gt;  
+&lt;/tr&gt;
+&lt;tr&gt;&lt;!-- Ambassador Farlin --&gt;
+    &lt;td  align=&quot;center&quot;&gt;
+        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/812794e11850309243ae674e2523d8492a85d922a2dfd796ae317826ac090c32.png&quot; width=&quot;20%&quot;&gt;
+        &lt;br&gt;Ambassador Farlin&lt;/br&gt; 
+    &lt;/td&gt;    
+    &lt;td &gt;[2023/05/30]All According To Plan&lt;/td&gt;  
+    &lt;td &gt;Finish in 1st place as Ambassador Farlin&lt;/td&gt;  
+&lt;/tr&gt;
+&lt;tr&gt;&lt;!-- Aranna Starseeker --&gt;
+    &lt;td  align=&quot;center&quot;&gt;
+        &lt;img src=&quot;https://d15f34w2p8l1cc.cloudfront.net/hearthstone/432b5f6dee120335d8c37258e03083cf559659af8196d32dc54a3581c209774e.png&quot; width=&quot;20%&quot;&gt;
+        &lt;br&gt;Aranna Starseeker&lt;/br&gt; 
+    &lt;/td&gt;    
+    &lt;td &gt;[2023/06/04] Outlandish&lt;/td&gt;  
+    &lt;td &gt;Finish in 1st place as Aranna Starseeker&lt;/td&gt;  
+&lt;/tr&gt;</code></pre>
 </table>
 <hr />
 <ul>
-<li><del>A.F.Kay</del>
-<ul>
-<li><del>brb</del></li>
-<li><del>Idle Idol</del></li>
-</ul></li>
-<li><del>AI’Akir</del></li>
-<li><del>Alextrasza</del></li>
-<li>Ambassador Farlin
-<ul>
-<li>All According to Plan (Completed 2023/05/30)</li>
-</ul></li>
-<li>Aranna Starseeker
-<ul>
-<li>Outlandish (Completed 2023/06/04)</li>
-</ul></li>
 <li><del>Arch-Villain Rafael</del></li>
 <li><del>Brann</del></li>
 <li><del>Bru’kan</del></li>
@@ -529,6 +338,171 @@ href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvi
         <tag>tech</tag>
         <tag>LLM</tag>
         <tag>notes</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ADAS</title>
+    <url>/2020/04/23/ADAS/</url>
+    <content><![CDATA[<p>最近调研了一下ADAS，感觉是一个不错的方向。然而个人认为自动驾驶的<code>corner case</code>太多，未来充满挑战。</p>
+<span id="more"></span>
+<h2 id="自动驾驶汽车">自动驾驶汽车</h2>
+<p><code>自动驾驶汽车(Autonomous vehicles; Self-piloting automobile)</code>是一种通过电脑系统实现无人驾驶的智能汽车。</p>
+<p>自动驾驶汽车可以实现<code>驾驶员驾驶</code>、<code>系统辅助驾驶员驾驶</code>以及<code>系统自动驾驶</code>。而无人驾驶汽车是不需要驾驶员的，即便在紧急情况时也能自行处理。</p>
+<p><img src="/images/adas/1.png" width="80%"></p>
+<h2 id="自动驾驶的五个等级">自动驾驶的五个等级</h2>
+<pre><code>NHTSA：美国国家交通管理局
+SAE：美国汽车工程师学会</code></pre>
+<p><img src="/images/adas/2.png" width="80%"></p>
+<p>在车企们万众一心向L3级自动驾驶冲刺的关口，以自动驾驶为最终目标的<code>ADAS系统</code>自然而然的火了。</p>
+<p>目前世界上大部分的汽车，都处于<code>L1</code>级别，只有少数汽车，比如<code>特斯拉</code>，已经可以处于<code>L2</code>级别，并在不断完善当中。</p>
+<p><code>ADAS</code>实现的是<code>第3级</code>，而<code>自动驾驶</code>实现的是<code>第4级</code>。想要从第3级发展到第4级，还需要更多的汽车上配有自动驾驶技术，而且得配合道路基础设施建设（道路上的摄像头，清晰的车道线），以及需要汽车互联，汽车手机互联等等，是个非常庞大的工程.</p>
+<h2 id="adas">ADAS</h2>
+<p>高级驾驶辅助系统<code>ADAS(Advanced Driver Assistance System)</code></p>
+<blockquote>
+<p>利用安装在车上的各式各样传感器（毫米波雷达、激光雷达、单），在汽车行驶过程中随时来感应周围的环境，收集数据，进行静态、动态物体的辨识、侦测与追踪，并结合导航仪地图数据，进行系统的运算与分析，从而预先让驾驶者察觉到可能发生的危险，有效增加汽车驾驶的<code>舒适性</code>和<code>安全性</code>。</p>
+</blockquote>
+<ul>
+<li><p>ADAS核心是<code>环境感知</code></p></li>
+<li><p>自动驾驶是<code>人工智能</code></p></li>
+<li><p>ADAS可以视作自动驾驶汽车的<code>前提</code></p></li>
+</ul>
+<p><strong>虽然ADAS被很多人视作自动驾驶汽车的前提，但就其本质而言，ADAS是辅助驾驶，核心是环境感知，而自动驾驶是人工智能，两者体系有很大差别。</strong></p>
+<hr />
+<p>ADAS是最接近于自动驾驶的智能辅助系统。但是目前生活中比较常用的是<code>ADAS防碰撞预警</code>+<code>DSM防疲劳驾驶检测系统</code>。</p>
+<h2 id="adas分类">ADAS分类</h2>
+<p><img src="/images/adas/3.png" width="90%"></p>
+<h3 id="adas前车碰撞预警fcw">ADAS——前车碰撞预警FCW</h3>
+<p><img src="/images/adas/4.png" width="30%"></p>
+<p>由安装在车头的雷达，侦测自车和前方车辆的距离及速度，初期会发出警告声来提醒驾驶人注意车距，若车距依然持续拉近，车辆便会先自动轻踩刹车，并轻拉安全带2-3次，警告驾驶人。</p>
+<p>若系统判定追撞是没办法避免，启动自动紧急刹车（AEB）后，会同时立刻拉紧安全带固定驾驶人，降低意外发生后的伤害。</p>
+<h3 id="adas盲点侦测系统">ADAS——盲点侦测系统</h3>
+<p><img src="/images/adas/5.png" width="30%"></p>
+<p>汽车驾驶人的盲点是指三面后视镜，左、右、内看不到的区域</p>
+<p>盲点侦测系统就是运用雷达和传感器，来侦测车辆后方的盲点区，在盲点区侦测到车辆靠近时会向驾驶员提供警示，帮助驾驶人将意外的机率降至最低。</p>
+<h3 id="adas停车辅助系统">ADAS——停车辅助系统</h3>
+<p><img src="/images/adas/6.png" width="30%"></p>
+<p>停车辅助系统又分为 2种，分别是主动式与被动式 -
+主动式系统自动控制方向盘以帮助驾驶完成停车，当然油门、刹车与档位切换还是要车主自行操控。
+-
+被动式是以影像（摄影机）与影音（超音波）为感测单元所组成的，提供更多车身周围信息给车主掌握，减少碰撞机会。</p>
+<h3 id="adas车道偏离警示系统ldw">ADAS——车道偏离警示系统LDW</h3>
+<p><img src="/images/adas/7.png" width="30%"></p>
+<p>由摄影机、传感器及控制器所组成，原理是运用在车身侧面或后视镜的摄影机，采样目前行驶车道的标识线，再通过图像处理取得当前汽车在车道的位子，这时只要汽车偏离车道，控制器就会发出警报信号。</p>
+<p>从感测到发出警报，过程只需约0.5
+秒的时间，以实时提醒、叫醒驾驶，避免意外的发生。</p>
+<h3 id="adas适应性车灯系统">ADAS——适应性车灯系统</h3>
+<p><img src="/images/adas/8.png" width="30%"></p>
+<p>这套系统可依照不同的路况、环境、车速及天气状况，自动调整车灯的照明范围及角度，让车灯照射范围可以更深远下，又不会影像到其他用路人的视线，以提供驾驶人与对向来车更安全及舒适的照明。</p>
+<p>从过去的AFS主动转向式头灯，到现在结合传感器的多颗LED智能型头灯，都是属于此系统的范畴。</p>
+<h3 id="adas夜视系统">ADAS——夜视系统</h3>
+<p><img src="/images/adas/9.png" width="30%"></p>
+<p>可帮助驾驶可以在视线不明、看不清楚的夜晚或恶劣天气时，自动识别动物或大型异物，同时警告驾驶前方路况，以避免意外的发生。</p>
+<p>辨别方式为以红外线来感知热量的不同，区分人、动物、车辆以及环境的差异，经过处理转变成图像，将原本看不清楚的物体清楚呈现在驾驶眼前，以降低行车风险。</p>
+<h3 id="adas主动车距控制巡航系统-acc">ADAS——主动车距控制巡航系统
+ACC</h3>
+<p><img src="/images/adas/10.png" width="30%"></p>
+<p>通过安装在车辆前部的车距传感器，持续扫描车辆前方道路来得知前车的车速与相对距离，行驶中会自动侦测车速，当与前车的距离越来越小时，会对应调整自身车速，与前方车辆保持安全距离，减少碰撞意外的发生，也就是所谓的高级版自动巡航系统。</p>
+<p>目前许多车款上都已可看见此系统的踪影。</p>
+<h3 id="adas驾驶人生理状态监视">ADAS——驾驶人生理状态监视</h3>
+<p><img src="/images/adas/11.png" width="30%"></p>
+<p>目前系统大多都是利用摄影机侦测驾驶者脸部，判断专注力程度、是否有打瞌睡的象征，还有系统更是利用驾驶人眼睛开闭频率情况，来辨别安全等级，提供适合的警告或是协助动作。</p>
+<p>如果驾驶者的脸部表情变化减少，甚至出现闭眼的情况，车辆就会透过声响与灯号来警示车主注意，以减少意外事故发生。</p>
+<h2 id="adas关键节点">ADAS关键节点</h2>
+<ul>
+<li><p>感知</p>
+<p>目前ADAS主要采用的<code>传感器</code>有摄像头、雷达、激光和超声波等，可以探测光、热、压力或其它用于监测汽车状态的变量，通常位于车辆的前后保险杠、侧视镜、驾驶杆内部或者挡风玻璃上。</p>
+<p>大部份ADAS采用<code>摄像头</code>+<code>雷达</code>的组合方式，以实现雷达测距与摄像头图像识别功能的互补。主动式与被动式红外夜视系统是两种主流的技术路线。<code>主动式</code>通过CCD接受物体反射的对应敏感频谱成像，而<code>被动式</code>的红外焦平面探测器接受物体的红外辐射成像。两者各有优势，将在较长时间内共存。</p>
+<p>不同的系统需要使用不同类型的车用传感器，包含毫米波雷达、超声波雷达、红外雷达、激光雷达、CCD
+CMOS影像传感器及轮速传感器等，来收集整车的工作状态及其参数变化情形，并将不断变化的机械运动变成电子参数(电压、电阻及电流)。</p>
+<ul>
+<li>举例来说，车道偏离警告系统使用CMOS影像传感器、夜视系统则使用红外线传感器、适应性定速控制通常使用雷达、停车辅助系统则会使用超声波等。</li>
+</ul></li>
+<li><p>判断</p>
+<p>算法是ADAS系统可靠性、准确度的<code>决定性因素</code>，主要包括摄像头/雷达测距、行人识别、道路交通标志识别等，针对前装应用的可靠性要求高，需要进行大量的场景测试与标定。其中雷达标定的门槛最高。</p>
+<p>电子控制单元(ECU)会在针对传感器所收集到的信息进行分析处理，然后再向控制的执行装置下达动作指令。</p></li>
+<li><p>执行
+包含油门、刹车、灯光、声响等系统都是属于执行器的范畴内，会依据ECU输出的讯号，来执行各种反应动作，让汽车安全行驶于道路上。</p>
+<p>ADAS系统通过传感器获取数据，主芯片完成判断后，初级应用通过声音、图像、振动对驾驶者进行<code>警示</code>。</p>
+<p>与电子控制功能结合后，逐渐进化到对车辆的<code>自动控制</code>。</p></li>
+</ul>
+<h2 id="adas产业链">ADAS产业链</h2>
+<p><img src="/images/adas/12.png" width="60%"></p>
+<p>在产业链中，<code>传感器技术</code>(摄像头与雷达)、<code>芯片</code>与<code>算法</code>是其中的关键。</p>
+<ul>
+<li><p>其中，摄像头核心部件CMOS感光芯片主要掌握在以索尼、三星为代表的日韩企业中。</p></li>
+<li><p>雷达分为超声波雷达、毫米波雷达、激光雷达</p>
+<ul>
+<li>超声波雷达技术门槛较低，供应商较多；</li>
+<li>激光雷达成本高昂，未商业化；</li>
+<li>毫米波雷达成本在两者之间，技术门槛较高，主要掌握在ZF
+TRW、博世等行业领先公司手中。</li>
+</ul></li>
+<li><p>而芯片、算法在ADAS系统中至关重要，行业集中度高，主要有Mobileeye、ADI等公司</p></li>
+</ul>
+<h2 id="视觉adas">视觉ADAS</h2>
+<ul>
+<li><p>原理</p>
+<p>图像处理，将图片转换为<code>二维数据</code></p>
+<p>模式识别，通过图像匹配进行识别，如车辆、行人、车道线、交通标志</p>
+<p>利用物体的运动模式，或双目定位，估算目标物体与本车的相对距离和相对速度</p></li>
+<li><p>优点</p>
+<p>像素级别的颜色、偏移、距离等信息</p>
+<p>成本低，信息量丰富、特征识别好</p></li>
+<li><p>缺点</p>
+<p>获取准确<code>三维信息</code>难度大</p>
+<p>受环境光限制比较大，速度、距离分辨率差</p></li>
+</ul>
+<p>目前在行车辅助功能中，摄像头可用来单独实现很多功能，并且按照自动驾驶发展规律逐渐演进。</p>
+<p><img src="/images/adas/13.png" width="60%"></p>
+<p>这些功能更加强调对输入图像的处理，从拍摄的视频流中提取<code>有效目标运动信息</code>做进一步分析，给出预警信息或直接调动控制机构。相比视频输出类功能，强调<code>高速下的实时性</code>，这部分技术正处在发展上升期。</p>
+<h2 id="视觉adas软硬需求">视觉ADAS软硬需求</h2>
+<ul>
+<li><p>摄像头模组</p>
+<p>需要定制化开发，一般要满足宽动态、高感光、不一味追求高像素
+ADAS的摄像头更讲究为行车时预留更多判断时间，需要看得更远。</p></li>
+<li><p>核心算法芯片</p>
+<p>如果在算法上叠加深度学习来帮助识别率提升，对硬件性能的要求只增不减，主要考虑的性能指标是运算速度、功耗、以及成本。</p></li>
+<li><p>软件算法</p>
+<p>源头是计算机视觉-&gt;深度学习的渗透</p>
+<p>在感知方面，深度学习将会弯道超车传统视觉算法</p>
+<p>无论哪种算法，数据都是用来训练测试的宝贵资源，而且不是单纯的越多越好，而是越有效越好（符合实际用车环境并保证多样化）。</p></li>
+</ul>
+<h2 id="小结">小结</h2>
+<p>本次调研对<code>ADAS</code>有了一个系统的认知，感觉是<code>非常有潜力</code>以及<code>非常有挑战</code>的发展方向。</p>
+<p>视觉ADAS相比于毫米波雷达识别效果更好，可以充分利用<code>视觉信息</code>进行车辆、路标等识别。</p>
+<p>我们的重点在于利用<code>感知的信息</code>做决策，其中算法是ADAS系统可靠性、准确度的决定性因素，高效的部署会影响实时性。</p>
+<p>接下来会对<code>FCW</code>及相关算法进行进一步调研</p>
+<h2 id="参考博客">参考博客</h2>
+<p><a
+href="https://blog.csdn.net/u010607947/article/details/70847028?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0">一篇文章看懂ADAS</a></p>
+<p><a
+href="https://blog.csdn.net/zhanshen112/article/details/80374815?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-6">ADAS的八大系统</a></p>
+<p><a
+href="https://blog.csdn.net/sinat_32970179/article/details/99833646?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-13">特斯拉、吉利车上的那些ADAS系统你都会用吗？</a></p>
+<p><a
+href="https://blog.csdn.net/wanzew/article/details/82828579?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-4">ADAS功能盘点及实现过程解析</a></p>
+<p><a
+href="https://blog.csdn.net/usstmiracle/article/details/95461183?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-3">ADAS是什么？</a></p>
+<p><a
+href="https://blog.csdn.net/weixin_42229404/article/details/82623742?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-1">ADAS各功能模块及ADAS解决方案提供商详解</a></p>
+<p><a
+href="https://blog.csdn.net/Gary_Yan_cc/article/details/80717069?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-12">车载摄像头在ADAS中的应用</a></p>
+<p><a
+href="https://blog.csdn.net/u011776903/article/details/72866442">ADAS视觉方案盘点上篇：摄像头、芯片和算法</a></p>
+<h2 id="参考视频">参考视频</h2>
+<p><a
+href="https://haokan.baidu.com/v?vid=6343999001934023106&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS自动辅助驾驶系统为何如此受青睐？看看它到底有多强大！</a></p>
+<p><a
+href="https://haokan.baidu.com/v?vid=3780861684865301120&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS智能驾驶辅助系统</a></p>
+<p><a
+href="https://haokan.baidu.com/v?vid=8288616481555786115&amp;tab=recommend">WEY
+VV6智能驾驶辅助系统深度体验</a></p>
+<p><a
+href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动驾驶第二弹</a></p>
+]]></content>
+      <tags>
+        <tag>ADAS</tag>
+        <tag>tech， research</tag>
       </tags>
   </entry>
   <entry>
