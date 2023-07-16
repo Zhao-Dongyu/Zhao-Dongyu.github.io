@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-07-13T02:05:56.222Z</updated>
+  <updated>2023-07-16T14:57:12.739Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,11 +21,11 @@
     <link href="http://example.com/2023/07/09/Battlegrounds/"/>
     <id>http://example.com/2023/07/09/Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2023-07-13T02:05:56.222Z</updated>
+    <updated>2023-07-16T14:57:12.739Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
-&lt;p&gt;Now at &lt;strong&gt;50%&lt;/strong&gt;&lt;/p&gt;</summary>
+&lt;p&gt;Now at &lt;strong&gt;53%&lt;/strong&gt;&lt;/p&gt;</summary>
     
     
     
@@ -43,7 +43,7 @@
     <link href="http://example.com/2023/07/08/Final-cut-study-notes/"/>
     <id>http://example.com/2023/07/08/Final-cut-study-notes/</id>
     <published>2023-07-07T16:04:56.000Z</published>
-    <updated>2023-07-09T06:35:08.801Z</updated>
+    <updated>2023-07-16T14:43:54.051Z</updated>
     
     
     <summary type="html">&lt;p&gt;学习Final Cut Pro的笔记，提高生产力。&lt;/p&gt;</summary>
@@ -84,7 +84,7 @@
     <link href="http://example.com/2023/06/30/Using-Ubuntu-from-scratch/"/>
     <id>http://example.com/2023/06/30/Using-Ubuntu-from-scratch/</id>
     <published>2023-06-29T16:00:00.000Z</published>
-    <updated>2023-07-13T05:58:40.042Z</updated>
+    <updated>2023-07-13T09:46:15.722Z</updated>
     
     
     <summary type="html">&lt;p&gt;原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～&lt;/p&gt;</summary>
@@ -131,26 +131,6 @@
   </entry>
   
   <entry>
-    <title>git</title>
-    <link href="http://example.com/2023/06/19/git/"/>
-    <id>http://example.com/2023/06/19/git/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2023-07-13T05:38:20.642Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。&lt;/p&gt;
-&lt;p&gt;在此记录一下需要经常查阅的情景。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="git" scheme="http://example.com/tags/git/"/>
-    
-    <category term="branch" scheme="http://example.com/tags/branch/"/>
-    
-  </entry>
-  
-  <entry>
     <title>gdb</title>
     <link href="http://example.com/2023/06/19/gdb/"/>
     <id>http://example.com/2023/06/19/gdb/</id>
@@ -167,6 +147,26 @@
     <category term="study" scheme="http://example.com/tags/study/"/>
     
     <category term="gdb" scheme="http://example.com/tags/gdb/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>git</title>
+    <link href="http://example.com/2023/06/19/git/"/>
+    <id>http://example.com/2023/06/19/git/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2023-07-13T05:38:20.642Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。&lt;/p&gt;
+&lt;p&gt;在此记录一下需要经常查阅的情景。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="git" scheme="http://example.com/tags/git/"/>
+    
+    <category term="branch" scheme="http://example.com/tags/branch/"/>
     
   </entry>
   
@@ -206,9 +206,9 @@
     
     
     
-    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
-    
     <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
     
   </entry>
   
@@ -225,9 +225,9 @@
     
     
     
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
     <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
     
   </entry>
   
