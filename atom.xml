@@ -43,7 +43,7 @@
     <link href="http://example.com/2023/07/08/Final-cut-study-notes/"/>
     <id>http://example.com/2023/07/08/Final-cut-study-notes/</id>
     <published>2023-07-07T16:04:56.000Z</published>
-    <updated>2023-07-16T14:43:54.051Z</updated>
+    <updated>2023-07-16T15:31:47.816Z</updated>
     
     
     <summary type="html">&lt;p&gt;学习Final Cut Pro的笔记，提高生产力。&lt;/p&gt;</summary>
@@ -51,9 +51,9 @@
     
     
     
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
     <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
   </entry>
   
@@ -131,26 +131,6 @@
   </entry>
   
   <entry>
-    <title>gdb</title>
-    <link href="http://example.com/2023/06/19/gdb/"/>
-    <id>http://example.com/2023/06/19/gdb/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2023-07-13T05:35:38.498Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
-&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
-    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
-    
-  </entry>
-  
-  <entry>
     <title>git</title>
     <link href="http://example.com/2023/06/19/git/"/>
     <id>http://example.com/2023/06/19/git/</id>
@@ -167,6 +147,26 @@
     <category term="git" scheme="http://example.com/tags/git/"/>
     
     <category term="branch" scheme="http://example.com/tags/branch/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gdb</title>
+    <link href="http://example.com/2023/06/19/gdb/"/>
+    <id>http://example.com/2023/06/19/gdb/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2023-07-13T05:35:38.498Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
+&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
     
   </entry>
   
