@@ -70,9 +70,9 @@
     
     
     
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
   </entry>
   
@@ -90,9 +90,9 @@
     
     
     
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
@@ -150,26 +150,6 @@
   </entry>
   
   <entry>
-    <title>git</title>
-    <link href="http://example.com/2023/06/19/git/"/>
-    <id>http://example.com/2023/06/19/git/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2023-07-13T05:38:20.642Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。&lt;/p&gt;
-&lt;p&gt;在此记录一下需要经常查阅的情景。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="git" scheme="http://example.com/tags/git/"/>
-    
-    <category term="branch" scheme="http://example.com/tags/branch/"/>
-    
-  </entry>
-  
-  <entry>
     <title>gdb</title>
     <link href="http://example.com/2023/06/19/gdb/"/>
     <id>http://example.com/2023/06/19/gdb/</id>
@@ -186,6 +166,26 @@
     <category term="study" scheme="http://example.com/tags/study/"/>
     
     <category term="gdb" scheme="http://example.com/tags/gdb/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>git</title>
+    <link href="http://example.com/2023/06/19/git/"/>
+    <id>http://example.com/2023/06/19/git/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2023-07-13T05:38:20.642Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。&lt;/p&gt;
+&lt;p&gt;在此记录一下需要经常查阅的情景。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="git" scheme="http://example.com/tags/git/"/>
+    
+    <category term="branch" scheme="http://example.com/tags/branch/"/>
     
   </entry>
   
@@ -225,9 +225,9 @@
     
     
     
-    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
-    
     <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
     
   </entry>
   
@@ -244,9 +244,9 @@
     
     
     
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
     <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
     
   </entry>
   
@@ -263,11 +263,11 @@
     
     
     
-    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
   </entry>
   
@@ -333,9 +333,9 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="crawler" scheme="http://example.com/tags/crawler/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
