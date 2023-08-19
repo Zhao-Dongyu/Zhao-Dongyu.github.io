@@ -1,6 +1,774 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>踏上ChatGPT旅程</title>
+    <url>/2023/05/26/ChatGPT/</url>
+    <content><![CDATA[<p>开始使用并学习ChatGPT以及相关的<code>LLM(Large Language Model)</code>，不然就被时代淘汰了～</p>
+<span id="more"></span>
+<h1 id="写在前面">0.写在前面</h1>
+<p>从去年11月底ChatGPT发布，到后来爆火，改变互联网，这半年时间我对ChatGPT还是比较冷漠的。</p>
+<p>期间我也体验了一下，以及体验了<code>cursor</code>（一个使用chatgpt-4的ai辅助编程工具），但自始至终还是充满了不信任感。所以也一直没注册账号，没想进一步探索。</p>
+<p>直到今天，我改变了对它看法，或者说我改变了看它的角度。</p>
+<p>以前潜意识里是觉得ChatGPT是智囊、军师、管家之类的身份，觉得人的主观能动性受到限制，所以会抵制。</p>
+<p>现在我想把它当工具，来便利我的工作和生活，便没有了心理阻碍。</p>
+<p>于是，ChatGPT旅程，出发～</p>
+<h1 id="注册chatgpt">1. 注册ChatGPT</h1>
+<p>我参考了这篇文章<a
+href="https://www.xnbeast.com/create-openai-chatgpt-account/">ChatGPT注册教程攻略：解决手机无法接收验证码问题（亲测有效）</a>
+，在<a
+href="https://sms-activate.org/">sms-activate</a>购买了临时国外手机号——</p>
+<ul>
+<li><p>买了个英国的手机号，结果</p>
+<p><code>Your account was flagged for potential abuse. If you feel this is an error, please contact us at help.openai.com</code></p></li>
+<li><p>换了个美国的也不行</p></li>
+<li><p>最后换了个印度尼西亚的手机号，顺利注册，但是进入ChatGPT又显示</p>
+<p><code>Sorry, you have been blocked</code></p></li>
+</ul>
+<p>出师不利啊……突然想起来我买的VPN的维护者说过，这个vpn不搞chatGPT那破玩意儿。于是在tg上找了个<code>@chatgptzs_bot</code>，暂时先用着，也挺好用的。</p>
+<p>但是还不甘心，之后我用<code>自由鲸</code>的欧洲节点，开启全局模式，能正常使用ChatGPT了。不过目前不是付费用户，所以没有联网功能和插件功能。</p>
+<h1 id="chatgpt使用技巧">2. ChatGPT使用技巧</h1>
+<p>昨晚在B站看到一个视频挺好的——</p>
+<p><a
+href="https://b23.tv/XCclvE1">学完这个视频，简历加一条：熟练掌握ChatGPT解决复杂问题｜ChatGPT使用教程-哔哩哔哩</a></p>
+<p>说实话，我也是有一部分被这个视频驱动来搞ChatGPT的。</p>
+<h2 id="乔哈里johari沟通视窗">乔哈里(Johari)沟通视窗</h2>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>你知道</th>
+<th>你不知道</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPT知道</td>
+<td>公开区</td>
+<td>盲区</td>
+</tr>
+<tr class="even">
+<td>GPT不知道</td>
+<td>隐私区</td>
+<td>未知区</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>盲区｜问法1:
+<code>我想了解xxx，我应该向你问哪些问题？</code></p></li>
+<li><p>盲区｜问法2:<code>请给我列出xxx领域/行业相关的，最常用的50个概念，并做简单解释。如果有英文缩写，请给出完整的英文解释。</code></p></li>
+<li><p>盲区｜问法3:<code>请详细介绍一下xxx的主要生平事迹。</code>
+<code>请详细介绍一下xxx公司的发展历程。</code></p></li>
+<li><p>公开区｜检验认知:<code>对于xxx主题/技能，你认为哪些是我必须理解和掌握的核心要点？</code></p></li>
+<li><p>公开区｜检验认知:<code>我理解的xxx是这样的，你觉得我的理解对吗？</code></p></li>
+<li><p>公开区｜检验认知:<code>我对xxx有一些想法，你能帮我批判性地分析一下这些想法的优点和缺点吗？</code></p></li>
+<li><p>公开区｜检验认知:<code>我正在考虑xxx的决定，你能帮我分析一下可能的结果和影响吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我知道xxx的概念，我想知道更多关于xxx的信息。</code></p></li>
+<li><p>公开区｜扩充认知:<code>我在xxx问题上遇到困难，你能提供一些可能的解决方案或建议吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想要深入学习xxx，你能推荐一些进阶的学习资源或学习路径吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想要在xxx领域有所创新，你能提供一些启发或想法吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想在xxx领域提升自己，你能根据最新的研究和趋势给我一些建议吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我正在考虑学习xxx，你能给我一些关于这个领域未来发展的观点吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>（背景信息）我要做关于xxx的研究，我认为原因是，还有其他可能的原因吗？给出一些可能的研究假设。</code></p></li>
+<li><p>公开区｜扩充认知:<code>我是一个xx行业新手，马上要采访这个行业的资深大佬，我应该向他请教哪些有价值的问题？</code></p></li>
+<li><p>盲区｜问法1: <code>你怎么看待这种现象？</code></p></li>
+<li><p>盲区｜问法2: <code>可能的原因有哪些？</code></p></li>
+<li><p>盲区｜问法3: <code>这会对xxx产生什么样的影响？</code></p></li>
+<li><p>盲区｜问法4: <code>你觉得xxx应该怎么做？</code></p></li>
+<li><p>未知区｜问法1:
+<code>如果xxx，这对社会会产生什么影响？</code></p></li>
+<li><p>未知区｜反向提问:
+<code>为了测试我对xxx的了解程度，你会问我什么问题来检验我的水平，最少10个</code></p></li>
+<li><p>未知区｜反向提问:
+<code>我是xx领域的专家，你会问我哪些问题来检验我的专业水平？最少10个。</code></p></li>
+<li><p>未知区｜反向提问:
+<code>现在我们玩个“你问我答”的游戏，目的是为了测试我在xxxx方面的专业水平。你负责提问，我负责回答。你要根据我的答案进行反馈、评价、补充。如果我说不知道，你就直接输出正确答案，然后你继续提问。</code></p></li>
+<li><p>未知区｜反向提问:
+<code>我已经很精通xxx了，我想知道我是否还有需要学习的地方？</code></p></li>
+</ul>
+<p>1 知道自己要干什么，但是不知道ChatGPT能帮你什么。 -
+<code>我要做xxx，你能帮我做什么？</code></p>
+<p>2 知道要ChatGPT帮你做什么，但是你不知道给它输入什么具体的信息。 -
+<code>我想要你xxx，我应该给你输入什么信息？</code></p>
+<p>3 直接给ChatGPT指令。任务目标、背景信息、输出要求都非常清晰。 -
+<code>请推荐（书名、电视剧、电影、网站、博主、专家、学习资源） 等等。请翻译.请总结.请润色。</code></p>
+<h1 id="llm学习">3. LLM学习</h1>
+<p>我：给我推荐一些学习大规模语言模型的资料吧</p>
+<blockquote>
+<p>当然！以下是一些学习大规模语言模型的资料推荐： 1.
+论文和研究文章：深入了解大规模语言模型的原理和技术，可以阅读相关的论文和研究文章，例如《Transformers:
+Attention Is All You Need》、《BERT: Pre-training of Deep Bidirectional
+Transformers for Language Understanding》和《GPT (Generative Pre-trained
+Transformer)》。 2.
+博客文章和教程：有许多博客文章和教程可供学习，这些文章会解释大规模语言模型的概念、实现和应用。可以查找像Towards
+Data Science、Medium和OpenAI Blog等平台上的相关文章。 3. GitHub
+上的代码库：学习大规模语言模型的实现和代码细节，可以查看GitHub上的开源代码库，如Hugging
+Face的transformers库、OpenAI的GPT代码库等。 4.
+视频教程和在线课程：有一些在线课程和视频教程专门介绍大规模语言模型。例如，Coursera
+上的 "Natural Language Processing with Sequence Models" 和 YouTube 上的
+"The Transformer Explained" 等。 5.
+社区和论坛：加入与自然语言处理和大规模语言模型相关的社区和论坛，与其他人交流讨论，获取实践经验和最新动态。</p>
+<p>这些资源可以帮助你深入了解大规模语言模型的背后原理、应用和实现。希望对你的学习有所帮助！如需更具体的资源或问题，请随时告诉我。</p>
+</blockquote>
+<h2 id="学习视频">学习视频</h2>
+<p>Google Cloud Tech</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=zizonToFXDs">Introduction
+to Large Language Models</a></li>
+</ul>
+<p>ZOMI</p>
+<ul>
+<li><p><a
+href="https://www.youtube.com/watch?v=XujuQB9AxGA">ChatGPT狂飙原理剖析：GPT系列详解！【ChatGPT】系列第01篇</a></p></li>
+<li><p><a
+href="https://www.youtube.com/watch?v=qf2zcev7mHQ">ChatGPT狂飙：强化学习RLHF与PPO！【ChatGPT】系列第02篇</a></p></li>
+<li><p><a
+href="https://www.youtube.com/watch?v=Oy-8BqwXck8&amp;t=1s">ChatGPT狂飙：InstructGPT解析！【ChatGPT】原理第03篇</a></p></li>
+<li><p>【ChatGPT狂飙：InstructGPT解析！】思考：</p>
+<ul>
+<li>大模型通过计算的方式模拟人类的思考，类似于ChatGPT的RLHF技术是否会给世界带来新的技术产业革命？</li>
+<li>ChatGPT 使用了 Ray 作为细粒度的并行计算和昇构计算，管理分配
+RLIDL模型完成复杂训练任务，方便利用强化学习对环境和计算任务进行控制，这对A框架的分布式能力边界带来哪些新的冲击？</li>
+<li>ChatGPT
+非常重数据交互，存算一体技术会不会针对ChatGPT等应用的现专用芯片和新的架构?</li>
+</ul></li>
+</ul>
+<p><a
+href="https://imzhanghao.com/2023/02/24/chatgpt/">ChatGPT模型的三层理解</a></p>
+<p><a
+href="https://github.com/dalinvip/Awesome-ChatGPT">Awesome-ChatGPT</a></p>
+<p>2023.6.1 学习<a
+href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读</a></p>
+]]></content>
+      <tags>
+        <tag>ChatGPT</tag>
+        <tag>LLM</tag>
+        <tag>tech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Crawler</title>
+    <url>/2020/05/19/Crawler/</url>
+    <content><![CDATA[<p>背景：国内表情识别的数据集太少了 &amp;
+表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。</p>
+<p>于是，在百度上爬了一批数据下来补充到数据集里面。</p>
+<p>[爬虫有风险，操作需谨慎]</p>
+<span id="more"></span>
+<h1 id="写在前面的话">写在前面的话</h1>
+<p>一共两个文件</p>
+<ul>
+<li><p>crawler.py</p>
+<p>主程序：实现爬虫功能，爬取的关键词在keywords.txt里面</p></li>
+<li><p>keywords.txt</p>
+<p>关键词：比如爬开心的图，就可以设置 happy 高兴 高兴表情 高兴的人
+高兴脸 开心 开心脸 开心的人 开心表情 欢愉 愉悦 愉悦表情 欢愉表情
+幸福表情 幸福的脸 幸福的人 愉悦表情 欢欣表情 欢喜表情 喜悦</p>
+<p><strong>每个关键词用换行分隔</strong></p></li>
+</ul>
+<p>运行python文件后，需要等待一会（正在获取图片的<code>url</code>），然后就显示下载log了。</p>
+<p>结果会保存到<code>image</code>文件夹内，后续需要进一步批处理文件以及进行人脸提取、对齐、清洗等工作。</p>
+<p>清洗数据集还是相当繁琐的，建议不要浪费时间在数据清洗上，自己想办法找途径处理。</p>
+<pre><code>[爬虫有风险，操作需谨慎]
+
+希望你能把这个代码用在正途，造福社会:)
+
+希望你能开源数据集，减少社会整体的成本:)</code></pre>
+<h1 id="python代码">python代码</h1>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>crawler</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Final Cut study notes</title>
+    <url>/2023/07/08/Final-cut-study-notes/</url>
+    <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
+<span id="more"></span>
+<h1 id="配置">配置</h1>
+<hr />
+<h1 id="插件">插件</h1>
+<h2 id="motion-vfx"><a href="https://www.motionvfx.com/">MOTION
+VFX</a></h2>
+<p>一个插件集合的网站，巨好用！</p>
+<h3 id="mcamrig摄像机运动"><a
+href="https://www.motionvfx.com/store,mcamrig,p2219.html?category=63&amp;irgwc=1&amp;irgwc=1">mCamRig</a>摄像机运动</h3>
+<ul>
+<li>对出教程的UP主特别有用</li>
+<li>可以快速制作缩放、旋转，添加镜头模糊、镜头运动效果</li>
+<li>用法：
+<ul>
+<li>字幕里找到插件，拉到对应的片段上</li>
+</ul></li>
+</ul>
+<h3 id="mvertical手机视频背景虚化"><a
+href="https://www.motionvfx.com/store,mvertical,p2176.html?irgwc=1">mVertical</a>手机视频背景虚化</h3>
+<ul>
+<li>横版视频插入竖版视频时，填充两边的黑色</li>
+<li>实现背景重叠的背景虚化</li>
+<li>小技巧
+<ul>
+<li>选择片段，按一下X，就自动选择这个片段长度</li>
+<li>在字幕里找到mVertical，按Q，就可以整段附着到这个片段</li>
+</ul></li>
+</ul>
+<h2 id="commandpost最强辅助"><a
+href="https://commandpost.io">Commandpost</a>最强辅助</h2>
+<h1 id="清理缓存">清理缓存</h1>
+<p>资源库 右键 显示包内容</p>
+<h1 id="高效技巧">高效技巧</h1>
+<p>添加视频时，进行了部分选择，标记 -&gt; 清除所选范围（快捷键：Option +
+X 取消选择）</p>
+<p>添加字幕：按enter会换行，按commond+enter退出编辑状态</p>
+<p>把当前片段拉长（某一帧拉长） - 编辑 -&gt; 添加静帧 - 快捷键：shift +
+H，片段是完整的没有被切割</p>
+<p>固定音乐位置 - 第一帧最前面加一个空隙 Edit -&gt; Insert Generator
+-&gt; Gap(option+W) - 选择Gap，control+D，输入1（1帧时长） -
+把音乐放最前面 - 删除的时候，Option + commond + Delete</p>
+<p>调整变速，不影响整体时长 - 右键， Lift from storyline - Overwrite to
+Primary Storyline</p>
+<p>添加的时候只要要画面，不要声音</p>
+<p>Final cut pro 1. 资源管理 - 关系： 资源库 -&gt; 事件 -&gt; 项目 -
+导入素材 - 按住 command， 手动点击素材，批量选择</p>
+<p>2.添加 素材到时间线，基本操作 - 1. 片段选择 - 选择入点： I - 选择出点
+： O - 添加到时间线： E - 取消选择 - Option + X - 2. 预览素材 -
+顺序播放： L - 加速： 连续按2,3次L - 暂停 ：K - 倒序播放 ：J -
+3.添加字幕 - 添加到选定时间点： Q - 4. 在2个素材之间快速插入： W - 5.
+进阶学习 - 个人收藏 - 关键词 - 3.剪辑 - 1. 切割工具 - B - 2. 延长 缩短
+选择的视频 - 逗号 和 句号 - 3. 切割并选中 - command + B - 4.
+范围选择工具 - 按住R不松 - 5. 删除 播放头开始 到 选中位置 - Option + [ -
+6. 删除 选中位置 到 素材结束位置 - Option + ] - 7. 删除 主时间线视频，
+同时不删除连接的视频 ， 且保留 B-roll - Option + command + delete - 8.
+速度条<br />
+- command + R - 9. 速度条 分段 - shift + B - 10. 完整 显示时间线 - shift
++ Z - 11. 吸附 开关 - N - 12. 打上标记 - M - 13. 预览 开关 - S - 14.
+音频 - 音量调节 - Control + or Control - - 15. 字幕 - 添加字幕 到 浏览头
+右边 - Q - 添加字幕 到 浏览头 左边 - shift + Q - 直接添加 基本字幕 -
+control + T - 16. 转场 - 添加默认转场 - command + T - 17. 添加 静止帧 -
+Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数）
+- 19. 从故事情节中 提取 - 不影响 时间线 option + command + 向上</p>
+]]></content>
+      <tags>
+        <tag>finalcut</tag>
+        <tag>notes</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Homogeneous_ShangHai</title>
+    <url>/2023/08/04/Homogeneous-ShangHai/</url>
+    <content><![CDATA[<p>计划在上海搞一个大大的竹笋！</p>
+<span id="more"></span>
+<h1 id="背景">0、背景</h1>
+<h2 id="前年2021">前年（2021）</h2>
+<p>我在北京的校园里，设计并制作了一个六重竹笋，<a
+href="https://mp.weixin.qq.com/s/O6tBVdg4Saa4KtITM-UNng">《六重蓝笋成长记（上）》</a>和<a
+href="https://mp.weixin.qq.com/s/6t3HY1REaKn-AUS1TxTOdQ">《六重蓝笋成长记（下）》</a>，开始体会到竹笋的乐趣，并立志于做更高重的笋。</p>
+<h2 id="去年2022">去年（2022）</h2>
+<p>我在上海的某个时期，闲得实在是无聊，制作了 <a
+href="https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w">视频：从入门到夺笋</a>，以缓解不能出去玩的郁闷，并立志于做更高重的七重(七色彩虹)竹笋。</p>
+<h2 id="今年2023">今年（2023）</h2>
+<p>随着我做高重蓝笋的念头越来越强烈，便开始着手准备这件事情。</p>
+<p>非常重要的问题来了——做几重？</p>
+<p>我上一次做单人六重，耗时 5 个小时，行程 31 公里。</p>
+<p>ALHDLIOX上一次做<a
+href="https://mp.weixin.qq.com/s/mqPZ0Rjx0QR3yCGgSz1Hxg">单人七重</a>，耗时
+35 小时，行程 184.69 公里</p>
+<p>经过鲁莽的思考，我觉得九这个数字很好，代表数之极。做九重！</p>
+<p>正所谓：</p>
+<blockquote>
+<p><strong>九重开，灵之斿，垂惠恩，鸿祜休。</strong></p>
+</blockquote>
+<p>（当然，以上是我的美好愿景，还是老老实实先从八重开始吧）</p>
+<h1 id="获取数据">1、获取数据</h1>
+<h2 id="三年前的数据">三年前的数据</h2>
+<p>我想起 <code>@Nanoape</code> 曾在 <a
+href="https://mp.weixin.qq.com/s/ewEHaY8gKo2o31ApP5T7GQ">来刷新新的个人
+Dronenet 飞行记录吧</a> 一文中提到他拿到了全球所有 Portal 的数据。共
+1.31G，Portal 总数 11,475,124，数据统计截止到 2020.06.12。</p>
+<p>于是我下载了portal数据<a
+href="https://mega.nz/file/PsYnkCoD#ujlASFyomu1ZT8WZXi1_57ogH3pneGRXT2EC156u-lg">Mega</a>(这个网盘真良心啊，不限速，不强制登陆)</p>
+<p>然而三年过去了，这一数据已经过时，比起得不到最优解，我更担心的是有的
+portal 移动了位置，致使整个计划失败。</p>
+<h2 id="获取新数据">获取新数据</h2>
+<p>我本想通过某个脚本来抓取上海区域的所有 portal
+的信息，但是抓到了这个信息：</p>
+<blockquote>
+<p>{'message': 'Please, dont do so. Contact <span class="citation"
+data-cites="Lanched">@Lanched</span> insted.'}</p>
+</blockquote>
+<p>谢天谢地，这及时制止了我违反ToS的行为(事后惊出一身冷汗)。</p>
+<p>于是我联系了
+<code>@Lanched</code>，在他的热心帮助下，我顺利拿到了一份整个上海portal的信息。</p>
+<blockquote>
+<p>数据截止到 2023-7-30 日，区域范围是北纬 30.662225-31.879785，东经
+120.860389-121.969865，基本包含整个上海区域，一共 30,179 个potal。</p>
+</blockquote>
+<p>在与他的交流过程中得知，全球 portal 的数量已经从2020年的 11,475,124
+个，2023年上涨到了 18,284,480 个，增长为原来的
+159%。看这个数据很可观，依稀还是能看到它茁壮成长的影子的（拜托拜托，再撑十年吧）。</p>
+<p>最后，我向他表示感谢，并表示 以后有需要我的地方我会尽全力帮忙，
+得到的回复却是
+<code>I dont think, you can help me in ingress - anyway i cant play it anymore.</code>
+。</p>
+<p>我看了他的名字是
+<code>Alex Zverev</code>，意识到他的国籍，顿时心里五味杂陈，但愿以后游戏可以更纯粹一些。</p>
+<h1 id="分析数据">2、分析数据</h1>
+<p>写了一些小脚本，对拿到的数据进行了分析，结果如下：</p>
+<p><img src="/images/ingress/shanghai_portals.gif" width="80%"></p>
+<p>上海的经纬度是东经120°52′-122°12′，北纬30°40′-31°53′之间。
+数据截止到2023-7-30日，区域范围是北纬30.662225-31.879785，东经120.860389-121.969865，基本包含整个上海区域，一共30179个potal。</p>
+<p><img src="/images/ingress/part_of_shanghai.png" width="60%"></p>
+<p>我喜欢密集的区域！于是进一步将经纬度限制在比较密集的
+北纬30.988-31.430，东经121.249-121.718，一共22431个portal:</p>
+<p><img src="/images/ingress/part_of_shanghai_gif.gif" width="80%"></p>
+<hr />
+<p>数据、图片、代码均位于</p>
+<p>参考文献： <a
+href="https://blog.csdn.net/qq_42887760/article/details/129285818">python中Google
+S2算法的简单使用案例</a></p>
+<p><a
+href="https://blog.csdn.net/qq_43777978/article/details/116800460">Google的S2算法原理以及使用Java版本--部分参考自《高效的多维空间点索引算法》</a></p>
+]]></content>
+      <tags>
+        <tag>ingress</tag>
+        <tag>Homogeneous</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ADAS</title>
+    <url>/2020/04/23/ADAS/</url>
+    <content><![CDATA[<p>自动驾驶汽车可以实现<code>驾驶员驾驶</code>、<code>系统辅助驾驶员驾驶</code>以及<code>系统自动驾驶</code>。而无人驾驶汽车是不需要驾驶员的，即便在紧急情况时也能自行处理。</p>
+<p>最近调研了一下ADAS，感觉是一个不错的方向。然而个人认为自动驾驶的<code>corner case</code>太多，未来充满挑战。</p>
+<span id="more"></span>
+<h2 id="自动驾驶汽车">自动驾驶汽车</h2>
+<p><code>自动驾驶汽车(Autonomous vehicles; Self-piloting automobile)</code>是一种通过电脑系统实现无人驾驶的智能汽车。</p>
+<p>自动驾驶汽车可以实现<code>驾驶员驾驶</code>、<code>系统辅助驾驶员驾驶</code>以及<code>系统自动驾驶</code>。而无人驾驶汽车是不需要驾驶员的，即便在紧急情况时也能自行处理。</p>
+<p><img src="/images/adas/1.png" width="80%"></p>
+<h2 id="自动驾驶的五个等级">自动驾驶的五个等级</h2>
+<pre><code>NHTSA：美国国家交通管理局
+SAE：美国汽车工程师学会</code></pre>
+<p><img src="/images/adas/2.png" width="80%"></p>
+<p>在车企们万众一心向L3级自动驾驶冲刺的关口，以自动驾驶为最终目标的<code>ADAS系统</code>自然而然的火了。</p>
+<p>目前世界上大部分的汽车，都处于<code>L1</code>级别，只有少数汽车，比如<code>特斯拉</code>，已经可以处于<code>L2</code>级别，并在不断完善当中。</p>
+<p><code>ADAS</code>实现的是<code>第3级</code>，而<code>自动驾驶</code>实现的是<code>第4级</code>。想要从第3级发展到第4级，还需要更多的汽车上配有自动驾驶技术，而且得配合道路基础设施建设（道路上的摄像头，清晰的车道线），以及需要汽车互联，汽车手机互联等等，是个非常庞大的工程.</p>
+<h2 id="adas">ADAS</h2>
+<p>高级驾驶辅助系统<code>ADAS(Advanced Driver Assistance System)</code></p>
+<blockquote>
+<p>利用安装在车上的各式各样传感器（毫米波雷达、激光雷达、单），在汽车行驶过程中随时来感应周围的环境，收集数据，进行静态、动态物体的辨识、侦测与追踪，并结合导航仪地图数据，进行系统的运算与分析，从而预先让驾驶者察觉到可能发生的危险，有效增加汽车驾驶的<code>舒适性</code>和<code>安全性</code>。</p>
+</blockquote>
+<ul>
+<li><p>ADAS核心是<code>环境感知</code></p></li>
+<li><p>自动驾驶是<code>人工智能</code></p></li>
+<li><p>ADAS可以视作自动驾驶汽车的<code>前提</code></p></li>
+</ul>
+<p><strong>虽然ADAS被很多人视作自动驾驶汽车的前提，但就其本质而言，ADAS是辅助驾驶，核心是环境感知，而自动驾驶是人工智能，两者体系有很大差别。</strong></p>
+<hr />
+<p>ADAS是最接近于自动驾驶的智能辅助系统。但是目前生活中比较常用的是<code>ADAS防碰撞预警</code>+<code>DSM防疲劳驾驶检测系统</code>。</p>
+<h2 id="adas分类">ADAS分类</h2>
+<p><img src="/images/adas/3.png" width="90%"></p>
+<h3 id="adas前车碰撞预警fcw">ADAS——前车碰撞预警FCW</h3>
+<p><img src="/images/adas/4.png" width="30%"></p>
+<p>由安装在车头的雷达，侦测自车和前方车辆的距离及速度，初期会发出警告声来提醒驾驶人注意车距，若车距依然持续拉近，车辆便会先自动轻踩刹车，并轻拉安全带2-3次，警告驾驶人。</p>
+<p>若系统判定追撞是没办法避免，启动自动紧急刹车（AEB）后，会同时立刻拉紧安全带固定驾驶人，降低意外发生后的伤害。</p>
+<h3 id="adas盲点侦测系统">ADAS——盲点侦测系统</h3>
+<p><img src="/images/adas/5.png" width="30%"></p>
+<p>汽车驾驶人的盲点是指三面后视镜，左、右、内看不到的区域</p>
+<p>盲点侦测系统就是运用雷达和传感器，来侦测车辆后方的盲点区，在盲点区侦测到车辆靠近时会向驾驶员提供警示，帮助驾驶人将意外的机率降至最低。</p>
+<h3 id="adas停车辅助系统">ADAS——停车辅助系统</h3>
+<p><img src="/images/adas/6.png" width="30%"></p>
+<p>停车辅助系统又分为 2种，分别是主动式与被动式 -
+主动式系统自动控制方向盘以帮助驾驶完成停车，当然油门、刹车与档位切换还是要车主自行操控。
+-
+被动式是以影像（摄影机）与影音（超音波）为感测单元所组成的，提供更多车身周围信息给车主掌握，减少碰撞机会。</p>
+<h3 id="adas车道偏离警示系统ldw">ADAS——车道偏离警示系统LDW</h3>
+<p><img src="/images/adas/7.png" width="30%"></p>
+<p>由摄影机、传感器及控制器所组成，原理是运用在车身侧面或后视镜的摄影机，采样目前行驶车道的标识线，再通过图像处理取得当前汽车在车道的位子，这时只要汽车偏离车道，控制器就会发出警报信号。</p>
+<p>从感测到发出警报，过程只需约0.5
+秒的时间，以实时提醒、叫醒驾驶，避免意外的发生。</p>
+<h3 id="adas适应性车灯系统">ADAS——适应性车灯系统</h3>
+<p><img src="/images/adas/8.png" width="30%"></p>
+<p>这套系统可依照不同的路况、环境、车速及天气状况，自动调整车灯的照明范围及角度，让车灯照射范围可以更深远下，又不会影像到其他用路人的视线，以提供驾驶人与对向来车更安全及舒适的照明。</p>
+<p>从过去的AFS主动转向式头灯，到现在结合传感器的多颗LED智能型头灯，都是属于此系统的范畴。</p>
+<h3 id="adas夜视系统">ADAS——夜视系统</h3>
+<p><img src="/images/adas/9.png" width="30%"></p>
+<p>可帮助驾驶可以在视线不明、看不清楚的夜晚或恶劣天气时，自动识别动物或大型异物，同时警告驾驶前方路况，以避免意外的发生。</p>
+<p>辨别方式为以红外线来感知热量的不同，区分人、动物、车辆以及环境的差异，经过处理转变成图像，将原本看不清楚的物体清楚呈现在驾驶眼前，以降低行车风险。</p>
+<h3 id="adas主动车距控制巡航系统-acc">ADAS——主动车距控制巡航系统
+ACC</h3>
+<p><img src="/images/adas/10.png" width="30%"></p>
+<p>通过安装在车辆前部的车距传感器，持续扫描车辆前方道路来得知前车的车速与相对距离，行驶中会自动侦测车速，当与前车的距离越来越小时，会对应调整自身车速，与前方车辆保持安全距离，减少碰撞意外的发生，也就是所谓的高级版自动巡航系统。</p>
+<p>目前许多车款上都已可看见此系统的踪影。</p>
+<h3 id="adas驾驶人生理状态监视">ADAS——驾驶人生理状态监视</h3>
+<p><img src="/images/adas/11.png" width="30%"></p>
+<p>目前系统大多都是利用摄影机侦测驾驶者脸部，判断专注力程度、是否有打瞌睡的象征，还有系统更是利用驾驶人眼睛开闭频率情况，来辨别安全等级，提供适合的警告或是协助动作。</p>
+<p>如果驾驶者的脸部表情变化减少，甚至出现闭眼的情况，车辆就会透过声响与灯号来警示车主注意，以减少意外事故发生。</p>
+<h2 id="adas关键节点">ADAS关键节点</h2>
+<ul>
+<li><p>感知</p>
+<p>目前ADAS主要采用的<code>传感器</code>有摄像头、雷达、激光和超声波等，可以探测光、热、压力或其它用于监测汽车状态的变量，通常位于车辆的前后保险杠、侧视镜、驾驶杆内部或者挡风玻璃上。</p>
+<p>大部份ADAS采用<code>摄像头</code>+<code>雷达</code>的组合方式，以实现雷达测距与摄像头图像识别功能的互补。主动式与被动式红外夜视系统是两种主流的技术路线。<code>主动式</code>通过CCD接受物体反射的对应敏感频谱成像，而<code>被动式</code>的红外焦平面探测器接受物体的红外辐射成像。两者各有优势，将在较长时间内共存。</p>
+<p>不同的系统需要使用不同类型的车用传感器，包含毫米波雷达、超声波雷达、红外雷达、激光雷达、CCD
+CMOS影像传感器及轮速传感器等，来收集整车的工作状态及其参数变化情形，并将不断变化的机械运动变成电子参数(电压、电阻及电流)。</p>
+<ul>
+<li>举例来说，车道偏离警告系统使用CMOS影像传感器、夜视系统则使用红外线传感器、适应性定速控制通常使用雷达、停车辅助系统则会使用超声波等。</li>
+</ul></li>
+<li><p>判断</p>
+<p>算法是ADAS系统可靠性、准确度的<code>决定性因素</code>，主要包括摄像头/雷达测距、行人识别、道路交通标志识别等，针对前装应用的可靠性要求高，需要进行大量的场景测试与标定。其中雷达标定的门槛最高。</p>
+<p>电子控制单元(ECU)会在针对传感器所收集到的信息进行分析处理，然后再向控制的执行装置下达动作指令。</p></li>
+<li><p>执行
+包含油门、刹车、灯光、声响等系统都是属于执行器的范畴内，会依据ECU输出的讯号，来执行各种反应动作，让汽车安全行驶于道路上。</p>
+<p>ADAS系统通过传感器获取数据，主芯片完成判断后，初级应用通过声音、图像、振动对驾驶者进行<code>警示</code>。</p>
+<p>与电子控制功能结合后，逐渐进化到对车辆的<code>自动控制</code>。</p></li>
+</ul>
+<h2 id="adas产业链">ADAS产业链</h2>
+<p><img src="/images/adas/12.png" width="60%"></p>
+<p>在产业链中，<code>传感器技术</code>(摄像头与雷达)、<code>芯片</code>与<code>算法</code>是其中的关键。</p>
+<ul>
+<li><p>其中，摄像头核心部件CMOS感光芯片主要掌握在以索尼、三星为代表的日韩企业中。</p></li>
+<li><p>雷达分为超声波雷达、毫米波雷达、激光雷达</p>
+<ul>
+<li>超声波雷达技术门槛较低，供应商较多；</li>
+<li>激光雷达成本高昂，未商业化；</li>
+<li>毫米波雷达成本在两者之间，技术门槛较高，主要掌握在ZF
+TRW、博世等行业领先公司手中。</li>
+</ul></li>
+<li><p>而芯片、算法在ADAS系统中至关重要，行业集中度高，主要有Mobileeye、ADI等公司</p></li>
+</ul>
+<h2 id="视觉adas">视觉ADAS</h2>
+<ul>
+<li><p>原理</p>
+<p>图像处理，将图片转换为<code>二维数据</code></p>
+<p>模式识别，通过图像匹配进行识别，如车辆、行人、车道线、交通标志</p>
+<p>利用物体的运动模式，或双目定位，估算目标物体与本车的相对距离和相对速度</p></li>
+<li><p>优点</p>
+<p>像素级别的颜色、偏移、距离等信息</p>
+<p>成本低，信息量丰富、特征识别好</p></li>
+<li><p>缺点</p>
+<p>获取准确<code>三维信息</code>难度大</p>
+<p>受环境光限制比较大，速度、距离分辨率差</p></li>
+</ul>
+<p>目前在行车辅助功能中，摄像头可用来单独实现很多功能，并且按照自动驾驶发展规律逐渐演进。</p>
+<p><img src="/images/adas/13.png" width="60%"></p>
+<p>这些功能更加强调对输入图像的处理，从拍摄的视频流中提取<code>有效目标运动信息</code>做进一步分析，给出预警信息或直接调动控制机构。相比视频输出类功能，强调<code>高速下的实时性</code>，这部分技术正处在发展上升期。</p>
+<h2 id="视觉adas软硬需求">视觉ADAS软硬需求</h2>
+<ul>
+<li><p>摄像头模组</p>
+<p>需要定制化开发，一般要满足宽动态、高感光、不一味追求高像素
+ADAS的摄像头更讲究为行车时预留更多判断时间，需要看得更远。</p></li>
+<li><p>核心算法芯片</p>
+<p>如果在算法上叠加深度学习来帮助识别率提升，对硬件性能的要求只增不减，主要考虑的性能指标是运算速度、功耗、以及成本。</p></li>
+<li><p>软件算法</p>
+<p>源头是计算机视觉-&gt;深度学习的渗透</p>
+<p>在感知方面，深度学习将会弯道超车传统视觉算法</p>
+<p>无论哪种算法，数据都是用来训练测试的宝贵资源，而且不是单纯的越多越好，而是越有效越好（符合实际用车环境并保证多样化）。</p></li>
+</ul>
+<h2 id="小结">小结</h2>
+<p>本次调研对<code>ADAS</code>有了一个系统的认知，感觉是<code>非常有潜力</code>以及<code>非常有挑战</code>的发展方向。</p>
+<p>视觉ADAS相比于毫米波雷达识别效果更好，可以充分利用<code>视觉信息</code>进行车辆、路标等识别。</p>
+<p>我们的重点在于利用<code>感知的信息</code>做决策，其中算法是ADAS系统可靠性、准确度的决定性因素，高效的部署会影响实时性。</p>
+<p>接下来会对<code>FCW</code>及相关算法进行进一步调研</p>
+<h2 id="参考博客">参考博客</h2>
+<p><a
+href="https://blog.csdn.net/u010607947/article/details/70847028?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0">一篇文章看懂ADAS</a></p>
+<p><a
+href="https://blog.csdn.net/zhanshen112/article/details/80374815?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-6">ADAS的八大系统</a></p>
+<p><a
+href="https://blog.csdn.net/sinat_32970179/article/details/99833646?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-13">特斯拉、吉利车上的那些ADAS系统你都会用吗？</a></p>
+<p><a
+href="https://blog.csdn.net/wanzew/article/details/82828579?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-4">ADAS功能盘点及实现过程解析</a></p>
+<p><a
+href="https://blog.csdn.net/usstmiracle/article/details/95461183?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-3">ADAS是什么？</a></p>
+<p><a
+href="https://blog.csdn.net/weixin_42229404/article/details/82623742?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-1">ADAS各功能模块及ADAS解决方案提供商详解</a></p>
+<p><a
+href="https://blog.csdn.net/Gary_Yan_cc/article/details/80717069?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-12">车载摄像头在ADAS中的应用</a></p>
+<p><a
+href="https://blog.csdn.net/u011776903/article/details/72866442">ADAS视觉方案盘点上篇：摄像头、芯片和算法</a></p>
+<h2 id="参考视频">参考视频</h2>
+<p><a
+href="https://haokan.baidu.com/v?vid=6343999001934023106&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS自动辅助驾驶系统为何如此受青睐？看看它到底有多强大！</a></p>
+<p><a
+href="https://haokan.baidu.com/v?vid=3780861684865301120&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS智能驾驶辅助系统</a></p>
+<p><a
+href="https://haokan.baidu.com/v?vid=8288616481555786115&amp;tab=recommend">WEY
+VV6智能驾驶辅助系统深度体验</a></p>
+<p><a
+href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动驾驶第二弹</a></p>
+]]></content>
+      <tags>
+        <tag>ADAS</tag>
+        <tag>tech， research</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>FasterTransformer</title>
+    <url>/2023/07/06/FasterTransformer/</url>
+    <content><![CDATA[<p>记录一下部署大模型的经历</p>
+<p>【更新中】</p>
+<span id="more"></span>
+<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
+<p>查看<code>docs/bert_guide.md</code></p>
+<p>https://github.com/NVIDIA/nvidia-docker</p>
+<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
+的安装和使用</a> 好文！</p>
+<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
+<pre><code>遇到问题
+`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
+
+解决方式：
+
+docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
+<p>事实上，后来我跟着<a
+href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+<p>查看<code>nvidia-smi</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
+]]></content>
+      <tags>
+        <tag>LLM</tag>
+        <tag>tech</tag>
+        <tag>notes</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Roofline model学习</title>
+    <url>/2023/06/05/Roofline/</url>
+    <content><![CDATA[<blockquote>
+<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
+</blockquote>
+<p>学习Roofline，有一种理论指导实践的感觉。</p>
+<span id="more"></span>
+<p>阅读论文：<a
+href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
+An Insightful Visual Performance Model for Floating-Point Programs and
+Multicore Architectures</a></p>
+<p>博客：<a
+href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
+<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
+Model与深度学习模型的性能分析</a></p>
+<p>我的总结：</p>
+<p>【更新中】</p>
+]]></content>
+      <tags>
+        <tag>Roofline</tag>
+        <tag>study</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>万物皆可RSS</title>
+    <url>/2023/06/29/RSS/</url>
+    <content><![CDATA[<p>万物皆可RSS！</p>
+<span id="more"></span>
+<p><a href="https://sspai.com/post/60781">指路文章</a></p>
+<p><a
+href="https://www.bilibili.com/video/BV1oU4y1s7o8/?spm_id_from=333.337.search-card.all.click&amp;vd_source=a706cf2a9a33f4c298a6ef4764cea661">入坑视频教程</a></p>
+<p><a
+href="https://www.runningcheese.com/rss-subscriptions">入坑文章指南</a></p>
+<blockquote>
+<p>RSS，英文全称Really Simple
+Syndication，中文译作简易信息聚合（也叫聚合内容），是一种基于XML标准，在互联网上被广泛采用的内容包装盒投递协议。它能够描述和同步网站内容，而RSS订阅这种形式则可以更快地获取最新信息。</p>
+</blockquote>
+<ul>
+<li><p>碎片化阅读</p>
+<blockquote>
+<p>碎片化阅读是指一种通过手机、电子书、计算机等进行的不完整的、断断续续的阅读模式。</p>
+</blockquote></li>
+<li><p>信息茧房 &gt;
+信息茧房概念是由哈佛大学法学院教授、奥巴马总统的法律顾问凯斯·桑斯坦在其2006年出版的著作《信息乌托邦——众人如何生产知识》中提出的。通过对互联网的考察，桑斯坦指出，在信息传播中，因公众自身的信息需求并非全方位的，公众只注意自己选择的东西和使自己愉悦的通讯领域，久而久之，会将自身桎梏于像蚕茧一般的“茧房”中。</p></li>
+</ul>
+<p>众所周知，我们身处一个信息爆炸的网络大数据时代，再加上数据埋点、人群画像等精准营销手段，往往会产生这样的一个结果：<strong>我们经常会被迫接收到来自服务商提供的，经由大数据算法检验认为的“所谓匹配我们”的信息。</strong></p>
+<p>而这些“精准匹配的个性化”信息会不断缩小我们的认知范围，久而久之，渐渐我们会失去对信息的敏感，处于一种“<strong>别人推荐什么，你就看什么</strong>”的状态中。这是很可怕的！！</p>
+<p>我们每个人都是独立的个体，应当是“自由”的。这份自由中自然包含着“思想自由”：个人拥有或思考独立于他人之外的观点、事实、思想之自由。</p>
+<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
+<h1 id="rsshub-feedly-reeder搭配">RSSHub + Feedly + Reeder搭配</h1>
+<p>RSSHub是一个开源、简单易用、易于扩展的 RSS
+生成器，可以给任何奇奇怪怪的内容生成 RSS
+订阅源。目前借助于开源社区的力量快速发展中，已经适配数百家网站的上千项内容。</p>
+<ul>
+<li>RSSHub可以为几乎所有网站提供RSS订阅源，比如知乎、虎扑、博客、微信公众号、B站、起点等媒体站点。甚至即使该站点不提供RSS订阅服务，我们也可以基于它来制作一个RSS订阅源，可谓非常强大</li>
+</ul>
+<p>Feedly是一个RSS聚合器应用程序，支持各种网页浏览器和运行iOS或Android的移动设备，也是一个基于云端的服务。其从各种在线资源聚合用户自定的新闻订阅源，并可与他人分享。</p>
+<ul>
+<li>选择Feedly则是因为其提供了文件夹分类功能，且也拥有数量不菲的订阅源，在对RSS订阅源的管理上十分方便，同时恰好也在Reeder支持的第三方订阅服务列表中。</li>
+</ul>
+<p>Reeder是一款评价极高的iOS端RSS阅读应用。其支持与Feedbin、Feedly、Inoreader等RSS第三方服务云端同步，甚至也支持与FreshRSS、Reader、Fever等自建RSS服务同步数据。</p>
+<ul>
+<li>使用Reeder则仅仅是因为它是iOS上广受好评的RSS阅读端APP，而我购买后体验的效果也很满意。</li>
+</ul>
+<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
+<p>我绕了一大圈，看各种资料，最终的选择也恰巧是如此。</p>
+<h1 id="我的一些操作">我的一些操作：</h1>
+<h2 id="mac安装reeder4">1、mac安装Reeder4</h2>
+<p>程序体积比我想象的要小</p>
+<p>新建了个账户，icloud的feeds。</p>
+<p>订阅了一下自己的博客，阅读体验还可以。</p>
+<h2 id="iphone安装reeder5">2、iphone安装Reeder5</h2>
+<p>重新注册了个美区账号，<a
+href="https://mp.weixin.qq.com/s/s9fMsBzVu4nXBbBuYym9mA">步骤</a></p>
+<p>使用礼品卡的方式下载了Reeder5</p>
+<p>新建了个账户，icloud的feeds，和电脑的订阅同步上了～</p>
+<h2 id="浏览器安装rss插件">3、浏览器安装<a
+href="https://greasyfork.org/zh-CN/scripts/373252-rss-show-site-all-rss">RSS+插件</a></h2>
+<p>安装后，在网页的右下角会有一个“蓝色圆点”，显示当前网页有多少个可用
+RSS 源，如果没有，则不会显示。</p>
+<p>有了它，我们就再也不需要到处找 RSS 订阅源。</p>
+<p>只需要和平时上网一样，遇到喜欢的 RSS 源，一键添加即可。</p>
+<h2 id="注册feedly">4、注册feedly</h2>
+<p>https://feedly.com/</p>
+<p>但是，<a href="https://www.v2ex.com/t/797931">Reeder 4 无法添加
+feedly</a></p>
+<p>决定买Reeder5，既然拥有国外信用卡是早晚的事，那就早点做吧。</p>
+<h2 id="注册币安">5、注册币安</h2>
+<p><a href="https://www.binance.com/zh-CN">币安</a></p>
+<p><a
+href="https://www.youtube.com/watch?v=sWm0RgSapp8">币安使用方式</a></p>
+<p>欧易似乎更好用，但我还是先入为主了。</p>
+<h2 id="注册onekey-visa卡">6、注册onekey visa卡</h2>
+<p>在<a
+href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p>
+<p><a href="https://www.youtube.com/watch?v=nIfFC7hFZ90">教程</a></p>
+<p>我是用币安向onekey提现USDT实现激活的，期间扣除了1USDT的手续费。以及onekey有1$的开卡费和一点手续费。</p>
+<h2 id="添加feedly账户">7、添加feedly账户</h2>
+<p>下载Reeder5之后，就可以绑定Feedly账户了。</p>
+<hr />
+<p>目前我是<code>RSS+插件</code>的重度使用者</p>
+<hr />
+<h1 id="rss真香"><strong>RSS真香！</strong></h1>
+]]></content>
+      <tags>
+        <tag>RSS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Using Ubuntu from scratch</title>
+    <url>/2023/06/30/Using-Ubuntu-from-scratch/</url>
+    <content><![CDATA[<p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
+<span id="more"></span>
+<h1 id="系统安装">1.系统安装</h1>
+<h2 id="下载">1.1 下载</h2>
+<p><a href="http://mirrors.aliyun.com/ubuntu-releases/20.04/">Ubuntu
+20.4镜像</a></p>
+<h2 id="把iso镜像文件转换成dmg文件">1.2 把iso镜像文件转换成dmg文件</h2>
+<p><code>cd Downloads</code></p>
+<p><code>hdiutil convert -format UDRW -o ubuntu.iso ubuntu-20.04.6-desktop-amd64.iso</code></p>
+<ul>
+<li><p><code>-format</code>为生成文件的权限；</p></li>
+<li><p><code>UDRW</code> :表示转换成有read/write的权限的镜像。</p></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Reading Driver Descriptor Map (DDM : 0)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 1)…</span><br><span class="line">Reading Apple (Apple_partition_map : 2)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 3)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading EFI (Apple_HFS : 4)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 5)…</span><br><span class="line">...............................................................................</span><br><span class="line">Elapsed Time:  4.971s</span><br><span class="line">Speed: 834.8MB/s</span><br><span class="line">Savings: 0.0%</span><br><span class="line">created: /Users/zhaodongyu/Downloads/ubuntu.iso.dmg</span><br></pre></td></tr></table></figure>
+<h2 id="烧录至优盘">1.3 烧录至优盘</h2>
+<p>注意找到U盘的路径，使用<code>diskutil list</code>命令查询。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/dev/disk4 (external, physical):</span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">:                       TYPE NAME                    SIZE       IDENTIFIER</span></span><br><span class="line">   0:     FDisk_partition_scheme                        *16.0 GB    disk4</span><br><span class="line">   1:             Windows_FAT_32 NO NAME                 16.0 GB    disk4s1</span><br></pre></td></tr></table></figure>
+<p>找到U盘的路径为/dev/disk4，并使用命令行卸载U盘：</p>
+<p><code>diskutil unmountDisk /dev/disk4</code></p>
+<p>显示信息：Unmount of all volumes on disk4 was successful</p>
+<p>把iso文件写入U盘 <code>mv ubuntu.iso.dmg ubuntu.iso</code></p>
+<p><code>sudo dd if=./ubuntu.iso of=/dev/disk4 bs=1m</code></p>
+<p>等了几分钟后，显示 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">4149+1 records in</span><br><span class="line">4149+1 records out</span><br><span class="line">4351463424 bytes transferred in 369.833082 secs (11766020 bytes/sec)</span><br></pre></td></tr></table></figure></p>
+<p>弹出优盘</p>
+<p><code>sudo eject /dev/disk4</code></p>
+<h1 id="系统设置">2.系统设置</h1>
+<h2 id="开启ssh连接">2.1 开启SSH连接</h2>
+<p><a
+href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服务远程登录</a></p>
+<p><code>sudo apt-get install openssh-server</code></p>
+<p>可以ssh连接了</p>
+<h2 id="更新vim">2.2 更新vim</h2>
+<ul>
+<li><p>卸载旧版的vi：sudo apt-get remove vim-common</p></li>
+<li><p>安装新版的vim：sudo apt-get install vim</p></li>
+</ul>
+<h2 id="挂载硬盘">2.3 挂载硬盘</h2>
+<p>查看磁盘信息命令: <code>sudo fdisk -l</code></p>
+<p>其中有： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Disk /dev/sdb: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors</span><br><span class="line">Disk model: ST1000DM003-1SB1</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 4096 bytes</span><br><span class="line">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span><br></pre></td></tr></table></figure></p>
+<p>查看硬盘的UUID命令: <code>sudo blkid</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb: UUID=&quot;2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f&quot; BLOCK_SIZE=&quot;4096&quot; TYPE=&quot;ext4&quot;</span><br></pre></td></tr></table></figure>
+<p>mkdir创建挂载点data</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">zhaodongyu@portal:/$ sudo mkdir data</span><br><span class="line">zhaodongyu@portal:/$ ls</span><br><span class="line">bin   cdrom  dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr</span><br><span class="line">boot  data   etc  lib   lib64  lost+found  mnt    proc  run   snap  swapfile  tmp  var</span><br></pre></td></tr></table></figure>
+<p>手动挂载</p>
+<p><code>sudo mount /dev/sdb /data</code></p>
+<p>永久性挂载分区，修改分区文件，输入命令<code>sudo vi /etc/fstab</code>，增加
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UUID=2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f /data           ext4    defaults          0       0</span><br></pre></td></tr></table></figure></p>
+<p>查看挂载好的硬盘信息 <code>df -hT</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb       ext4   916G  207G  663G  24% /data</span><br></pre></td></tr></table></figure>
+<h2 id="安装-vs-code">2.4 安装 VS code</h2>
+<p>打开 Ubuntu
+软件中心，并且搜索<code>Visual Studio Code</code>,然后安装应用</p>
+<h2 id="安装make">2.5 安装make</h2>
+<p><code>sudo apt install make</code></p>
+<h2 id="cmake升级">2.5 cmake升级</h2>
+<p><a
+href="https://blog.csdn.net/Boys_Wu/article/details/104940575">参考</a></p>
+<p>我在<a
+href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc4-linux-x86_64.tar.gz</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tar -zxvf cmake-3.27.0-rc4-linux-x86_64.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mv cmake-3.27.0-rc4-linux-x86_64 /opt/cmake-3.27.0</span><br><span class="line"></span><br><span class="line">sudo ln -sf /opt/cmake-3.27.0/bin/* /usr/bin/</span><br><span class="line"></span><br><span class="line">cmake --version</span><br><span class="line">    cmake version 3.27.0-rc4</span><br><span class="line"></span><br><span class="line">sudo vim ~/.bashrc </span><br><span class="line">    export  PATH=$PATH:/opt/cmake-3.27.0/bin</span><br><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
+<h2 id="gcc降级">2.6 gcc降级</h2>
+<p>原来的gcc版本是9.4</p>
+<p><code>sudo apt-get install gcc-9</code></p>
+<p><code>sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100</code></p>
+<p>sudo apt-get install g++-9</p>
+<p>sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9
+100</p>
+]]></content>
+      <tags>
+        <tag>notes</tag>
+        <tag>ubuntu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LaTeX学习</title>
+    <url>/2023/05/30/LaTeX/</url>
+    <content><![CDATA[<p>今天看的论文的排版真的太好看了！开始学习<code>LaTeX</code>，整个过程记录一下。</p>
+<span id="more"></span>
+<p><code>mactex</code>下载地址：<a
+href="https://www.tug.org/mactex/">https://www.tug.org/mactex/</a></p>
+<pre><code>MacTeX.pkg.
+The Size is 5.2G - 15 March 2023
+The MD5 sum is 64416e6da409609c48970e23906e7642
+The SHA512 sum is 0ff569be6af3e658b4a60e2b89bf10c41b9bae38bdaee60021c69aea238d2436886c0883954ab0a64394d9a6e080958b2fc82f91ac5c4dfe9e1de32df46efd49</code></pre>
+<p><a
+href="https://www.tug.org/mactex/READ_ME_FIRST.pdf">READ_ME_FIRST</a>给了我很大帮助。</p>
+<ul>
+<li>2023.05.31</li>
+</ul>
+<p>看了<a href="https://www.doc88.com/p-9773781953864.html">LaTeX Notes
+v1.20</a>，<a
+href="https://www.dralpha.com/">作者</a>很有意思，也给我打开了<code>LaTeX</code>大门。</p>
+<p>新的版本位于<a
+href="https://github.com/huangxg/lnotes">https://github.com/huangxg/lnotes</a>,<a
+href="https://github.com/huangxg/lnotes/blob/master/lnotes2.pdf">PDF文档</a>。</p>
+<p>在<a
+href="https://zhuanlan.zhihu.com/p/521649367">知乎</a>看到一篇很好的文章</p>
+<p>【更新中】</p>
+]]></content>
+      <tags>
+        <tag>study</tag>
+        <tag>LaTeX</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>flatc</title>
+    <url>/2023/06/28/flatc/</url>
+    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
+<span id="more"></span>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
+<p>./flatc -t schema.fbs -- test.tflite</p>
+<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
+~/Downloads/encoder.tflite</p>
+<p>参考资料：</p>
+<p><a
+href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>Battlegrounds</title>
     <url>/2023/07/09/Battlegrounds/</url>
     <content><![CDATA[<p>Set up a flag: the completion progress reaches 100%</p>
@@ -1482,774 +2250,6 @@ left!)<br>Finish in 1st place as Zephrys the Great
       </tags>
   </entry>
   <entry>
-    <title>踏上ChatGPT旅程</title>
-    <url>/2023/05/26/ChatGPT/</url>
-    <content><![CDATA[<p>开始使用并学习ChatGPT以及相关的<code>LLM(Large Language Model)</code>，不然就被时代淘汰了～</p>
-<span id="more"></span>
-<h1 id="写在前面">0.写在前面</h1>
-<p>从去年11月底ChatGPT发布，到后来爆火，改变互联网，这半年时间我对ChatGPT还是比较冷漠的。</p>
-<p>期间我也体验了一下，以及体验了<code>cursor</code>（一个使用chatgpt-4的ai辅助编程工具），但自始至终还是充满了不信任感。所以也一直没注册账号，没想进一步探索。</p>
-<p>直到今天，我改变了对它看法，或者说我改变了看它的角度。</p>
-<p>以前潜意识里是觉得ChatGPT是智囊、军师、管家之类的身份，觉得人的主观能动性受到限制，所以会抵制。</p>
-<p>现在我想把它当工具，来便利我的工作和生活，便没有了心理阻碍。</p>
-<p>于是，ChatGPT旅程，出发～</p>
-<h1 id="注册chatgpt">1. 注册ChatGPT</h1>
-<p>我参考了这篇文章<a
-href="https://www.xnbeast.com/create-openai-chatgpt-account/">ChatGPT注册教程攻略：解决手机无法接收验证码问题（亲测有效）</a>
-，在<a
-href="https://sms-activate.org/">sms-activate</a>购买了临时国外手机号——</p>
-<ul>
-<li><p>买了个英国的手机号，结果</p>
-<p><code>Your account was flagged for potential abuse. If you feel this is an error, please contact us at help.openai.com</code></p></li>
-<li><p>换了个美国的也不行</p></li>
-<li><p>最后换了个印度尼西亚的手机号，顺利注册，但是进入ChatGPT又显示</p>
-<p><code>Sorry, you have been blocked</code></p></li>
-</ul>
-<p>出师不利啊……突然想起来我买的VPN的维护者说过，这个vpn不搞chatGPT那破玩意儿。于是在tg上找了个<code>@chatgptzs_bot</code>，暂时先用着，也挺好用的。</p>
-<p>但是还不甘心，之后我用<code>自由鲸</code>的欧洲节点，开启全局模式，能正常使用ChatGPT了。不过目前不是付费用户，所以没有联网功能和插件功能。</p>
-<h1 id="chatgpt使用技巧">2. ChatGPT使用技巧</h1>
-<p>昨晚在B站看到一个视频挺好的——</p>
-<p><a
-href="https://b23.tv/XCclvE1">学完这个视频，简历加一条：熟练掌握ChatGPT解决复杂问题｜ChatGPT使用教程-哔哩哔哩</a></p>
-<p>说实话，我也是有一部分被这个视频驱动来搞ChatGPT的。</p>
-<h2 id="乔哈里johari沟通视窗">乔哈里(Johari)沟通视窗</h2>
-<table>
-<thead>
-<tr class="header">
-<th></th>
-<th>你知道</th>
-<th>你不知道</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>GPT知道</td>
-<td>公开区</td>
-<td>盲区</td>
-</tr>
-<tr class="even">
-<td>GPT不知道</td>
-<td>隐私区</td>
-<td>未知区</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li><p>盲区｜问法1:
-<code>我想了解xxx，我应该向你问哪些问题？</code></p></li>
-<li><p>盲区｜问法2:<code>请给我列出xxx领域/行业相关的，最常用的50个概念，并做简单解释。如果有英文缩写，请给出完整的英文解释。</code></p></li>
-<li><p>盲区｜问法3:<code>请详细介绍一下xxx的主要生平事迹。</code>
-<code>请详细介绍一下xxx公司的发展历程。</code></p></li>
-<li><p>公开区｜检验认知:<code>对于xxx主题/技能，你认为哪些是我必须理解和掌握的核心要点？</code></p></li>
-<li><p>公开区｜检验认知:<code>我理解的xxx是这样的，你觉得我的理解对吗？</code></p></li>
-<li><p>公开区｜检验认知:<code>我对xxx有一些想法，你能帮我批判性地分析一下这些想法的优点和缺点吗？</code></p></li>
-<li><p>公开区｜检验认知:<code>我正在考虑xxx的决定，你能帮我分析一下可能的结果和影响吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我知道xxx的概念，我想知道更多关于xxx的信息。</code></p></li>
-<li><p>公开区｜扩充认知:<code>我在xxx问题上遇到困难，你能提供一些可能的解决方案或建议吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想要深入学习xxx，你能推荐一些进阶的学习资源或学习路径吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想要在xxx领域有所创新，你能提供一些启发或想法吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想在xxx领域提升自己，你能根据最新的研究和趋势给我一些建议吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我正在考虑学习xxx，你能给我一些关于这个领域未来发展的观点吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>（背景信息）我要做关于xxx的研究，我认为原因是，还有其他可能的原因吗？给出一些可能的研究假设。</code></p></li>
-<li><p>公开区｜扩充认知:<code>我是一个xx行业新手，马上要采访这个行业的资深大佬，我应该向他请教哪些有价值的问题？</code></p></li>
-<li><p>盲区｜问法1: <code>你怎么看待这种现象？</code></p></li>
-<li><p>盲区｜问法2: <code>可能的原因有哪些？</code></p></li>
-<li><p>盲区｜问法3: <code>这会对xxx产生什么样的影响？</code></p></li>
-<li><p>盲区｜问法4: <code>你觉得xxx应该怎么做？</code></p></li>
-<li><p>未知区｜问法1:
-<code>如果xxx，这对社会会产生什么影响？</code></p></li>
-<li><p>未知区｜反向提问:
-<code>为了测试我对xxx的了解程度，你会问我什么问题来检验我的水平，最少10个</code></p></li>
-<li><p>未知区｜反向提问:
-<code>我是xx领域的专家，你会问我哪些问题来检验我的专业水平？最少10个。</code></p></li>
-<li><p>未知区｜反向提问:
-<code>现在我们玩个“你问我答”的游戏，目的是为了测试我在xxxx方面的专业水平。你负责提问，我负责回答。你要根据我的答案进行反馈、评价、补充。如果我说不知道，你就直接输出正确答案，然后你继续提问。</code></p></li>
-<li><p>未知区｜反向提问:
-<code>我已经很精通xxx了，我想知道我是否还有需要学习的地方？</code></p></li>
-</ul>
-<p>1 知道自己要干什么，但是不知道ChatGPT能帮你什么。 -
-<code>我要做xxx，你能帮我做什么？</code></p>
-<p>2 知道要ChatGPT帮你做什么，但是你不知道给它输入什么具体的信息。 -
-<code>我想要你xxx，我应该给你输入什么信息？</code></p>
-<p>3 直接给ChatGPT指令。任务目标、背景信息、输出要求都非常清晰。 -
-<code>请推荐（书名、电视剧、电影、网站、博主、专家、学习资源） 等等。请翻译.请总结.请润色。</code></p>
-<h1 id="llm学习">3. LLM学习</h1>
-<p>我：给我推荐一些学习大规模语言模型的资料吧</p>
-<blockquote>
-<p>当然！以下是一些学习大规模语言模型的资料推荐： 1.
-论文和研究文章：深入了解大规模语言模型的原理和技术，可以阅读相关的论文和研究文章，例如《Transformers:
-Attention Is All You Need》、《BERT: Pre-training of Deep Bidirectional
-Transformers for Language Understanding》和《GPT (Generative Pre-trained
-Transformer)》。 2.
-博客文章和教程：有许多博客文章和教程可供学习，这些文章会解释大规模语言模型的概念、实现和应用。可以查找像Towards
-Data Science、Medium和OpenAI Blog等平台上的相关文章。 3. GitHub
-上的代码库：学习大规模语言模型的实现和代码细节，可以查看GitHub上的开源代码库，如Hugging
-Face的transformers库、OpenAI的GPT代码库等。 4.
-视频教程和在线课程：有一些在线课程和视频教程专门介绍大规模语言模型。例如，Coursera
-上的 "Natural Language Processing with Sequence Models" 和 YouTube 上的
-"The Transformer Explained" 等。 5.
-社区和论坛：加入与自然语言处理和大规模语言模型相关的社区和论坛，与其他人交流讨论，获取实践经验和最新动态。</p>
-<p>这些资源可以帮助你深入了解大规模语言模型的背后原理、应用和实现。希望对你的学习有所帮助！如需更具体的资源或问题，请随时告诉我。</p>
-</blockquote>
-<h2 id="学习视频">学习视频</h2>
-<p>Google Cloud Tech</p>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=zizonToFXDs">Introduction
-to Large Language Models</a></li>
-</ul>
-<p>ZOMI</p>
-<ul>
-<li><p><a
-href="https://www.youtube.com/watch?v=XujuQB9AxGA">ChatGPT狂飙原理剖析：GPT系列详解！【ChatGPT】系列第01篇</a></p></li>
-<li><p><a
-href="https://www.youtube.com/watch?v=qf2zcev7mHQ">ChatGPT狂飙：强化学习RLHF与PPO！【ChatGPT】系列第02篇</a></p></li>
-<li><p><a
-href="https://www.youtube.com/watch?v=Oy-8BqwXck8&amp;t=1s">ChatGPT狂飙：InstructGPT解析！【ChatGPT】原理第03篇</a></p></li>
-<li><p>【ChatGPT狂飙：InstructGPT解析！】思考：</p>
-<ul>
-<li>大模型通过计算的方式模拟人类的思考，类似于ChatGPT的RLHF技术是否会给世界带来新的技术产业革命？</li>
-<li>ChatGPT 使用了 Ray 作为细粒度的并行计算和昇构计算，管理分配
-RLIDL模型完成复杂训练任务，方便利用强化学习对环境和计算任务进行控制，这对A框架的分布式能力边界带来哪些新的冲击？</li>
-<li>ChatGPT
-非常重数据交互，存算一体技术会不会针对ChatGPT等应用的现专用芯片和新的架构?</li>
-</ul></li>
-</ul>
-<p><a
-href="https://imzhanghao.com/2023/02/24/chatgpt/">ChatGPT模型的三层理解</a></p>
-<p><a
-href="https://github.com/dalinvip/Awesome-ChatGPT">Awesome-ChatGPT</a></p>
-<p>2023.6.1 学习<a
-href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读</a></p>
-]]></content>
-      <tags>
-        <tag>ChatGPT</tag>
-        <tag>LLM</tag>
-        <tag>tech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>FasterTransformer</title>
-    <url>/2023/07/06/FasterTransformer/</url>
-    <content><![CDATA[<p>记录一下部署大模型的经历</p>
-<p>【更新中】</p>
-<span id="more"></span>
-<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
-<p>查看<code>docs/bert_guide.md</code></p>
-<p>https://github.com/NVIDIA/nvidia-docker</p>
-<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
-的安装和使用</a> 好文！</p>
-<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
-<pre><code>遇到问题
-`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
-
-解决方式：
-
-docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
-<p>事实上，后来我跟着<a
-href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
-<p>查看<code>nvidia-smi</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
-]]></content>
-      <tags>
-        <tag>LLM</tag>
-        <tag>tech</tag>
-        <tag>notes</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ADAS</title>
-    <url>/2020/04/23/ADAS/</url>
-    <content><![CDATA[<p>自动驾驶汽车可以实现<code>驾驶员驾驶</code>、<code>系统辅助驾驶员驾驶</code>以及<code>系统自动驾驶</code>。而无人驾驶汽车是不需要驾驶员的，即便在紧急情况时也能自行处理。</p>
-<p>最近调研了一下ADAS，感觉是一个不错的方向。然而个人认为自动驾驶的<code>corner case</code>太多，未来充满挑战。</p>
-<span id="more"></span>
-<h2 id="自动驾驶汽车">自动驾驶汽车</h2>
-<p><code>自动驾驶汽车(Autonomous vehicles; Self-piloting automobile)</code>是一种通过电脑系统实现无人驾驶的智能汽车。</p>
-<p>自动驾驶汽车可以实现<code>驾驶员驾驶</code>、<code>系统辅助驾驶员驾驶</code>以及<code>系统自动驾驶</code>。而无人驾驶汽车是不需要驾驶员的，即便在紧急情况时也能自行处理。</p>
-<p><img src="/images/adas/1.png" width="80%"></p>
-<h2 id="自动驾驶的五个等级">自动驾驶的五个等级</h2>
-<pre><code>NHTSA：美国国家交通管理局
-SAE：美国汽车工程师学会</code></pre>
-<p><img src="/images/adas/2.png" width="80%"></p>
-<p>在车企们万众一心向L3级自动驾驶冲刺的关口，以自动驾驶为最终目标的<code>ADAS系统</code>自然而然的火了。</p>
-<p>目前世界上大部分的汽车，都处于<code>L1</code>级别，只有少数汽车，比如<code>特斯拉</code>，已经可以处于<code>L2</code>级别，并在不断完善当中。</p>
-<p><code>ADAS</code>实现的是<code>第3级</code>，而<code>自动驾驶</code>实现的是<code>第4级</code>。想要从第3级发展到第4级，还需要更多的汽车上配有自动驾驶技术，而且得配合道路基础设施建设（道路上的摄像头，清晰的车道线），以及需要汽车互联，汽车手机互联等等，是个非常庞大的工程.</p>
-<h2 id="adas">ADAS</h2>
-<p>高级驾驶辅助系统<code>ADAS(Advanced Driver Assistance System)</code></p>
-<blockquote>
-<p>利用安装在车上的各式各样传感器（毫米波雷达、激光雷达、单），在汽车行驶过程中随时来感应周围的环境，收集数据，进行静态、动态物体的辨识、侦测与追踪，并结合导航仪地图数据，进行系统的运算与分析，从而预先让驾驶者察觉到可能发生的危险，有效增加汽车驾驶的<code>舒适性</code>和<code>安全性</code>。</p>
-</blockquote>
-<ul>
-<li><p>ADAS核心是<code>环境感知</code></p></li>
-<li><p>自动驾驶是<code>人工智能</code></p></li>
-<li><p>ADAS可以视作自动驾驶汽车的<code>前提</code></p></li>
-</ul>
-<p><strong>虽然ADAS被很多人视作自动驾驶汽车的前提，但就其本质而言，ADAS是辅助驾驶，核心是环境感知，而自动驾驶是人工智能，两者体系有很大差别。</strong></p>
-<hr />
-<p>ADAS是最接近于自动驾驶的智能辅助系统。但是目前生活中比较常用的是<code>ADAS防碰撞预警</code>+<code>DSM防疲劳驾驶检测系统</code>。</p>
-<h2 id="adas分类">ADAS分类</h2>
-<p><img src="/images/adas/3.png" width="90%"></p>
-<h3 id="adas前车碰撞预警fcw">ADAS——前车碰撞预警FCW</h3>
-<p><img src="/images/adas/4.png" width="30%"></p>
-<p>由安装在车头的雷达，侦测自车和前方车辆的距离及速度，初期会发出警告声来提醒驾驶人注意车距，若车距依然持续拉近，车辆便会先自动轻踩刹车，并轻拉安全带2-3次，警告驾驶人。</p>
-<p>若系统判定追撞是没办法避免，启动自动紧急刹车（AEB）后，会同时立刻拉紧安全带固定驾驶人，降低意外发生后的伤害。</p>
-<h3 id="adas盲点侦测系统">ADAS——盲点侦测系统</h3>
-<p><img src="/images/adas/5.png" width="30%"></p>
-<p>汽车驾驶人的盲点是指三面后视镜，左、右、内看不到的区域</p>
-<p>盲点侦测系统就是运用雷达和传感器，来侦测车辆后方的盲点区，在盲点区侦测到车辆靠近时会向驾驶员提供警示，帮助驾驶人将意外的机率降至最低。</p>
-<h3 id="adas停车辅助系统">ADAS——停车辅助系统</h3>
-<p><img src="/images/adas/6.png" width="30%"></p>
-<p>停车辅助系统又分为 2种，分别是主动式与被动式 -
-主动式系统自动控制方向盘以帮助驾驶完成停车，当然油门、刹车与档位切换还是要车主自行操控。
--
-被动式是以影像（摄影机）与影音（超音波）为感测单元所组成的，提供更多车身周围信息给车主掌握，减少碰撞机会。</p>
-<h3 id="adas车道偏离警示系统ldw">ADAS——车道偏离警示系统LDW</h3>
-<p><img src="/images/adas/7.png" width="30%"></p>
-<p>由摄影机、传感器及控制器所组成，原理是运用在车身侧面或后视镜的摄影机，采样目前行驶车道的标识线，再通过图像处理取得当前汽车在车道的位子，这时只要汽车偏离车道，控制器就会发出警报信号。</p>
-<p>从感测到发出警报，过程只需约0.5
-秒的时间，以实时提醒、叫醒驾驶，避免意外的发生。</p>
-<h3 id="adas适应性车灯系统">ADAS——适应性车灯系统</h3>
-<p><img src="/images/adas/8.png" width="30%"></p>
-<p>这套系统可依照不同的路况、环境、车速及天气状况，自动调整车灯的照明范围及角度，让车灯照射范围可以更深远下，又不会影像到其他用路人的视线，以提供驾驶人与对向来车更安全及舒适的照明。</p>
-<p>从过去的AFS主动转向式头灯，到现在结合传感器的多颗LED智能型头灯，都是属于此系统的范畴。</p>
-<h3 id="adas夜视系统">ADAS——夜视系统</h3>
-<p><img src="/images/adas/9.png" width="30%"></p>
-<p>可帮助驾驶可以在视线不明、看不清楚的夜晚或恶劣天气时，自动识别动物或大型异物，同时警告驾驶前方路况，以避免意外的发生。</p>
-<p>辨别方式为以红外线来感知热量的不同，区分人、动物、车辆以及环境的差异，经过处理转变成图像，将原本看不清楚的物体清楚呈现在驾驶眼前，以降低行车风险。</p>
-<h3 id="adas主动车距控制巡航系统-acc">ADAS——主动车距控制巡航系统
-ACC</h3>
-<p><img src="/images/adas/10.png" width="30%"></p>
-<p>通过安装在车辆前部的车距传感器，持续扫描车辆前方道路来得知前车的车速与相对距离，行驶中会自动侦测车速，当与前车的距离越来越小时，会对应调整自身车速，与前方车辆保持安全距离，减少碰撞意外的发生，也就是所谓的高级版自动巡航系统。</p>
-<p>目前许多车款上都已可看见此系统的踪影。</p>
-<h3 id="adas驾驶人生理状态监视">ADAS——驾驶人生理状态监视</h3>
-<p><img src="/images/adas/11.png" width="30%"></p>
-<p>目前系统大多都是利用摄影机侦测驾驶者脸部，判断专注力程度、是否有打瞌睡的象征，还有系统更是利用驾驶人眼睛开闭频率情况，来辨别安全等级，提供适合的警告或是协助动作。</p>
-<p>如果驾驶者的脸部表情变化减少，甚至出现闭眼的情况，车辆就会透过声响与灯号来警示车主注意，以减少意外事故发生。</p>
-<h2 id="adas关键节点">ADAS关键节点</h2>
-<ul>
-<li><p>感知</p>
-<p>目前ADAS主要采用的<code>传感器</code>有摄像头、雷达、激光和超声波等，可以探测光、热、压力或其它用于监测汽车状态的变量，通常位于车辆的前后保险杠、侧视镜、驾驶杆内部或者挡风玻璃上。</p>
-<p>大部份ADAS采用<code>摄像头</code>+<code>雷达</code>的组合方式，以实现雷达测距与摄像头图像识别功能的互补。主动式与被动式红外夜视系统是两种主流的技术路线。<code>主动式</code>通过CCD接受物体反射的对应敏感频谱成像，而<code>被动式</code>的红外焦平面探测器接受物体的红外辐射成像。两者各有优势，将在较长时间内共存。</p>
-<p>不同的系统需要使用不同类型的车用传感器，包含毫米波雷达、超声波雷达、红外雷达、激光雷达、CCD
-CMOS影像传感器及轮速传感器等，来收集整车的工作状态及其参数变化情形，并将不断变化的机械运动变成电子参数(电压、电阻及电流)。</p>
-<ul>
-<li>举例来说，车道偏离警告系统使用CMOS影像传感器、夜视系统则使用红外线传感器、适应性定速控制通常使用雷达、停车辅助系统则会使用超声波等。</li>
-</ul></li>
-<li><p>判断</p>
-<p>算法是ADAS系统可靠性、准确度的<code>决定性因素</code>，主要包括摄像头/雷达测距、行人识别、道路交通标志识别等，针对前装应用的可靠性要求高，需要进行大量的场景测试与标定。其中雷达标定的门槛最高。</p>
-<p>电子控制单元(ECU)会在针对传感器所收集到的信息进行分析处理，然后再向控制的执行装置下达动作指令。</p></li>
-<li><p>执行
-包含油门、刹车、灯光、声响等系统都是属于执行器的范畴内，会依据ECU输出的讯号，来执行各种反应动作，让汽车安全行驶于道路上。</p>
-<p>ADAS系统通过传感器获取数据，主芯片完成判断后，初级应用通过声音、图像、振动对驾驶者进行<code>警示</code>。</p>
-<p>与电子控制功能结合后，逐渐进化到对车辆的<code>自动控制</code>。</p></li>
-</ul>
-<h2 id="adas产业链">ADAS产业链</h2>
-<p><img src="/images/adas/12.png" width="60%"></p>
-<p>在产业链中，<code>传感器技术</code>(摄像头与雷达)、<code>芯片</code>与<code>算法</code>是其中的关键。</p>
-<ul>
-<li><p>其中，摄像头核心部件CMOS感光芯片主要掌握在以索尼、三星为代表的日韩企业中。</p></li>
-<li><p>雷达分为超声波雷达、毫米波雷达、激光雷达</p>
-<ul>
-<li>超声波雷达技术门槛较低，供应商较多；</li>
-<li>激光雷达成本高昂，未商业化；</li>
-<li>毫米波雷达成本在两者之间，技术门槛较高，主要掌握在ZF
-TRW、博世等行业领先公司手中。</li>
-</ul></li>
-<li><p>而芯片、算法在ADAS系统中至关重要，行业集中度高，主要有Mobileeye、ADI等公司</p></li>
-</ul>
-<h2 id="视觉adas">视觉ADAS</h2>
-<ul>
-<li><p>原理</p>
-<p>图像处理，将图片转换为<code>二维数据</code></p>
-<p>模式识别，通过图像匹配进行识别，如车辆、行人、车道线、交通标志</p>
-<p>利用物体的运动模式，或双目定位，估算目标物体与本车的相对距离和相对速度</p></li>
-<li><p>优点</p>
-<p>像素级别的颜色、偏移、距离等信息</p>
-<p>成本低，信息量丰富、特征识别好</p></li>
-<li><p>缺点</p>
-<p>获取准确<code>三维信息</code>难度大</p>
-<p>受环境光限制比较大，速度、距离分辨率差</p></li>
-</ul>
-<p>目前在行车辅助功能中，摄像头可用来单独实现很多功能，并且按照自动驾驶发展规律逐渐演进。</p>
-<p><img src="/images/adas/13.png" width="60%"></p>
-<p>这些功能更加强调对输入图像的处理，从拍摄的视频流中提取<code>有效目标运动信息</code>做进一步分析，给出预警信息或直接调动控制机构。相比视频输出类功能，强调<code>高速下的实时性</code>，这部分技术正处在发展上升期。</p>
-<h2 id="视觉adas软硬需求">视觉ADAS软硬需求</h2>
-<ul>
-<li><p>摄像头模组</p>
-<p>需要定制化开发，一般要满足宽动态、高感光、不一味追求高像素
-ADAS的摄像头更讲究为行车时预留更多判断时间，需要看得更远。</p></li>
-<li><p>核心算法芯片</p>
-<p>如果在算法上叠加深度学习来帮助识别率提升，对硬件性能的要求只增不减，主要考虑的性能指标是运算速度、功耗、以及成本。</p></li>
-<li><p>软件算法</p>
-<p>源头是计算机视觉-&gt;深度学习的渗透</p>
-<p>在感知方面，深度学习将会弯道超车传统视觉算法</p>
-<p>无论哪种算法，数据都是用来训练测试的宝贵资源，而且不是单纯的越多越好，而是越有效越好（符合实际用车环境并保证多样化）。</p></li>
-</ul>
-<h2 id="小结">小结</h2>
-<p>本次调研对<code>ADAS</code>有了一个系统的认知，感觉是<code>非常有潜力</code>以及<code>非常有挑战</code>的发展方向。</p>
-<p>视觉ADAS相比于毫米波雷达识别效果更好，可以充分利用<code>视觉信息</code>进行车辆、路标等识别。</p>
-<p>我们的重点在于利用<code>感知的信息</code>做决策，其中算法是ADAS系统可靠性、准确度的决定性因素，高效的部署会影响实时性。</p>
-<p>接下来会对<code>FCW</code>及相关算法进行进一步调研</p>
-<h2 id="参考博客">参考博客</h2>
-<p><a
-href="https://blog.csdn.net/u010607947/article/details/70847028?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0">一篇文章看懂ADAS</a></p>
-<p><a
-href="https://blog.csdn.net/zhanshen112/article/details/80374815?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-6">ADAS的八大系统</a></p>
-<p><a
-href="https://blog.csdn.net/sinat_32970179/article/details/99833646?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-13">特斯拉、吉利车上的那些ADAS系统你都会用吗？</a></p>
-<p><a
-href="https://blog.csdn.net/wanzew/article/details/82828579?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-4">ADAS功能盘点及实现过程解析</a></p>
-<p><a
-href="https://blog.csdn.net/usstmiracle/article/details/95461183?ops_request_misc=&amp;request_id=&amp;biz_id=102&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-3">ADAS是什么？</a></p>
-<p><a
-href="https://blog.csdn.net/weixin_42229404/article/details/82623742?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-1">ADAS各功能模块及ADAS解决方案提供商详解</a></p>
-<p><a
-href="https://blog.csdn.net/Gary_Yan_cc/article/details/80717069?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522158760398419195162559542%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&amp;request_id=158760398419195162559542&amp;biz_id=0&amp;utm_source=distribute.pc_search_result.none-task-blog-2~all~first_rank_v2~rank_v25-12">车载摄像头在ADAS中的应用</a></p>
-<p><a
-href="https://blog.csdn.net/u011776903/article/details/72866442">ADAS视觉方案盘点上篇：摄像头、芯片和算法</a></p>
-<h2 id="参考视频">参考视频</h2>
-<p><a
-href="https://haokan.baidu.com/v?vid=6343999001934023106&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS自动辅助驾驶系统为何如此受青睐？看看它到底有多强大！</a></p>
-<p><a
-href="https://haokan.baidu.com/v?vid=3780861684865301120&amp;pd=bjh&amp;fr=bjhauthor&amp;type=video">ADAS智能驾驶辅助系统</a></p>
-<p><a
-href="https://haokan.baidu.com/v?vid=8288616481555786115&amp;tab=recommend">WEY
-VV6智能驾驶辅助系统深度体验</a></p>
-<p><a
-href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动驾驶第二弹</a></p>
-]]></content>
-      <tags>
-        <tag>ADAS</tag>
-        <tag>tech， research</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Crawler</title>
-    <url>/2020/05/19/Crawler/</url>
-    <content><![CDATA[<p>背景：国内表情识别的数据集太少了 &amp;
-表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。</p>
-<p>于是，在百度上爬了一批数据下来补充到数据集里面。</p>
-<p>[爬虫有风险，操作需谨慎]</p>
-<span id="more"></span>
-<h1 id="写在前面的话">写在前面的话</h1>
-<p>一共两个文件</p>
-<ul>
-<li><p>crawler.py</p>
-<p>主程序：实现爬虫功能，爬取的关键词在keywords.txt里面</p></li>
-<li><p>keywords.txt</p>
-<p>关键词：比如爬开心的图，就可以设置 happy 高兴 高兴表情 高兴的人
-高兴脸 开心 开心脸 开心的人 开心表情 欢愉 愉悦 愉悦表情 欢愉表情
-幸福表情 幸福的脸 幸福的人 愉悦表情 欢欣表情 欢喜表情 喜悦</p>
-<p><strong>每个关键词用换行分隔</strong></p></li>
-</ul>
-<p>运行python文件后，需要等待一会（正在获取图片的<code>url</code>），然后就显示下载log了。</p>
-<p>结果会保存到<code>image</code>文件夹内，后续需要进一步批处理文件以及进行人脸提取、对齐、清洗等工作。</p>
-<p>清洗数据集还是相当繁琐的，建议不要浪费时间在数据清洗上，自己想办法找途径处理。</p>
-<pre><code>[爬虫有风险，操作需谨慎]
-
-希望你能把这个代码用在正途，造福社会:)
-
-希望你能开源数据集，减少社会整体的成本:)</code></pre>
-<h1 id="python代码">python代码</h1>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>tech</tag>
-        <tag>crawler</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LaTeX学习</title>
-    <url>/2023/05/30/LaTeX/</url>
-    <content><![CDATA[<p>今天看的论文的排版真的太好看了！开始学习<code>LaTeX</code>，整个过程记录一下。</p>
-<span id="more"></span>
-<p><code>mactex</code>下载地址：<a
-href="https://www.tug.org/mactex/">https://www.tug.org/mactex/</a></p>
-<pre><code>MacTeX.pkg.
-The Size is 5.2G - 15 March 2023
-The MD5 sum is 64416e6da409609c48970e23906e7642
-The SHA512 sum is 0ff569be6af3e658b4a60e2b89bf10c41b9bae38bdaee60021c69aea238d2436886c0883954ab0a64394d9a6e080958b2fc82f91ac5c4dfe9e1de32df46efd49</code></pre>
-<p><a
-href="https://www.tug.org/mactex/READ_ME_FIRST.pdf">READ_ME_FIRST</a>给了我很大帮助。</p>
-<ul>
-<li>2023.05.31</li>
-</ul>
-<p>看了<a href="https://www.doc88.com/p-9773781953864.html">LaTeX Notes
-v1.20</a>，<a
-href="https://www.dralpha.com/">作者</a>很有意思，也给我打开了<code>LaTeX</code>大门。</p>
-<p>新的版本位于<a
-href="https://github.com/huangxg/lnotes">https://github.com/huangxg/lnotes</a>,<a
-href="https://github.com/huangxg/lnotes/blob/master/lnotes2.pdf">PDF文档</a>。</p>
-<p>在<a
-href="https://zhuanlan.zhihu.com/p/521649367">知乎</a>看到一篇很好的文章</p>
-<p>【更新中】</p>
-]]></content>
-      <tags>
-        <tag>LaTeX</tag>
-        <tag>study</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Homogeneous_ShangHai</title>
-    <url>/2023/08/04/Homogeneous-ShangHai/</url>
-    <content><![CDATA[<p>计划在上海搞一个大大的竹笋！</p>
-<span id="more"></span>
-<h1 id="背景">0、背景</h1>
-<h2 id="前年2021">前年（2021）</h2>
-<p>我在北京的校园里，设计并制作了一个六重竹笋，<a
-href="https://mp.weixin.qq.com/s/O6tBVdg4Saa4KtITM-UNng">《六重蓝笋成长记（上）》</a>和<a
-href="https://mp.weixin.qq.com/s/6t3HY1REaKn-AUS1TxTOdQ">《六重蓝笋成长记（下）》</a>，开始体会到竹笋的乐趣，并立志于做更高重的笋。</p>
-<h2 id="去年2022">去年（2022）</h2>
-<p>我在上海的某个时期，闲得实在是无聊，制作了 <a
-href="https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w">视频：从入门到夺笋</a>，以缓解不能出去玩的郁闷，并立志于做更高重的七重(七色彩虹)竹笋。</p>
-<h2 id="今年2023">今年（2023）</h2>
-<p>随着我做高重蓝笋的念头越来越强烈，便开始着手准备这件事情。</p>
-<p>非常重要的问题来了——做几重？</p>
-<p>我上一次做单人六重，耗时 5 个小时，行程 31 公里。</p>
-<p>ALHDLIOX上一次做<a
-href="https://mp.weixin.qq.com/s/mqPZ0Rjx0QR3yCGgSz1Hxg">单人七重</a>，耗时
-35 小时，行程 184.69 公里</p>
-<p>经过鲁莽的思考，我觉得九这个数字很好，代表数之极。做九重！</p>
-<p>正所谓：</p>
-<blockquote>
-<p><strong>九重开，灵之斿，垂惠恩，鸿祜休。</strong></p>
-</blockquote>
-<p>（当然，以上是我的美好愿景，还是老老实实先从八重开始吧）</p>
-<h1 id="获取数据">1、获取数据</h1>
-<h2 id="三年前的数据">三年前的数据</h2>
-<p>我想起 <code>@Nanoape</code> 曾在 <a
-href="https://mp.weixin.qq.com/s/ewEHaY8gKo2o31ApP5T7GQ">来刷新新的个人
-Dronenet 飞行记录吧</a> 一文中提到他拿到了全球所有 Portal 的数据。共
-1.31G，Portal 总数 11,475,124，数据统计截止到 2020.06.12。</p>
-<p>于是我下载了portal数据<a
-href="https://mega.nz/file/PsYnkCoD#ujlASFyomu1ZT8WZXi1_57ogH3pneGRXT2EC156u-lg">Mega</a>(这个网盘真良心啊，不限速，不强制登陆)</p>
-<p>然而三年过去了，这一数据已经过时，比起得不到最优解，我更担心的是有的
-portal 移动了位置，致使整个计划失败。</p>
-<h2 id="获取新数据">获取新数据</h2>
-<p>我本想通过某个脚本来抓取上海区域的所有 portal
-的信息，但是抓到了这个信息：</p>
-<blockquote>
-<p>{'message': 'Please, dont do so. Contact <span class="citation"
-data-cites="Lanched">@Lanched</span> insted.'}</p>
-</blockquote>
-<p>谢天谢地，这及时制止了我违反ToS的行为(事后惊出一身冷汗)。</p>
-<p>于是我联系了
-<code>@Lanched</code>，在他的热心帮助下，我顺利拿到了一份整个上海portal的信息。</p>
-<blockquote>
-<p>数据截止到 2023-7-30 日，区域范围是北纬 30.662225-31.879785，东经
-120.860389-121.969865，基本包含整个上海区域，一共 30,179 个potal。</p>
-</blockquote>
-<p>在与他的交流过程中得知，全球 portal 的数量已经从2020年的 11,475,124
-个，2023年上涨到了 18,284,480 个，增长为原来的
-159%。看这个数据很可观，依稀还是能看到它茁壮成长的影子的（拜托拜托，再撑十年吧）。</p>
-<p>最后，我向他表示感谢，并表示 以后有需要我的地方我会尽全力帮忙，
-得到的回复却是
-<code>I dont think, you can help me in ingress - anyway i cant play it anymore.</code>
-。</p>
-<p>我看了他的名字是
-<code>Alex Zverev</code>，意识到他的国籍，顿时心里五味杂陈，但愿以后游戏可以更纯粹一些。</p>
-<h1 id="分析数据">2、分析数据</h1>
-<p>写了一些小脚本，对拿到的数据进行了分析，结果如下：</p>
-<p><img src="/images/ingress/shanghai_portals.gif" width="80%"></p>
-<p>上海的经纬度是东经120°52′-122°12′，北纬30°40′-31°53′之间。
-数据截止到2023-7-30日，区域范围是北纬30.662225-31.879785，东经120.860389-121.969865，基本包含整个上海区域，一共30179个potal。</p>
-<p><img src="/images/ingress/part_of_shanghai.png" width="60%"></p>
-<p>我喜欢密集的区域！于是进一步将经纬度限制在比较密集的
-北纬30.988-31.430，东经121.249-121.718，一共22431个portal:</p>
-<p><img src="/images/ingress/part_of_shanghai_gif.gif" width="80%"></p>
-<hr />
-<p>数据、图片、代码均位于</p>
-<p>参考文献： <a
-href="https://blog.csdn.net/qq_42887760/article/details/129285818">python中Google
-S2算法的简单使用案例</a></p>
-<p><a
-href="https://blog.csdn.net/qq_43777978/article/details/116800460">Google的S2算法原理以及使用Java版本--部分参考自《高效的多维空间点索引算法》</a></p>
-]]></content>
-      <tags>
-        <tag>ingress</tag>
-        <tag>Homogeneous</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Final Cut study notes</title>
-    <url>/2023/07/08/Final-cut-study-notes/</url>
-    <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
-<span id="more"></span>
-<h1 id="配置">配置</h1>
-<hr />
-<h1 id="插件">插件</h1>
-<h2 id="motion-vfx"><a href="https://www.motionvfx.com/">MOTION
-VFX</a></h2>
-<p>一个插件集合的网站，巨好用！</p>
-<h3 id="mcamrig摄像机运动"><a
-href="https://www.motionvfx.com/store,mcamrig,p2219.html?category=63&amp;irgwc=1&amp;irgwc=1">mCamRig</a>摄像机运动</h3>
-<ul>
-<li>对出教程的UP主特别有用</li>
-<li>可以快速制作缩放、旋转，添加镜头模糊、镜头运动效果</li>
-<li>用法：
-<ul>
-<li>字幕里找到插件，拉到对应的片段上</li>
-</ul></li>
-</ul>
-<h3 id="mvertical手机视频背景虚化"><a
-href="https://www.motionvfx.com/store,mvertical,p2176.html?irgwc=1">mVertical</a>手机视频背景虚化</h3>
-<ul>
-<li>横版视频插入竖版视频时，填充两边的黑色</li>
-<li>实现背景重叠的背景虚化</li>
-<li>小技巧
-<ul>
-<li>选择片段，按一下X，就自动选择这个片段长度</li>
-<li>在字幕里找到mVertical，按Q，就可以整段附着到这个片段</li>
-</ul></li>
-</ul>
-<h2 id="commandpost最强辅助"><a
-href="https://commandpost.io">Commandpost</a>最强辅助</h2>
-<h1 id="清理缓存">清理缓存</h1>
-<p>资源库 右键 显示包内容</p>
-<h1 id="高效技巧">高效技巧</h1>
-<p>添加视频时，进行了部分选择，标记 -&gt; 清除所选范围（快捷键：Option +
-X 取消选择）</p>
-<p>添加字幕：按enter会换行，按commond+enter退出编辑状态</p>
-<p>把当前片段拉长（某一帧拉长） - 编辑 -&gt; 添加静帧 - 快捷键：shift +
-H，片段是完整的没有被切割</p>
-<p>固定音乐位置 - 第一帧最前面加一个空隙 Edit -&gt; Insert Generator
--&gt; Gap(option+W) - 选择Gap，control+D，输入1（1帧时长） -
-把音乐放最前面 - 删除的时候，Option + commond + Delete</p>
-<p>调整变速，不影响整体时长 - 右键， Lift from storyline - Overwrite to
-Primary Storyline</p>
-<p>添加的时候只要要画面，不要声音</p>
-<p>Final cut pro 1. 资源管理 - 关系： 资源库 -&gt; 事件 -&gt; 项目 -
-导入素材 - 按住 command， 手动点击素材，批量选择</p>
-<p>2.添加 素材到时间线，基本操作 - 1. 片段选择 - 选择入点： I - 选择出点
-： O - 添加到时间线： E - 取消选择 - Option + X - 2. 预览素材 -
-顺序播放： L - 加速： 连续按2,3次L - 暂停 ：K - 倒序播放 ：J -
-3.添加字幕 - 添加到选定时间点： Q - 4. 在2个素材之间快速插入： W - 5.
-进阶学习 - 个人收藏 - 关键词 - 3.剪辑 - 1. 切割工具 - B - 2. 延长 缩短
-选择的视频 - 逗号 和 句号 - 3. 切割并选中 - command + B - 4.
-范围选择工具 - 按住R不松 - 5. 删除 播放头开始 到 选中位置 - Option + [ -
-6. 删除 选中位置 到 素材结束位置 - Option + ] - 7. 删除 主时间线视频，
-同时不删除连接的视频 ， 且保留 B-roll - Option + command + delete - 8.
-速度条<br />
-- command + R - 9. 速度条 分段 - shift + B - 10. 完整 显示时间线 - shift
-+ Z - 11. 吸附 开关 - N - 12. 打上标记 - M - 13. 预览 开关 - S - 14.
-音频 - 音量调节 - Control + or Control - - 15. 字幕 - 添加字幕 到 浏览头
-右边 - Q - 添加字幕 到 浏览头 左边 - shift + Q - 直接添加 基本字幕 -
-control + T - 16. 转场 - 添加默认转场 - command + T - 17. 添加 静止帧 -
-Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数）
-- 19. 从故事情节中 提取 - 不影响 时间线 option + command + 向上</p>
-]]></content>
-      <tags>
-        <tag>notes</tag>
-        <tag>finalcut</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>万物皆可RSS</title>
-    <url>/2023/06/29/RSS/</url>
-    <content><![CDATA[<p>万物皆可RSS！</p>
-<span id="more"></span>
-<p><a href="https://sspai.com/post/60781">指路文章</a></p>
-<p><a
-href="https://www.bilibili.com/video/BV1oU4y1s7o8/?spm_id_from=333.337.search-card.all.click&amp;vd_source=a706cf2a9a33f4c298a6ef4764cea661">入坑视频教程</a></p>
-<p><a
-href="https://www.runningcheese.com/rss-subscriptions">入坑文章指南</a></p>
-<blockquote>
-<p>RSS，英文全称Really Simple
-Syndication，中文译作简易信息聚合（也叫聚合内容），是一种基于XML标准，在互联网上被广泛采用的内容包装盒投递协议。它能够描述和同步网站内容，而RSS订阅这种形式则可以更快地获取最新信息。</p>
-</blockquote>
-<ul>
-<li><p>碎片化阅读</p>
-<blockquote>
-<p>碎片化阅读是指一种通过手机、电子书、计算机等进行的不完整的、断断续续的阅读模式。</p>
-</blockquote></li>
-<li><p>信息茧房 &gt;
-信息茧房概念是由哈佛大学法学院教授、奥巴马总统的法律顾问凯斯·桑斯坦在其2006年出版的著作《信息乌托邦——众人如何生产知识》中提出的。通过对互联网的考察，桑斯坦指出，在信息传播中，因公众自身的信息需求并非全方位的，公众只注意自己选择的东西和使自己愉悦的通讯领域，久而久之，会将自身桎梏于像蚕茧一般的“茧房”中。</p></li>
-</ul>
-<p>众所周知，我们身处一个信息爆炸的网络大数据时代，再加上数据埋点、人群画像等精准营销手段，往往会产生这样的一个结果：<strong>我们经常会被迫接收到来自服务商提供的，经由大数据算法检验认为的“所谓匹配我们”的信息。</strong></p>
-<p>而这些“精准匹配的个性化”信息会不断缩小我们的认知范围，久而久之，渐渐我们会失去对信息的敏感，处于一种“<strong>别人推荐什么，你就看什么</strong>”的状态中。这是很可怕的！！</p>
-<p>我们每个人都是独立的个体，应当是“自由”的。这份自由中自然包含着“思想自由”：个人拥有或思考独立于他人之外的观点、事实、思想之自由。</p>
-<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
-<h1 id="rsshub-feedly-reeder搭配">RSSHub + Feedly + Reeder搭配</h1>
-<p>RSSHub是一个开源、简单易用、易于扩展的 RSS
-生成器，可以给任何奇奇怪怪的内容生成 RSS
-订阅源。目前借助于开源社区的力量快速发展中，已经适配数百家网站的上千项内容。</p>
-<ul>
-<li>RSSHub可以为几乎所有网站提供RSS订阅源，比如知乎、虎扑、博客、微信公众号、B站、起点等媒体站点。甚至即使该站点不提供RSS订阅服务，我们也可以基于它来制作一个RSS订阅源，可谓非常强大</li>
-</ul>
-<p>Feedly是一个RSS聚合器应用程序，支持各种网页浏览器和运行iOS或Android的移动设备，也是一个基于云端的服务。其从各种在线资源聚合用户自定的新闻订阅源，并可与他人分享。</p>
-<ul>
-<li>选择Feedly则是因为其提供了文件夹分类功能，且也拥有数量不菲的订阅源，在对RSS订阅源的管理上十分方便，同时恰好也在Reeder支持的第三方订阅服务列表中。</li>
-</ul>
-<p>Reeder是一款评价极高的iOS端RSS阅读应用。其支持与Feedbin、Feedly、Inoreader等RSS第三方服务云端同步，甚至也支持与FreshRSS、Reader、Fever等自建RSS服务同步数据。</p>
-<ul>
-<li>使用Reeder则仅仅是因为它是iOS上广受好评的RSS阅读端APP，而我购买后体验的效果也很满意。</li>
-</ul>
-<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
-<p>我绕了一大圈，看各种资料，最终的选择也恰巧是如此。</p>
-<h1 id="我的一些操作">我的一些操作：</h1>
-<h2 id="mac安装reeder4">1、mac安装Reeder4</h2>
-<p>程序体积比我想象的要小</p>
-<p>新建了个账户，icloud的feeds。</p>
-<p>订阅了一下自己的博客，阅读体验还可以。</p>
-<h2 id="iphone安装reeder5">2、iphone安装Reeder5</h2>
-<p>重新注册了个美区账号，<a
-href="https://mp.weixin.qq.com/s/s9fMsBzVu4nXBbBuYym9mA">步骤</a></p>
-<p>使用礼品卡的方式下载了Reeder5</p>
-<p>新建了个账户，icloud的feeds，和电脑的订阅同步上了～</p>
-<h2 id="浏览器安装rss插件">3、浏览器安装<a
-href="https://greasyfork.org/zh-CN/scripts/373252-rss-show-site-all-rss">RSS+插件</a></h2>
-<p>安装后，在网页的右下角会有一个“蓝色圆点”，显示当前网页有多少个可用
-RSS 源，如果没有，则不会显示。</p>
-<p>有了它，我们就再也不需要到处找 RSS 订阅源。</p>
-<p>只需要和平时上网一样，遇到喜欢的 RSS 源，一键添加即可。</p>
-<h2 id="注册feedly">4、注册feedly</h2>
-<p>https://feedly.com/</p>
-<p>但是，<a href="https://www.v2ex.com/t/797931">Reeder 4 无法添加
-feedly</a></p>
-<p>决定买Reeder5，既然拥有国外信用卡是早晚的事，那就早点做吧。</p>
-<h2 id="注册币安">5、注册币安</h2>
-<p><a href="https://www.binance.com/zh-CN">币安</a></p>
-<p><a
-href="https://www.youtube.com/watch?v=sWm0RgSapp8">币安使用方式</a></p>
-<p>欧易似乎更好用，但我还是先入为主了。</p>
-<h2 id="注册onekey-visa卡">6、注册onekey visa卡</h2>
-<p>在<a
-href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p>
-<p><a href="https://www.youtube.com/watch?v=nIfFC7hFZ90">教程</a></p>
-<p>我是用币安向onekey提现USDT实现激活的，期间扣除了1USDT的手续费。以及onekey有1$的开卡费和一点手续费。</p>
-<h2 id="添加feedly账户">7、添加feedly账户</h2>
-<p>下载Reeder5之后，就可以绑定Feedly账户了。</p>
-<hr />
-<p>目前我是<code>RSS+插件</code>的重度使用者</p>
-<hr />
-<h1 id="rss真香"><strong>RSS真香！</strong></h1>
-]]></content>
-      <tags>
-        <tag>RSS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Using Ubuntu from scratch</title>
-    <url>/2023/06/30/Using-Ubuntu-from-scratch/</url>
-    <content><![CDATA[<p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
-<span id="more"></span>
-<h1 id="系统安装">1.系统安装</h1>
-<h2 id="下载">1.1 下载</h2>
-<p><a href="http://mirrors.aliyun.com/ubuntu-releases/20.04/">Ubuntu
-20.4镜像</a></p>
-<h2 id="把iso镜像文件转换成dmg文件">1.2 把iso镜像文件转换成dmg文件</h2>
-<p><code>cd Downloads</code></p>
-<p><code>hdiutil convert -format UDRW -o ubuntu.iso ubuntu-20.04.6-desktop-amd64.iso</code></p>
-<ul>
-<li><p><code>-format</code>为生成文件的权限；</p></li>
-<li><p><code>UDRW</code> :表示转换成有read/write的权限的镜像。</p></li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Reading Driver Descriptor Map (DDM : 0)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 1)…</span><br><span class="line">Reading Apple (Apple_partition_map : 2)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 3)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading EFI (Apple_HFS : 4)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 5)…</span><br><span class="line">...............................................................................</span><br><span class="line">Elapsed Time:  4.971s</span><br><span class="line">Speed: 834.8MB/s</span><br><span class="line">Savings: 0.0%</span><br><span class="line">created: /Users/zhaodongyu/Downloads/ubuntu.iso.dmg</span><br></pre></td></tr></table></figure>
-<h2 id="烧录至优盘">1.3 烧录至优盘</h2>
-<p>注意找到U盘的路径，使用<code>diskutil list</code>命令查询。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/dev/disk4 (external, physical):</span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">:                       TYPE NAME                    SIZE       IDENTIFIER</span></span><br><span class="line">   0:     FDisk_partition_scheme                        *16.0 GB    disk4</span><br><span class="line">   1:             Windows_FAT_32 NO NAME                 16.0 GB    disk4s1</span><br></pre></td></tr></table></figure>
-<p>找到U盘的路径为/dev/disk4，并使用命令行卸载U盘：</p>
-<p><code>diskutil unmountDisk /dev/disk4</code></p>
-<p>显示信息：Unmount of all volumes on disk4 was successful</p>
-<p>把iso文件写入U盘 <code>mv ubuntu.iso.dmg ubuntu.iso</code></p>
-<p><code>sudo dd if=./ubuntu.iso of=/dev/disk4 bs=1m</code></p>
-<p>等了几分钟后，显示 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">4149+1 records in</span><br><span class="line">4149+1 records out</span><br><span class="line">4351463424 bytes transferred in 369.833082 secs (11766020 bytes/sec)</span><br></pre></td></tr></table></figure></p>
-<p>弹出优盘</p>
-<p><code>sudo eject /dev/disk4</code></p>
-<h1 id="系统设置">2.系统设置</h1>
-<h2 id="开启ssh连接">2.1 开启SSH连接</h2>
-<p><a
-href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服务远程登录</a></p>
-<p><code>sudo apt-get install openssh-server</code></p>
-<p>可以ssh连接了</p>
-<h2 id="更新vim">2.2 更新vim</h2>
-<ul>
-<li><p>卸载旧版的vi：sudo apt-get remove vim-common</p></li>
-<li><p>安装新版的vim：sudo apt-get install vim</p></li>
-</ul>
-<h2 id="挂载硬盘">2.3 挂载硬盘</h2>
-<p>查看磁盘信息命令: <code>sudo fdisk -l</code></p>
-<p>其中有： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Disk /dev/sdb: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors</span><br><span class="line">Disk model: ST1000DM003-1SB1</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 4096 bytes</span><br><span class="line">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span><br></pre></td></tr></table></figure></p>
-<p>查看硬盘的UUID命令: <code>sudo blkid</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb: UUID=&quot;2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f&quot; BLOCK_SIZE=&quot;4096&quot; TYPE=&quot;ext4&quot;</span><br></pre></td></tr></table></figure>
-<p>mkdir创建挂载点data</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">zhaodongyu@portal:/$ sudo mkdir data</span><br><span class="line">zhaodongyu@portal:/$ ls</span><br><span class="line">bin   cdrom  dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr</span><br><span class="line">boot  data   etc  lib   lib64  lost+found  mnt    proc  run   snap  swapfile  tmp  var</span><br></pre></td></tr></table></figure>
-<p>手动挂载</p>
-<p><code>sudo mount /dev/sdb /data</code></p>
-<p>永久性挂载分区，修改分区文件，输入命令<code>sudo vi /etc/fstab</code>，增加
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UUID=2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f /data           ext4    defaults          0       0</span><br></pre></td></tr></table></figure></p>
-<p>查看挂载好的硬盘信息 <code>df -hT</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb       ext4   916G  207G  663G  24% /data</span><br></pre></td></tr></table></figure>
-<h2 id="安装-vs-code">2.4 安装 VS code</h2>
-<p>打开 Ubuntu
-软件中心，并且搜索<code>Visual Studio Code</code>,然后安装应用</p>
-<h2 id="安装make">2.5 安装make</h2>
-<p><code>sudo apt install make</code></p>
-<h2 id="cmake升级">2.5 cmake升级</h2>
-<p><a
-href="https://blog.csdn.net/Boys_Wu/article/details/104940575">参考</a></p>
-<p>我在<a
-href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc4-linux-x86_64.tar.gz</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tar -zxvf cmake-3.27.0-rc4-linux-x86_64.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mv cmake-3.27.0-rc4-linux-x86_64 /opt/cmake-3.27.0</span><br><span class="line"></span><br><span class="line">sudo ln -sf /opt/cmake-3.27.0/bin/* /usr/bin/</span><br><span class="line"></span><br><span class="line">cmake --version</span><br><span class="line">    cmake version 3.27.0-rc4</span><br><span class="line"></span><br><span class="line">sudo vim ~/.bashrc </span><br><span class="line">    export  PATH=$PATH:/opt/cmake-3.27.0/bin</span><br><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
-<h2 id="gcc降级">2.6 gcc降级</h2>
-<p>原来的gcc版本是9.4</p>
-<p><code>sudo apt-get install gcc-9</code></p>
-<p><code>sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100</code></p>
-<p>sudo apt-get install g++-9</p>
-<p>sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9
-100</p>
-]]></content>
-      <tags>
-        <tag>notes</tag>
-        <tag>ubuntu</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Roofline model学习</title>
-    <url>/2023/06/05/Roofline/</url>
-    <content><![CDATA[<blockquote>
-<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
-</blockquote>
-<p>学习Roofline，有一种理论指导实践的感觉。</p>
-<span id="more"></span>
-<p>阅读论文：<a
-href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
-An Insightful Visual Performance Model for Floating-Point Programs and
-Multicore Architectures</a></p>
-<p>博客：<a
-href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
-<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
-Model与深度学习模型的性能分析</a></p>
-<p>我的总结：</p>
-<p>【更新中】</p>
-]]></content>
-      <tags>
-        <tag>study</tag>
-        <tag>Roofline</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>flatc</title>
-    <url>/2023/06/28/flatc/</url>
-    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
-<span id="more"></span>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
-<p>./flatc -t schema.fbs -- test.tflite</p>
-<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
-~/Downloads/encoder.tflite</p>
-<p>参考资料：</p>
-<p><a
-href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>git</title>
     <url>/2023/06/19/git/</url>
     <content><![CDATA[<p>日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。</p>
@@ -2453,159 +2453,6 @@ href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
       <tags>
         <tag>tech</tag>
         <tag>memory align</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>vtype_register</title>
-    <url>/2023/06/14/vtype-register/</url>
-    <content><![CDATA[<p>最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。</p>
-<p>在此记录一下关于vtype寄存器相关的知识和结论。</p>
-<span id="more"></span>
-<h2 id="background">Background</h2>
-<blockquote>
-<p>With a vector length specific (VLS) SIMD instruction set the main
-problem is to pick the right vector register size. Of course there is a
-trade-off between the amount of data-level parallelism and hardware
-costs. Due to Moore's law, vector register sizes can be increased over
-time without making the CPU chip more expensive. Also, some users are
-interested in powerful CPUs with wider vector registers while the
-average user is fine with averagely sized register. Thus, there is no
-one right vector register size.</p>
-</blockquote>
-<p>对于向量长度特定 (VLS) SIMD
-指令集，主要问题是选择正确的向量寄存器大小。
-当然，在数据级并行性和硬件成本之间存在权衡。
-由于<code>摩尔定律</code>，<code>矢量寄存器的大小</code>可以随着时间的推移而增加，而不会增加
-CPU 芯片的成本。 此外，一些用户对具有<code>更宽</code>向量寄存器的强大
-CPU 感兴趣，而普通用户则对<code>平均大小</code>的寄存器感兴趣。
-因此，<code>没有一个正确的向量寄存器大小</code>。</p>
-<blockquote>
-<p>The solution to all this is to design a variable length vector
-instruction set. In that way the instructions are then agnostic to the
-vector register size of a concrete CPU implementation. Thus, the binary
-code is portable between low, middle and high-end CPUs, and
-automatically makes use of wider registers in newer CPUs.</p>
-</blockquote>
-<p>解决方案是<code>设计一个可变长度的向量指令集</code>。
-这样，指令就与具体 CPU 实现的向量寄存器大小无关。
-因此，二进制代码可在低端、中端和高端 CPU 之间移植，并自动在较新的 CPU
-中使用更宽的寄存器。</p>
-<p>个人感觉，RISC-V这个后起之秀就胜在不用顾及历史积累，可以很轻易的从头开始。</p>
-<h2 id="design-challenges-opcode-space">Design Challenges: Opcode
-Space</h2>
-<p>Community wanted to stay with 32-bit instruction encoding</p>
-<ul>
-<li>Low-end embedded systems have 32-bit instruction fetch</li>
-<li>Harder to support mixed-length instruction streams, 16,32,48, &amp;
-64 bits</li>
-<li>Static code size matters on embedded platforms</li>
-</ul>
-<p>But wanted vast array of datatypes and custom datatypes, and large
-set of operations</p>
-<h2 id="opcode-solution">Opcode Solution</h2>
-<p>There are two registers used when operating vectors in RVV</p>
-<h3 id="寄存器vtype-vector-type.">寄存器<strong>vtype: Vector
-Type.</strong></h3>
-<p>Added a control register to hold some information about current
-setting of vector unit</p>
-<p>vtype describes
-<code>the type of vector we are going to operate</code> and includes</p>
-<p>vtype fields (total additional 6-7 state bits) - vsew: standard
-element width (SEW=8,16,32,…,1024) - Size in bits of the elements being
-operated - <code>8 ≤ sew ≤ ELEN</code> - vlmul: vector length multiplier
-(LMUL=1,2,4,8) - <span class="math inline">\(lmul = 2^k\)</span> where
--3 ≤ k ≤ 3 (i.e., lmul ∈ {1/8, 1/4, 1/2, 1, 2, 4, 8}) - 寄存器分组
-Groups registers to form “longer vector” - Number of registers in each
-group is LMUL - 举例：当 LMUL=2时，<code>vadd v2, v4, v6</code> 意味着
-<code>(v2,v3) := (v4,v5) + (v6,v7)</code> - vediv: vector element
-divider (EDIV=1,2,4,8)</p>
-<p>Encoding only occupies 1.5 major opcodes</p>
-<p>Full 64-bit instruction encoding also planned - Can view current
-32-bit encoding as compressed form of full encoding</p>
-<h3
-id="寄存器vl-vector-length-not-to-be-confused-with-vlen">寄存器<strong>vl:
-Vector Length</strong> (not to be confused with VLEN!)</h3>
-<p>vl describes <code>how many elements of the vector</code> (starting
-from the element zero) <code>we are going to operate</code></p>
-<ul>
-<li><p>$ 0 ≤ vl ≤ vlmax(sew, lmul) $</p></li>
-<li><p>$ vlmax(sew, lmul) = (VLEN / sew) × lmul $</p></li>
-</ul>
-<p>Vector length <span class="math inline">\(vl\)</span> set to min(AVL,
-VLMAX)</p>
-<h2 id="rvv-defines-32-vector-registers-of-size-vlen-bits">RVV defines
-32 vector registers of size VLEN bits</h2>
-<ul>
-<li>v0 to v31</li>
-<li>VLEN is a <code>constant parameter</code> chosen by the implementor
-and must be a power of two
-<ul>
-<li>Zv* standard extensions constraint VLEN to be at least 64 or
-128</li>
-</ul></li>
-<li>E.g., VLEN=512 would be equivalent in size to Intel AVX-512</li>
-<li>VLEN is not a great name so read it as
-“<strong><code>vector register size (in bits)</code></strong>”</li>
-</ul>
-<h2 id="vectors-in-rvv-are-divided-in-elements.">Vectors in RVV are
-divided in elements.</h2>
-<ul>
-<li>The size of elements in bits is at least 8 bits up to ELEN bits</li>
-<li>ELEN is a constant parameter chosen by the implementor</li>
-<li>Must be a power of two and 8 ≤ ELEN ≤ VLEN
-<ul>
-<li>Zv* standard extensions constrain ELEN to be at least 32 or 64</li>
-</ul></li>
-</ul>
-<h2 id="vector-length-control">Vector Length control</h2>
-<p>Current maximum vector length is register length in bits divided by
-current element width setting:</p>
-<p><span class="math display">\[VLMAX = VLEN/SEW\]</span></p>
-<ul>
-<li>E.g., <code>VLEN = 512b, SEW=32b</code> =&gt;
-<code>VLMAX = 16</code></li>
-</ul>
-<p>Current active vector length set by vl register</p>
-<p><span class="math display">\[0&lt;=vl&lt;=VLMAX\]</span></p>
-<h2 id="vsetvlivsetvl-instructions">vsetvli/vsetvl instructions</h2>
-<p><span class="math inline">\(vsetvli\)</span> instruction sets both
-vector configuration and vector length:</p>
-<p><code>vsetvli rd，rs1，vtypei(e8/e16/e32/e64)，multi-num(m1-m8)</code></p>
-<p>rd - Returns setting of vector length in scalar register -
-返回值，告诉硬件接下去运行函数所需要的操作元素个数的量</p>
-<p>rs1 - Application vector length (AVL) - 设置操作元素</p>
-<p>vtypei - 每个元素的位宽大小</p>
-<p>multi-num - 寄存器的连用数量</p>
-<hr />
-<p>在 rv64 的编写中，如果 rd
-的返回值不容，会导致硬件部分中心进行设置，此步骤极大的占用运行时间，所以<code>在编写的时候需要尽量可能的减少 rd 数值的变换</code>。</p>
-<p>rv64 中每个 vector 寄存器总位宽是大于等于 128-bit,
-以128为例子，对于如何对 rd
-进行数值的变换，公式方面有一个很简单的换算：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rd == rs1 &lt;= (vtypei * multi-num ) ? rs1 : (vtypei * multi-num )</span><br><span class="line">举个例子：</span><br><span class="line"></span><br><span class="line">vsetvli rd, rs1 == 8， vtypei == e8， multi-num == m1</span><br><span class="line">返回值便是 rd == 8 (128 / e8 == 16 &gt;= rs1 =&gt; 8)</span><br><span class="line"></span><br><span class="line">vsetvli rd, rs1 == 32，vtypei == e16， multi-num == m1</span><br><span class="line">返回值便是 rd == 16 (128 / e16 = 16)</span><br></pre></td></tr></table></figure>
-<p>如果一段代码中同时存在上述两条指令，那么便会出现硬件重设置情况，对代码整体的性能会产生负面影响。</p>
-<hr />
-<h2 id="simple-memcpy-example">Simple memcpy example</h2>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># void*memcpy(void*dest,const void*src, size_t n)</span><br><span class="line"># a0=dest, a1=src, a2=n</span><br><span class="line">memcpy:</span><br><span class="line">mv a3, a0 # Copy destination</span><br><span class="line">loop:</span><br><span class="line">vsetvli t0, a2, e8 # Vectors of 8b</span><br><span class="line">vlb.v v0, (a1) # Load bytes</span><br><span class="line">add a1, a1, t0 # Bump pointer</span><br><span class="line">sub a2, a2, t0 # Decrement count</span><br><span class="line">vsb.v v0, (a3) # Store bytes</span><br><span class="line">add a3, a3, t0 # Bump pointer</span><br><span class="line">bnez a2, loop # Any more?</span><br><span class="line">ret # Return</span><br></pre></td></tr></table></figure>
-<h2 id="usability-code">usability code</h2>
-<p>通过intrinsic的方式，查询<code>vlenb</code>，进而可以兼容不同位宽的设备。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vl</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vl&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vtype</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vtype&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vlenb</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vlenb&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>整理的很乱，暂时没时间仔细梳理了。</p>
-<h2 id="参考文献">参考文献</h2>
-<p><a href="https://gms.tf/riscv-vector.html">Programming with RISC-V
-Vector Instructions</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/363901274">RISC-V
-小白优化学习</a></p>
-<p><a
-href="https://riscv.org/wp-content/uploads/2019/06/17.40-Vector_RISCV-20190611-Vectors.pdf">Vector
-Extension Update</a></p>
-<p><a
-href="https://llvm.org/devmtg/2019-04/slides/TechTalk-Kruppe-Espasa-RISC-V_Vectors_and_LLVM.pdf">Adventures
-with RISC-V Vectors and LLVM</a></p>
-]]></content>
-      <tags>
-        <tag>tech</tag>
-        <tag>risc-v</tag>
       </tags>
   </entry>
   <entry>
@@ -2860,6 +2707,159 @@ href="https://www.iloveimg.com/zh-cn">iloveimg</a>，非常好用～</p>
         <tag>engineering</tag>
         <tag>Transposed Convolution</tag>
         <tag>HPC</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vtype_register</title>
+    <url>/2023/06/14/vtype-register/</url>
+    <content><![CDATA[<p>最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。</p>
+<p>在此记录一下关于vtype寄存器相关的知识和结论。</p>
+<span id="more"></span>
+<h2 id="background">Background</h2>
+<blockquote>
+<p>With a vector length specific (VLS) SIMD instruction set the main
+problem is to pick the right vector register size. Of course there is a
+trade-off between the amount of data-level parallelism and hardware
+costs. Due to Moore's law, vector register sizes can be increased over
+time without making the CPU chip more expensive. Also, some users are
+interested in powerful CPUs with wider vector registers while the
+average user is fine with averagely sized register. Thus, there is no
+one right vector register size.</p>
+</blockquote>
+<p>对于向量长度特定 (VLS) SIMD
+指令集，主要问题是选择正确的向量寄存器大小。
+当然，在数据级并行性和硬件成本之间存在权衡。
+由于<code>摩尔定律</code>，<code>矢量寄存器的大小</code>可以随着时间的推移而增加，而不会增加
+CPU 芯片的成本。 此外，一些用户对具有<code>更宽</code>向量寄存器的强大
+CPU 感兴趣，而普通用户则对<code>平均大小</code>的寄存器感兴趣。
+因此，<code>没有一个正确的向量寄存器大小</code>。</p>
+<blockquote>
+<p>The solution to all this is to design a variable length vector
+instruction set. In that way the instructions are then agnostic to the
+vector register size of a concrete CPU implementation. Thus, the binary
+code is portable between low, middle and high-end CPUs, and
+automatically makes use of wider registers in newer CPUs.</p>
+</blockquote>
+<p>解决方案是<code>设计一个可变长度的向量指令集</code>。
+这样，指令就与具体 CPU 实现的向量寄存器大小无关。
+因此，二进制代码可在低端、中端和高端 CPU 之间移植，并自动在较新的 CPU
+中使用更宽的寄存器。</p>
+<p>个人感觉，RISC-V这个后起之秀就胜在不用顾及历史积累，可以很轻易的从头开始。</p>
+<h2 id="design-challenges-opcode-space">Design Challenges: Opcode
+Space</h2>
+<p>Community wanted to stay with 32-bit instruction encoding</p>
+<ul>
+<li>Low-end embedded systems have 32-bit instruction fetch</li>
+<li>Harder to support mixed-length instruction streams, 16,32,48, &amp;
+64 bits</li>
+<li>Static code size matters on embedded platforms</li>
+</ul>
+<p>But wanted vast array of datatypes and custom datatypes, and large
+set of operations</p>
+<h2 id="opcode-solution">Opcode Solution</h2>
+<p>There are two registers used when operating vectors in RVV</p>
+<h3 id="寄存器vtype-vector-type.">寄存器<strong>vtype: Vector
+Type.</strong></h3>
+<p>Added a control register to hold some information about current
+setting of vector unit</p>
+<p>vtype describes
+<code>the type of vector we are going to operate</code> and includes</p>
+<p>vtype fields (total additional 6-7 state bits) - vsew: standard
+element width (SEW=8,16,32,…,1024) - Size in bits of the elements being
+operated - <code>8 ≤ sew ≤ ELEN</code> - vlmul: vector length multiplier
+(LMUL=1,2,4,8) - <span class="math inline">\(lmul = 2^k\)</span> where
+-3 ≤ k ≤ 3 (i.e., lmul ∈ {1/8, 1/4, 1/2, 1, 2, 4, 8}) - 寄存器分组
+Groups registers to form “longer vector” - Number of registers in each
+group is LMUL - 举例：当 LMUL=2时，<code>vadd v2, v4, v6</code> 意味着
+<code>(v2,v3) := (v4,v5) + (v6,v7)</code> - vediv: vector element
+divider (EDIV=1,2,4,8)</p>
+<p>Encoding only occupies 1.5 major opcodes</p>
+<p>Full 64-bit instruction encoding also planned - Can view current
+32-bit encoding as compressed form of full encoding</p>
+<h3
+id="寄存器vl-vector-length-not-to-be-confused-with-vlen">寄存器<strong>vl:
+Vector Length</strong> (not to be confused with VLEN!)</h3>
+<p>vl describes <code>how many elements of the vector</code> (starting
+from the element zero) <code>we are going to operate</code></p>
+<ul>
+<li><p>$ 0 ≤ vl ≤ vlmax(sew, lmul) $</p></li>
+<li><p>$ vlmax(sew, lmul) = (VLEN / sew) × lmul $</p></li>
+</ul>
+<p>Vector length <span class="math inline">\(vl\)</span> set to min(AVL,
+VLMAX)</p>
+<h2 id="rvv-defines-32-vector-registers-of-size-vlen-bits">RVV defines
+32 vector registers of size VLEN bits</h2>
+<ul>
+<li>v0 to v31</li>
+<li>VLEN is a <code>constant parameter</code> chosen by the implementor
+and must be a power of two
+<ul>
+<li>Zv* standard extensions constraint VLEN to be at least 64 or
+128</li>
+</ul></li>
+<li>E.g., VLEN=512 would be equivalent in size to Intel AVX-512</li>
+<li>VLEN is not a great name so read it as
+“<strong><code>vector register size (in bits)</code></strong>”</li>
+</ul>
+<h2 id="vectors-in-rvv-are-divided-in-elements.">Vectors in RVV are
+divided in elements.</h2>
+<ul>
+<li>The size of elements in bits is at least 8 bits up to ELEN bits</li>
+<li>ELEN is a constant parameter chosen by the implementor</li>
+<li>Must be a power of two and 8 ≤ ELEN ≤ VLEN
+<ul>
+<li>Zv* standard extensions constrain ELEN to be at least 32 or 64</li>
+</ul></li>
+</ul>
+<h2 id="vector-length-control">Vector Length control</h2>
+<p>Current maximum vector length is register length in bits divided by
+current element width setting:</p>
+<p><span class="math display">\[VLMAX = VLEN/SEW\]</span></p>
+<ul>
+<li>E.g., <code>VLEN = 512b, SEW=32b</code> =&gt;
+<code>VLMAX = 16</code></li>
+</ul>
+<p>Current active vector length set by vl register</p>
+<p><span class="math display">\[0&lt;=vl&lt;=VLMAX\]</span></p>
+<h2 id="vsetvlivsetvl-instructions">vsetvli/vsetvl instructions</h2>
+<p><span class="math inline">\(vsetvli\)</span> instruction sets both
+vector configuration and vector length:</p>
+<p><code>vsetvli rd，rs1，vtypei(e8/e16/e32/e64)，multi-num(m1-m8)</code></p>
+<p>rd - Returns setting of vector length in scalar register -
+返回值，告诉硬件接下去运行函数所需要的操作元素个数的量</p>
+<p>rs1 - Application vector length (AVL) - 设置操作元素</p>
+<p>vtypei - 每个元素的位宽大小</p>
+<p>multi-num - 寄存器的连用数量</p>
+<hr />
+<p>在 rv64 的编写中，如果 rd
+的返回值不容，会导致硬件部分中心进行设置，此步骤极大的占用运行时间，所以<code>在编写的时候需要尽量可能的减少 rd 数值的变换</code>。</p>
+<p>rv64 中每个 vector 寄存器总位宽是大于等于 128-bit,
+以128为例子，对于如何对 rd
+进行数值的变换，公式方面有一个很简单的换算：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rd == rs1 &lt;= (vtypei * multi-num ) ? rs1 : (vtypei * multi-num )</span><br><span class="line">举个例子：</span><br><span class="line"></span><br><span class="line">vsetvli rd, rs1 == 8， vtypei == e8， multi-num == m1</span><br><span class="line">返回值便是 rd == 8 (128 / e8 == 16 &gt;= rs1 =&gt; 8)</span><br><span class="line"></span><br><span class="line">vsetvli rd, rs1 == 32，vtypei == e16， multi-num == m1</span><br><span class="line">返回值便是 rd == 16 (128 / e16 = 16)</span><br></pre></td></tr></table></figure>
+<p>如果一段代码中同时存在上述两条指令，那么便会出现硬件重设置情况，对代码整体的性能会产生负面影响。</p>
+<hr />
+<h2 id="simple-memcpy-example">Simple memcpy example</h2>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># void*memcpy(void*dest,const void*src, size_t n)</span><br><span class="line"># a0=dest, a1=src, a2=n</span><br><span class="line">memcpy:</span><br><span class="line">mv a3, a0 # Copy destination</span><br><span class="line">loop:</span><br><span class="line">vsetvli t0, a2, e8 # Vectors of 8b</span><br><span class="line">vlb.v v0, (a1) # Load bytes</span><br><span class="line">add a1, a1, t0 # Bump pointer</span><br><span class="line">sub a2, a2, t0 # Decrement count</span><br><span class="line">vsb.v v0, (a3) # Store bytes</span><br><span class="line">add a3, a3, t0 # Bump pointer</span><br><span class="line">bnez a2, loop # Any more?</span><br><span class="line">ret # Return</span><br></pre></td></tr></table></figure>
+<h2 id="usability-code">usability code</h2>
+<p>通过intrinsic的方式，查询<code>vlenb</code>，进而可以兼容不同位宽的设备。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vl</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vl&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vtype</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vtype&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vlenb</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vlenb&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>整理的很乱，暂时没时间仔细梳理了。</p>
+<h2 id="参考文献">参考文献</h2>
+<p><a href="https://gms.tf/riscv-vector.html">Programming with RISC-V
+Vector Instructions</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/363901274">RISC-V
+小白优化学习</a></p>
+<p><a
+href="https://riscv.org/wp-content/uploads/2019/06/17.40-Vector_RISCV-20190611-Vectors.pdf">Vector
+Extension Update</a></p>
+<p><a
+href="https://llvm.org/devmtg/2019-04/slides/TechTalk-Kruppe-Espasa-RISC-V_Vectors_and_LLVM.pdf">Adventures
+with RISC-V Vectors and LLVM</a></p>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>risc-v</tag>
       </tags>
   </entry>
 </search>
