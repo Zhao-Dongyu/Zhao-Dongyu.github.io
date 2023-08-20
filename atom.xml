@@ -90,9 +90,9 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
@@ -263,11 +263,11 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
@@ -333,9 +333,9 @@
     
     
     
-    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
     
   </entry>
   
