@@ -40,11 +40,11 @@
     <link href="http://example.com/2023/07/09/Battlegrounds/"/>
     <id>http://example.com/2023/07/09/Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2023-08-21T14:17:34.735Z</updated>
+    <updated>2023-08-22T15:33:24.202Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
-&lt;p&gt;Now at &lt;strong&gt;61%&lt;/strong&gt;&lt;/p&gt;</summary>
+&lt;p&gt;Now at &lt;strong&gt;62%&lt;/strong&gt;&lt;/p&gt;</summary>
     
     
     
@@ -70,9 +70,9 @@
     
     
     
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
     <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
   </entry>
   
@@ -90,9 +90,9 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
@@ -150,26 +150,6 @@
   </entry>
   
   <entry>
-    <title>gdb</title>
-    <link href="http://example.com/2023/06/19/gdb/"/>
-    <id>http://example.com/2023/06/19/gdb/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2023-07-13T05:35:38.498Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
-&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
-    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
-    
-  </entry>
-  
-  <entry>
     <title>git</title>
     <link href="http://example.com/2023/06/19/git/"/>
     <id>http://example.com/2023/06/19/git/</id>
@@ -186,6 +166,26 @@
     <category term="git" scheme="http://example.com/tags/git/"/>
     
     <category term="branch" scheme="http://example.com/tags/branch/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gdb</title>
+    <link href="http://example.com/2023/06/19/gdb/"/>
+    <id>http://example.com/2023/06/19/gdb/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2023-07-13T05:35:38.498Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
+&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
     
   </entry>
   
@@ -263,11 +263,11 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
@@ -333,9 +333,9 @@
     
     
     
-    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
     
   </entry>
   
