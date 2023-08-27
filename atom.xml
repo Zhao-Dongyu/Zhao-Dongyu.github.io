@@ -90,9 +90,9 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
@@ -225,9 +225,9 @@
     
     
     
-    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
-    
     <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
     
   </entry>
   
@@ -244,9 +244,9 @@
     
     
     
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
     <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
     
   </entry>
   
@@ -263,11 +263,11 @@
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
@@ -333,9 +333,9 @@
     
     
     
-    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
     
   </entry>
   
