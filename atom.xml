@@ -40,11 +40,11 @@
     <link href="http://example.com/2023/07/09/Battlegrounds/"/>
     <id>http://example.com/2023/07/09/Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2023-09-03T13:17:39.839Z</updated>
+    <updated>2023-09-08T13:19:27.970Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
-&lt;p&gt;Now at &lt;strong&gt;66%&lt;/strong&gt;&lt;/p&gt;</summary>
+&lt;p&gt;Now at &lt;strong&gt;67%&lt;/strong&gt;&lt;/p&gt;</summary>
     
     
     
@@ -70,9 +70,9 @@
     
     
     
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
   </entry>
   
