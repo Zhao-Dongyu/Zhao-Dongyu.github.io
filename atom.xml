@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-08-20T14:08:23.262Z</updated>
+  <updated>2023-09-09T09:36:56.542Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,10 +21,18 @@
     <link href="http://example.com/2023/08/04/Homogeneous-ShangHai/"/>
     <id>http://example.com/2023/08/04/Homogeneous-ShangHai/</id>
     <published>2023-08-04T08:16:16.000Z</published>
-    <updated>2023-08-20T14:08:23.262Z</updated>
+    <updated>2023-09-09T09:36:56.542Z</updated>
     
     
-    <summary type="html">&lt;p&gt;计划在上海搞一个大大的竹笋！&lt;/p&gt;</summary>
+    <summary type="html">&lt;p&gt;计划在上海搞一个大大的竹笋！&lt;/p&gt;
+&lt;h1 id=&quot;背景&quot;&gt;0、背景&lt;/h1&gt;
+&lt;h2 id=&quot;前年2021&quot;&gt;前年（2021）&lt;/h2&gt;
+&lt;p&gt;我在北京的校园里，设计并制作了一个六重竹笋，&lt;a
+href=&quot;https://mp.weixin.qq.com/s/O6tBVdg4Saa4KtITM-UNng&quot;&gt;《六重蓝笋成长记（上）》&lt;/a&gt;和&lt;a
+href=&quot;https://mp.weixin.qq.com/s/6t3HY1REaKn-AUS1TxTOdQ&quot;&gt;《六重蓝笋成长记（下）》&lt;/a&gt;，开始体会到竹笋的乐趣，并立志于做更高重的笋。&lt;/p&gt;
+&lt;h2 id=&quot;去年2022&quot;&gt;去年（2022）&lt;/h2&gt;
+&lt;p&gt;我在上海的某个时期，闲得实在是无聊，制作了 &lt;a
+href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：从入门到夺笋&lt;/a&gt;，以缓解不能出去玩的郁闷，并立志于做更高重的七重(七色彩虹)竹笋。&lt;/p&gt;</summary>
     
     
     
@@ -70,9 +78,9 @@
     
     
     
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
     <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
   </entry>
   
