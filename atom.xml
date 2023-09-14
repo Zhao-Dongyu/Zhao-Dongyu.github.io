@@ -47,11 +47,11 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <link href="http://example.com/2023/07/09/Battlegrounds/"/>
     <id>http://example.com/2023/07/09/Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2023-09-11T15:06:29.518Z</updated>
+    <updated>2023-09-14T14:51:12.098Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
-&lt;p&gt;Now at &lt;strong&gt;68%&lt;/strong&gt;&lt;/p&gt;</summary>
+&lt;p&gt;Now at &lt;strong&gt;69%&lt;/strong&gt;&lt;/p&gt;</summary>
     
     
     
@@ -77,9 +77,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
   </entry>
   
@@ -97,11 +97,11 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
   </entry>
   
@@ -232,9 +232,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
     <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
     
   </entry>
   
@@ -251,9 +251,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
-    
     <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
     
   </entry>
   
@@ -270,11 +270,11 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
@@ -340,9 +340,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="crawler" scheme="http://example.com/tags/crawler/"/>
     
   </entry>
   
