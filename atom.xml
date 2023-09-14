@@ -77,9 +77,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
     <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
   </entry>
   
@@ -232,9 +232,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
-    
     <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
     
   </entry>
   
@@ -251,9 +251,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
     <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
     
   </entry>
   
