@@ -77,9 +77,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
   </entry>
   
@@ -97,9 +97,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
@@ -270,11 +270,11 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
   </entry>
   
@@ -340,9 +340,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="crawler" scheme="http://example.com/tags/crawler/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
