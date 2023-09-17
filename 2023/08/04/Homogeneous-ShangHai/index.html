@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/ingress/part_of_shanghai_gif.gif">
 <meta property="og:image" content="http://example.com/images/ingress/divided_img.gif">
 <meta property="article:published_time" content="2023-08-04T08:16:16.000Z">
-<meta property="article:modified_time" content="2023-09-17T17:36:14.312Z">
+<meta property="article:modified_time" content="2023-09-17T17:38:36.392Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="ingress">
 <meta property="article:tag" content="Homogeneous">
@@ -250,7 +250,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-09-18 01:36:14" itemprop="dateModified" datetime="2023-09-18T01:36:14+08:00">2023-09-18</time>
+                <time title="Modified: 2023-09-18 01:38:36" itemprop="dateModified" datetime="2023-09-18T01:38:36+08:00">2023-09-18</time>
               </span>
 
           
@@ -377,16 +377,20 @@ class="math inline">\(C^3_{22431} = 1880773814095\)</span>
 <p>然后就是兴致勃勃的准备进行暴力求解，辛苦电脑跑几天，然而代码跑起来突然意识到这条路其实是行不通的。</p>
 <p>大致原因就是，竹笋确实是能获得很多解，但是没法拼大竹笋啊。于是也放弃了。</p>
 <h2 id="思路三不求优解但求有解">3.3 思路三：不求优解，但求有解</h2>
-<p>灵感来源于以前聊天时 <code>@hydronephrosis</code> 的撒豆子说法： &gt;
-我喜欢这样理解field的形成：类似于学概率的时候往桌布上撒豆子的模式，在一块三角形的布上撒一颗豆子(po)，连接所在区域的三个顶点，把布分成三个小区域；然后再撒下一颗，连接所在小区域的三个顶点，以此类推，直到所有po都囊括，形成完美多重。根据撒豆子顺序的不同，同样的一组po可以形成成千上万种不同的完美多重，每一个完美多重也可以通过这种形式解读成唯一的一系列po的顺序。这种多样性正是完美多重的魅力所在。如果每一次不止撒一颗，而是根据现有区域的数量来撒相同数量的一把豆子，使得刚好每个区域都落下一颗，就是竹笋了。如此竟与你看field的三维视角有异曲同工之妙。</p>
+<p>灵感来源于以前聊天时 <code>@hydronephrosis</code> 的撒豆子说法：</p>
+<blockquote>
+<p>我喜欢这样理解field的形成：类似于学概率的时候往桌布上撒豆子的模式，在一块三角形的布上撒一颗豆子(po)，连接所在区域的三个顶点，把布分成三个小区域；然后再撒下一颗，连接所在小区域的三个顶点，以此类推，直到所有po都囊括，形成完美多重。根据撒豆子顺序的不同，同样的一组po可以形成成千上万种不同的完美多重，每一个完美多重也可以通过这种形式解读成唯一的一系列po的顺序。这种多样性正是完美多重的魅力所在。如果每一次不止撒一颗，而是根据现有区域的数量来撒相同数量的一把豆子，使得刚好每个区域都落下一颗，就是竹笋了。如此竟与你看field的三维视角有异曲同工之妙。</p>
+</blockquote>
 <blockquote>
 <p>每撒一颗豆子都是多加三个field和三条link，也可以解释为什么完美多重的结构改变不影响AP和field的数量。</p>
 </blockquote>
-<p>以及<code>@HesalTJ</code>的补充： &gt;
-在游戏内实现的话就是，利用在Field之下连Link的新规则，在形成第一重之后依次抵达下一级的内点射3out
+<p>以及<code>@HesalTJ</code>的补充：</p>
+<blockquote>
+<p>在游戏内实现的话就是，利用在Field之下连Link的新规则，在形成第一重之后依次抵达下一级的内点射3out
 3out 3out…
 实际上执行起来会绕很多圈，但是它的美丽在于，如果用Intel截了仅Field的图一帧一帧地做成录像，那么你会看到的是一个填充色由浅逐渐逐渐变深的三角形，每一帧都有一个小三角形的深度+1重，每次提升了重数之后新的小三角形面积变小数量×3：
 从一重+1帧变为二重、+3帧变为三重、+9帧变为四重、+27帧变为五重…</p>
+</blockquote>
 <p>可惜的是，这样比较难拿到最优解，做笋的时候会多走很多路。不过，不求优解，但求有解嘛:)</p>
 <p>而且这种解法是我最喜欢的竹笋形状，我心目中的完美竹笋——</p>
 <p>高重的顶点位于次高重field的重心位置，这样的竹笋看起来更加规则，非常完美！</p>

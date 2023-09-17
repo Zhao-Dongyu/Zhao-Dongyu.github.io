@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-09-17T17:36:14.312Z</updated>
+  <updated>2023-09-17T17:38:36.392Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2023/08/04/Homogeneous-ShangHai/"/>
     <id>http://example.com/2023/08/04/Homogeneous-ShangHai/</id>
     <published>2023-08-04T08:16:16.000Z</published>
-    <updated>2023-09-17T17:36:14.312Z</updated>
+    <updated>2023-09-17T17:38:36.392Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;0、背景&lt;/h1&gt;
@@ -232,9 +232,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
     <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
     
   </entry>
   
@@ -251,9 +251,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
-    
     <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
     
   </entry>
   
