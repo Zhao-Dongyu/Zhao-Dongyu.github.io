@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-09-17T17:19:50.753Z</updated>
+  <updated>2023-09-17T17:33:39.614Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2023/08/04/Homogeneous-ShangHai/"/>
     <id>http://example.com/2023/08/04/Homogeneous-ShangHai/</id>
     <published>2023-08-04T08:16:16.000Z</published>
-    <updated>2023-09-17T17:19:50.753Z</updated>
+    <updated>2023-09-17T17:33:39.614Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;0、背景&lt;/h1&gt;
@@ -77,9 +77,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
   </entry>
   
@@ -97,9 +97,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
@@ -270,11 +270,11 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
     <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
@@ -340,9 +340,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="crawler" scheme="http://example.com/tags/crawler/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
