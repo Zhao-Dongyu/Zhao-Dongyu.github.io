@@ -97,11 +97,11 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
   </entry>
   
@@ -157,26 +157,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
   </entry>
   
   <entry>
-    <title>gdb</title>
-    <link href="http://example.com/2023/06/19/gdb/"/>
-    <id>http://example.com/2023/06/19/gdb/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2023-07-13T05:35:38.498Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
-&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
-    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
-    
-  </entry>
-  
-  <entry>
     <title>git</title>
     <link href="http://example.com/2023/06/19/git/"/>
     <id>http://example.com/2023/06/19/git/</id>
@@ -193,6 +173,26 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="git" scheme="http://example.com/tags/git/"/>
     
     <category term="branch" scheme="http://example.com/tags/branch/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gdb</title>
+    <link href="http://example.com/2023/06/19/gdb/"/>
+    <id>http://example.com/2023/06/19/gdb/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2023-07-13T05:35:38.498Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
+&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
     
   </entry>
   
