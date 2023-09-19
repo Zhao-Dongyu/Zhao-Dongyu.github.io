@@ -77,9 +77,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     
     
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
   </entry>
   
