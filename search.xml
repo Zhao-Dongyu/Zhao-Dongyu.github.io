@@ -2969,4 +2969,73 @@ with RISC-V Vectors and LLVM</a></p>
         <tag>risc-v</tag>
       </tags>
   </entry>
+  <entry>
+    <title>tflite-micro</title>
+    <url>/2023/10/27/tflite-micro/</url>
+    <content><![CDATA[<p>最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。</p>
+<span id="more"></span>
+<p>论文：<a href="https://arxiv.org/abs/2010.08678">TensorFlow Lite
+Micro: Embedded Machine Learning on TinyML Systems</a></p>
+<h1 id="克隆仓库">克隆仓库</h1>
+<p>在tensorflow的<a
+href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro">git里面</a>，看到git已经迁移至一个单独的<a
+href="https://github.com/tensorflow/tflite-micro">仓库</a>。 - As of
+June 25, 2021, the TFLM codebase has moved to a <a
+href="https://github.com/tensorflow/tflite-micro">stand-alone github
+repository</a>.</p>
+<p>于是在ubuntu执行命令：</p>
+<p><code>git clone https://github.com/tensorflow/tflite-micro.git</code></p>
+<p>此时<code>commit 7ac0b662b6402c1fccc8ec8d1db84f0f34dd4a85</code></p>
+<h1 id="编译静态库">编译静态库</h1>
+<p>求助了ChatGPT 4.0：</p>
+<p>「在这个 https://github.com/tensorflow/tflite-micro ，
+怎么编译静态库？」</p>
+<p>在TensorFlow Lite
+Micro的GitHub仓库中，你可以使用以下步骤来编译静态库： 1.
+首先，你需要克隆仓库：
+<code>git clone https://github.com/tensorflow/tflite-micro.git</code> 2.
+进入克隆下来的仓库目录： <code>cd tflite-micro</code> 3.
+使用make命令编译静态库：
+<code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=&lt;TARGET&gt; TARGET_ARCH=&lt;ARCH&gt; microlite</code></p>
+<p>在上述命令中，<code>&lt;TARGET&gt;</code>应替换为你的目标平台（如<code>linux</code>），<code>&lt;ARCH&gt;</code>应替换为你的目标架构（如<code>x86_64</code>）。这将在<code>tensorflow/lite/micro/tools/make/gen/&lt;TARGET&gt;_&lt;ARCH&gt;/lib/</code>目录下生成一个名为<code>libtensorflow-microlite.a</code>的静态库。
+请注意，你可能需要根据你的具体需求和环境来修改这些步骤。例如，你可能需要安装额外的依赖库，或者修改makefile来包含你需要的特性。</p>
+<p>真是太棒了，于是我执行指令：</p>
+<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=linux TARGET_ARCH=x86_64 microlite</code></p>
+<p>在 <code>make/download/</code>
+目录下，分别下载了<code>flatbuffers</code>、<code>gemmlowp</code>、<code>kissfft</code>、<code>pigweed</code>、<code>ruy</code>。</p>
+<p>编译完成后，得到了静态库文件</p>
+<p><code>ar: creating gen/linux_x86_64_default/lib/libtensorflow-microlite.a</code></p>
+<h1 id="编写-demo-debug">编写 demo &amp; debug</h1>
+<p>仿照helloworld工程写了一个小demo</p>
+<h2 id="遇到问题">遇到问题：</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Failed to allocate tail memory. Requested: 2760, available 1376, missing: 1384</span><br><span class="line">Failed to allocate memory for context-&gt;eval_tensors, 2760 bytes required</span><br><span class="line">Failed starting model allocation.</span><br></pre></td></tr></table></figure>
+<h2 id="解决方法">解决方法：</h2>
+<p>先暂时增大ArenaSize，后面再根据实际使用情况调整回来：</p>
+<p><code>constexpr int kTensorArenaSize = 300000;</code></p>
+<h2 id="遇到问题-1">遇到问题：</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Didn&#x27;t find op for builtin opcode &#x27;LEAKY_RELU&#x27;</span><br><span class="line">Failed to get registration from op code LEAKY_RELU</span><br><span class="line"></span><br><span class="line">Segmentation fault (core dumped)</span><br></pre></td></tr></table></figure>
+<h2 id="解决方法-1">解决方法：</h2>
+<p>增加算子注册
+<code>TF_LITE_ENSURE_STATUS(op_resolver.AddLeakyRelu());</code></p>
+<h2 id="遇到问题-2">遇到问题</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Couldn&#x27;t register builtin op #98, resolver size </span><br><span class="line">is too small (1).</span><br></pre></td></tr></table></figure>
+<h2 id="解决方法-2">解决方法</h2>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">using HelloWorldOpResolver = tflite::MicroMutableOpResolver&lt;1&gt;;</span><br></pre></td></tr></table></figure>
+<p>这里的1代表注册个数，草率了，应该<code>op_resolver</code> add
+了几个这里就写几的。</p>
+<h2 id="遇到问题-3">遇到问题</h2>
+<p>一旦执行到<code>interpreter.input(0)-&gt;data.f[0] = 1.f;</code>就段错误。</p>
+<h2 id="解决办法">解决办法</h2>
+<p><code>CFLAGS = z -DTF_LITE_STATIC_MEMORY</code></p>
+<h1 id="进一步减小库体积">进一步减小库体积</h1>
+<p>为了压缩体积，<code>BUILD_TYPE</code>使用了<code>release</code>进行编译，这期间会遇到<code>MicroPrintf</code>不支持的问题（release_with_logs是可以的），进行一些注释就可以。</p>
+<p>以及进行<code>-Os</code>编译，可以减少很多体积占用。</p>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>notes</tag>
+        <tag>tflite-micro</tag>
+        <tag>TinyML</tag>
+      </tags>
+  </entry>
 </search>

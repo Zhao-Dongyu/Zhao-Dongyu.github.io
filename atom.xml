@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2023-09-19T14:46:16.065Z</updated>
+  <updated>2023-10-28T15:19:45.167Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>tflite-micro</title>
+    <link href="http://example.com/2023/10/27/tflite-micro/"/>
+    <id>http://example.com/2023/10/27/tflite-micro/</id>
+    <published>2023-10-27T09:55:37.000Z</published>
+    <updated>2023-10-28T15:19:45.167Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="tflite-micro" scheme="http://example.com/tags/tflite-micro/"/>
+    
+    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
+    
+  </entry>
   
   <entry>
     <title>Homogeneous_ShangHai</title>
