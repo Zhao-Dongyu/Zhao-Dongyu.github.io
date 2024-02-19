@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-02-15T07:10:17.090Z</updated>
+  <updated>2024-02-18T06:54:52.069Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Telegram bot</title>
+    <link href="http://example.com/2024/02/17/100_Telegram_bot/"/>
+    <id>http://example.com/2024/02/17/100_Telegram_bot/</id>
+    <published>2024-02-17T07:38:00.000Z</published>
+    <updated>2024-02-18T06:54:52.069Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;最近学习一些telegram bot，记录一下&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="ingress" scheme="http://example.com/tags/ingress/"/>
+    
+    <category term="Homogeneous" scheme="http://example.com/tags/Homogeneous/"/>
+    
+    <category term="Telegram bot" scheme="http://example.com/tags/Telegram-bot/"/>
+    
+  </entry>
   
   <entry>
     <title>tflite-micro</title>
@@ -70,7 +91,7 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <link href="http://example.com/2023/07/09/100_Battlegrounds/"/>
     <id>http://example.com/2023/07/09/100_Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2024-02-15T07:05:52.232Z</updated>
+    <updated>2024-02-19T09:52:33.559Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;

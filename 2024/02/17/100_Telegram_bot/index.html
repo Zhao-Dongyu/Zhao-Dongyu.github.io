@@ -20,22 +20,22 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="开始使用并学习ChatGPT以及相关的LLM(Large Language Model)，不然就被时代淘汰了～">
+  <meta name="description" content="最近学习一些telegram bot，记录一下">
 <meta property="og:type" content="article">
-<meta property="og:title" content="踏上ChatGPT旅程">
-<meta property="og:url" content="http://example.com/2023/05/26/85_ChatGPT/index.html">
+<meta property="og:title" content="Telegram bot">
+<meta property="og:url" content="http://example.com/2024/02/17/100_Telegram_bot/index.html">
 <meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
-<meta property="og:description" content="开始使用并学习ChatGPT以及相关的LLM(Large Language Model)，不然就被时代淘汰了～">
+<meta property="og:description" content="最近学习一些telegram bot，记录一下">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2023-05-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-02-15T07:14:10.995Z">
+<meta property="article:published_time" content="2024-02-17T07:38:00.000Z">
+<meta property="article:modified_time" content="2024-02-18T06:54:52.069Z">
 <meta property="article:author" content="Zhao Dongyu">
-<meta property="article:tag" content="tech">
-<meta property="article:tag" content="ChatGPT">
-<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="ingress">
+<meta property="article:tag" content="Homogeneous">
+<meta property="article:tag" content="Telegram bot">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2023/05/26/85_ChatGPT/">
+<link rel="canonical" href="http://example.com/2024/02/17/100_Telegram_bot/">
 
 
 <script id="page-configurations">
@@ -48,7 +48,7 @@
   };
 </script>
 
-  <title>踏上ChatGPT旅程 | Zhao Dongyu's Blog</title>
+  <title>Telegram bot | Zhao Dongyu's Blog</title>
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
     <script>
@@ -215,7 +215,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/05/26/85_ChatGPT/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/17/100_Telegram_bot/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/blog.jpg">
@@ -228,7 +228,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          踏上ChatGPT旅程
+          Telegram bot
         </h1>
 
         <div class="post-meta">
@@ -238,14 +238,14 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: 2023-05-26 00:00:00" itemprop="dateCreated datePublished" datetime="2023-05-26T00:00:00+08:00">2023-05-26</time>
+              <time title="Created: 2024-02-17 15:38:00" itemprop="dateCreated datePublished" datetime="2024-02-17T15:38:00+08:00">2024-02-17</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-02-15 15:14:10" itemprop="dateModified" datetime="2024-02-15T15:14:10+08:00">2024-02-15</time>
+                <time title="Modified: 2024-02-18 14:54:52" itemprop="dateModified" datetime="2024-02-18T14:54:52+08:00">2024-02-18</time>
               </span>
 
           
@@ -261,7 +261,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3.1k</span>
+              <span>3k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
@@ -280,142 +280,70 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>开始使用并学习ChatGPT以及相关的<code>LLM(Large Language Model)</code>，不然就被时代淘汰了～</p>
+        <p>最近学习一些telegram bot，记录一下</p>
 <span id="more"></span>
-<h1 id="写在前面">0.写在前面</h1>
-<p>从去年11月底ChatGPT发布，到后来爆火，改变互联网，这半年时间我对ChatGPT还是比较冷漠的。</p>
-<p>期间我也体验了一下，以及体验了<code>cursor</code>（一个使用chatgpt-4的ai辅助编程工具），但自始至终还是充满了不信任感。所以也一直没注册账号，没想进一步探索。</p>
-<p>直到今天，我改变了对它看法，或者说我改变了看它的角度。</p>
-<p>以前潜意识里是觉得ChatGPT是智囊、军师、管家之类的身份，觉得人的主观能动性受到限制，所以会抵制。</p>
-<p>现在我想把它当工具，来便利我的工作和生活，便没有了心理阻碍。</p>
-<p>于是，ChatGPT旅程，出发～</p>
-<h1 id="注册chatgpt">1. 注册ChatGPT</h1>
-<p>我参考了这篇文章<a
-target="_blank" rel="noopener" href="https://www.xnbeast.com/create-openai-chatgpt-account/">ChatGPT注册教程攻略：解决手机无法接收验证码问题（亲测有效）</a>
-，在<a
-target="_blank" rel="noopener" href="https://sms-activate.org/">sms-activate</a>购买了临时国外手机号——</p>
+<h1 id="installing">Installing</h1>
+<p>安装 python-telegram-bot 库</p>
+<p><code>pip install python-telegram-bot --upgrade</code></p>
+<p>安装完毕 &gt; Successfully installed h11-0.14.0 httpcore-1.0.3
+httpx-0.26.0 python-telegram-bot-20.8</p>
+<h1 id="bot-申请">bot 申请</h1>
+<p>私聊<a target="_blank" rel="noopener" href="https://t.me/BotFather">BotFather</a>,</p>
 <ul>
-<li><p>买了个英国的手机号，结果</p>
-<p><code>Your account was flagged for potential abuse. If you feel this is an error, please contact us at help.openai.com</code></p></li>
-<li><p>换了个美国的也不行</p></li>
-<li><p>最后换了个印度尼西亚的手机号，顺利注册，但是进入ChatGPT又显示</p>
-<p><code>Sorry, you have been blocked</code></p></li>
+<li>/start</li>
+<li>/newbot</li>
+<li>Alright, a new bot. How are we going to call it? Please choose a
+name for your bot.</li>
+<li>IngressHomogeneous</li>
+<li>Good. Now let's choose a username for your bot. It must end in
+<code>bot</code>. Like this, for example: TetrisBot or tetris_bot.</li>
+<li>IngressHomogeneousBot</li>
+<li>Done! Congratulations on your new bot. You will find it at
+t.me/IngressHomogeneousBot. You can now add a description, about section
+and profile picture for your bot, see /help for a list of commands. By
+the way, when you've finished creating your cool bot, ping our Bot
+Support if you want a better username for it. Just make sure the bot is
+fully operational before you do this.</li>
 </ul>
-<p>出师不利啊……突然想起来我买的VPN的维护者说过，这个vpn不搞chatGPT那破玩意儿。于是在tg上找了个<code>@chatgptzs_bot</code>，暂时先用着，也挺好用的。</p>
-<p>但是还不甘心，之后我用<code>自由鲸</code>的欧洲节点，开启全局模式，能正常使用ChatGPT了。不过目前不是付费用户，所以没有联网功能和插件功能。</p>
-<h1 id="chatgpt使用技巧">2. ChatGPT使用技巧</h1>
-<p>昨晚在B站看到一个视频挺好的——</p>
+<p>妥善保存最后的 API Token。</p>
+<p>Use this token to access the HTTP API:</p>
+<p>6846855109:AAEbI7LVnY-TWnrOlQeTbGnIzvf-CNPGL0o</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">You can control me by sending these commands:</span><br><span class="line"></span><br><span class="line">/newbot - create a new bot</span><br><span class="line">/mybots - edit your bots</span><br><span class="line"></span><br><span class="line">Edit Bots</span><br><span class="line">/setname - change a bot&#x27;s name</span><br><span class="line">/setdescription - change bot description</span><br><span class="line">/setabouttext - change bot about info</span><br><span class="line">/setuserpic - change bot profile photo</span><br><span class="line">/setcommands - change the list of commands</span><br><span class="line">/deletebot - delete a bot</span><br><span class="line"></span><br><span class="line">Bot Settings</span><br><span class="line">/token - generate authorization token</span><br><span class="line">/revoke - revoke bot access token</span><br><span class="line">/setinline - toggle inline mode</span><br><span class="line">/setinlinegeo - toggle inline location requests</span><br><span class="line">/setinlinefeedback - change inline feedback settings</span><br><span class="line">/setjoingroups - can your bot be added to groups?</span><br><span class="line">/setprivacy - toggle privacy mode in groups</span><br><span class="line"></span><br><span class="line">Web Apps</span><br><span class="line">/myapps - edit your web apps</span><br><span class="line">/newapp - create a new web app</span><br><span class="line">/listapps - get a list of your web apps</span><br><span class="line">/editapp - edit a web app</span><br><span class="line">/deleteapp - delete an existing web app</span><br><span class="line"></span><br><span class="line">Games</span><br><span class="line">/mygames - edit your games</span><br><span class="line">/newgame - create a new game</span><br><span class="line">/listgames - get a list of your games</span><br><span class="line">/editgame - edit a game</span><br><span class="line">/deletegame - delete an existing game</span><br></pre></td></tr></table></figure>
+<h1 id="获取我的-id">获取我的 id</h1>
+<p>每个 tg 用户都有一串唯一标识，即为 user_id，可以私聊 <a
+target="_blank" rel="noopener" href="https://t.me/kmuav2bot"><span class="citation"
+data-cites="kmua">@kmua</span></a> 发送 /id 来获取它</p>
+<p>Chat ID: 1460804944 Your ID: 1460804944</p>
+<p>编程 开始:响应/start 在项目文件夹内，新建 bot.py，开始编写 bot
+最基础的功能，让其响应 /start 命令</p>
+<p>首先，导入包 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">from telegram import Update</span><br><span class="line">from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler</span><br></pre></td></tr></table></figure> Update 类是从 Telegram
+服务器获取到的各种"更新", 包括而不限于用户发送的消息,
+群组的信息变化等.</p>
+<p>然后，写一个异步函数 start()，当收到 /start 命令时，要调用它。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">update: Update, context: ContextTypes.DEFAULT_TYPE</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;响应start命令&#x27;&#x27;&#x27;</span></span><br><span class="line">    text = <span class="string">&#x27;你好~我是一个计算竹笋的bot&#x27;</span></span><br><span class="line">    <span class="keyword">await</span> context.bot.send_message(chat_id=update.effective_chat.<span class="built_in">id</span>,text=text)</span><br></pre></td></tr></table></figure>
+<p>这个函数接受两个参数 update 和 context，形参冒号后是类型注解。</p>
+<p>context.bot.send_message() 方法即为让 bot
+发送消息，它能接受的参数其实很多，但是往往只需要 chat_id ，和 text
+就够了，它们分别表示 要发送消息给的用户或群组 id ，要发送的文本。</p>
+<p>而 update.effective_chat.id 即为当前有效对话的 id ，bot
+收到的是哪里的消息 ，它就指向哪里的 id。</p>
+<p>现在，添加一个处理器(handler)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start_handler = CommandHandler(<span class="string">&#x27;start&#x27;</span>, start)</span><br></pre></td></tr></table></figure>
+<p>CommandHandler
+类可以实现当收到某个命令时，调用某个函数（命令和函数名可以不一样），我们将其实例化为了
+start_handler ，并且将命令名字 'start' 和对应要回调的函数名 start
+传递给它</p>
+<p>然后，启动bot</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 构建 bot</span></span><br><span class="line">TOKEN=<span class="string">&#x27;你 bot 的 api token&#x27;</span></span><br><span class="line">application = ApplicationBuilder().token(TOKEN).build()</span><br><span class="line"><span class="comment"># 注册 handler</span></span><br><span class="line">application.add_handler(start_handler)</span><br><span class="line"><span class="comment"># run!</span></span><br><span class="line">application.run_polling()</span><br></pre></td></tr></table></figure>
+<p>最后，就可以使用 python bot.py 启动你的 bot ，对 bot 发送 /start
+，它应该就会回复你 ”你好~我是一个bot”。 使用 Ctrl + C 结束程序运行。</p>
+<p>参考文章：</p>
 <p><a
-target="_blank" rel="noopener" href="https://b23.tv/XCclvE1">学完这个视频，简历加一条：熟练掌握ChatGPT解决复杂问题｜ChatGPT使用教程-哔哩哔哩</a></p>
-<p>说实话，我也是有一部分被这个视频驱动来搞ChatGPT的。</p>
-<h2 id="乔哈里johari沟通视窗">乔哈里(Johari)沟通视窗</h2>
-<table>
-<thead>
-<tr class="header">
-<th></th>
-<th>你知道</th>
-<th>你不知道</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>GPT知道</td>
-<td>公开区</td>
-<td>盲区</td>
-</tr>
-<tr class="even">
-<td>GPT不知道</td>
-<td>隐私区</td>
-<td>未知区</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li><p>盲区｜问法1:
-<code>我想了解xxx，我应该向你问哪些问题？</code></p></li>
-<li><p>盲区｜问法2:<code>请给我列出xxx领域/行业相关的，最常用的50个概念，并做简单解释。如果有英文缩写，请给出完整的英文解释。</code></p></li>
-<li><p>盲区｜问法3:<code>请详细介绍一下xxx的主要生平事迹。</code>
-<code>请详细介绍一下xxx公司的发展历程。</code></p></li>
-<li><p>公开区｜检验认知:<code>对于xxx主题/技能，你认为哪些是我必须理解和掌握的核心要点？</code></p></li>
-<li><p>公开区｜检验认知:<code>我理解的xxx是这样的，你觉得我的理解对吗？</code></p></li>
-<li><p>公开区｜检验认知:<code>我对xxx有一些想法，你能帮我批判性地分析一下这些想法的优点和缺点吗？</code></p></li>
-<li><p>公开区｜检验认知:<code>我正在考虑xxx的决定，你能帮我分析一下可能的结果和影响吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我知道xxx的概念，我想知道更多关于xxx的信息。</code></p></li>
-<li><p>公开区｜扩充认知:<code>我在xxx问题上遇到困难，你能提供一些可能的解决方案或建议吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想要深入学习xxx，你能推荐一些进阶的学习资源或学习路径吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想要在xxx领域有所创新，你能提供一些启发或想法吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想在xxx领域提升自己，你能根据最新的研究和趋势给我一些建议吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我正在考虑学习xxx，你能给我一些关于这个领域未来发展的观点吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>（背景信息）我要做关于xxx的研究，我认为原因是，还有其他可能的原因吗？给出一些可能的研究假设。</code></p></li>
-<li><p>公开区｜扩充认知:<code>我是一个xx行业新手，马上要采访这个行业的资深大佬，我应该向他请教哪些有价值的问题？</code></p></li>
-<li><p>盲区｜问法1: <code>你怎么看待这种现象？</code></p></li>
-<li><p>盲区｜问法2: <code>可能的原因有哪些？</code></p></li>
-<li><p>盲区｜问法3: <code>这会对xxx产生什么样的影响？</code></p></li>
-<li><p>盲区｜问法4: <code>你觉得xxx应该怎么做？</code></p></li>
-<li><p>未知区｜问法1:
-<code>如果xxx，这对社会会产生什么影响？</code></p></li>
-<li><p>未知区｜反向提问:
-<code>为了测试我对xxx的了解程度，你会问我什么问题来检验我的水平，最少10个</code></p></li>
-<li><p>未知区｜反向提问:
-<code>我是xx领域的专家，你会问我哪些问题来检验我的专业水平？最少10个。</code></p></li>
-<li><p>未知区｜反向提问:
-<code>现在我们玩个“你问我答”的游戏，目的是为了测试我在xxxx方面的专业水平。你负责提问，我负责回答。你要根据我的答案进行反馈、评价、补充。如果我说不知道，你就直接输出正确答案，然后你继续提问。</code></p></li>
-<li><p>未知区｜反向提问:
-<code>我已经很精通xxx了，我想知道我是否还有需要学习的地方？</code></p></li>
-</ul>
-<p>1 知道自己要干什么，但是不知道ChatGPT能帮你什么。 -
-<code>我要做xxx，你能帮我做什么？</code></p>
-<p>2 知道要ChatGPT帮你做什么，但是你不知道给它输入什么具体的信息。 -
-<code>我想要你xxx，我应该给你输入什么信息？</code></p>
-<p>3 直接给ChatGPT指令。任务目标、背景信息、输出要求都非常清晰。 -
-<code>请推荐（书名、电视剧、电影、网站、博主、专家、学习资源） 等等。请翻译.请总结.请润色。</code></p>
-<h1 id="llm学习">3. LLM学习</h1>
-<p>我：给我推荐一些学习大规模语言模型的资料吧</p>
-<blockquote>
-<p>当然！以下是一些学习大规模语言模型的资料推荐： 1.
-论文和研究文章：深入了解大规模语言模型的原理和技术，可以阅读相关的论文和研究文章，例如《Transformers:
-Attention Is All You Need》、《BERT: Pre-training of Deep Bidirectional
-Transformers for Language Understanding》和《GPT (Generative Pre-trained
-Transformer)》。 2.
-博客文章和教程：有许多博客文章和教程可供学习，这些文章会解释大规模语言模型的概念、实现和应用。可以查找像Towards
-Data Science、Medium和OpenAI Blog等平台上的相关文章。 3. GitHub
-上的代码库：学习大规模语言模型的实现和代码细节，可以查看GitHub上的开源代码库，如Hugging
-Face的transformers库、OpenAI的GPT代码库等。 4.
-视频教程和在线课程：有一些在线课程和视频教程专门介绍大规模语言模型。例如，Coursera
-上的 "Natural Language Processing with Sequence Models" 和 YouTube 上的
-"The Transformer Explained" 等。 5.
-社区和论坛：加入与自然语言处理和大规模语言模型相关的社区和论坛，与其他人交流讨论，获取实践经验和最新动态。</p>
-<p>这些资源可以帮助你深入了解大规模语言模型的背后原理、应用和实现。希望对你的学习有所帮助！如需更具体的资源或问题，请随时告诉我。</p>
-</blockquote>
-<h2 id="学习视频">学习视频</h2>
-<p>Google Cloud Tech</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=zizonToFXDs">Introduction
-to Large Language Models</a></li>
-</ul>
-<p>ZOMI</p>
-<ul>
-<li><p><a
-target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=XujuQB9AxGA">ChatGPT狂飙原理剖析：GPT系列详解！【ChatGPT】系列第01篇</a></p></li>
-<li><p><a
-target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=qf2zcev7mHQ">ChatGPT狂飙：强化学习RLHF与PPO！【ChatGPT】系列第02篇</a></p></li>
-<li><p><a
-target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=Oy-8BqwXck8&amp;t=1s">ChatGPT狂飙：InstructGPT解析！【ChatGPT】原理第03篇</a></p></li>
-<li><p>【ChatGPT狂飙：InstructGPT解析！】思考：</p>
-<ul>
-<li>大模型通过计算的方式模拟人类的思考，类似于ChatGPT的RLHF技术是否会给世界带来新的技术产业革命？</li>
-<li>ChatGPT 使用了 Ray 作为细粒度的并行计算和昇构计算，管理分配
-RLIDL模型完成复杂训练任务，方便利用强化学习对环境和计算任务进行控制，这对A框架的分布式能力边界带来哪些新的冲击？</li>
-<li>ChatGPT
-非常重数据交互，存算一体技术会不会针对ChatGPT等应用的现专用芯片和新的架构?</li>
-</ul></li>
-</ul>
+target="_blank" rel="noopener" href="https://docs.python-telegram-bot.org/en/v20.8/">python-telegram-bot.org</a></p>
+<p>https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot</p>
 <p><a
-target="_blank" rel="noopener" href="https://imzhanghao.com/2023/02/24/chatgpt/">ChatGPT模型的三层理解</a></p>
-<p><a
-target="_blank" rel="noopener" href="https://github.com/dalinvip/Awesome-ChatGPT">Awesome-ChatGPT</a></p>
-<p>2023.6.1 学习<a
-target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读</a></p>
+target="_blank" rel="noopener" href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
+bot吧|Telegram bot教程</a></p>
 
     </div>
 
@@ -425,9 +353,9 @@ target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=nzqlFIcCSWQ
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/tech/" rel="tag"># tech</a>
-              <a href="/tags/ChatGPT/" rel="tag"># ChatGPT</a>
-              <a href="/tags/LLM/" rel="tag"># LLM</a>
+              <a href="/tags/ingress/" rel="tag"># ingress</a>
+              <a href="/tags/Homogeneous/" rel="tag"># Homogeneous</a>
+              <a href="/tags/Telegram-bot/" rel="tag"># Telegram bot</a>
           </div>
 
         
@@ -436,13 +364,10 @@ target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=nzqlFIcCSWQ
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2023/05/04/97_transposed-convolution/" rel="prev" title="一文搞懂转置卷积的定义、计算和加速">
-      <i class="fa fa-chevron-left"></i> 一文搞懂转置卷积的定义、计算和加速
+    <a href="/2023/10/27/91_tflite-micro/" rel="prev" title="tflite-micro">
+      <i class="fa fa-chevron-left"></i> tflite-micro
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2023/05/30/69_LaTeX/" rel="next" title="LaTeX学习">
-      LaTeX学习 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -502,7 +427,7 @@ target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=nzqlFIcCSWQ
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">0.写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B3%A8%E5%86%8Cchatgpt"><span class="nav-number">2.</span> <span class="nav-text">1. 注册ChatGPT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#chatgpt%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-number">3.</span> <span class="nav-text">2. ChatGPT使用技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%94%E5%93%88%E9%87%8Cjohari%E6%B2%9F%E9%80%9A%E8%A7%86%E7%AA%97"><span class="nav-number">3.1.</span> <span class="nav-text">乔哈里(Johari)沟通视窗</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#llm%E5%AD%A6%E4%B9%A0"><span class="nav-number">4.</span> <span class="nav-text">3. LLM学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%A7%86%E9%A2%91"><span class="nav-number">4.1.</span> <span class="nav-text">学习视频</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#installing"><span class="nav-number">1.</span> <span class="nav-text">Installing</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#bot-%E7%94%B3%E8%AF%B7"><span class="nav-number">2.</span> <span class="nav-text">bot 申请</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E6%88%91%E7%9A%84-id"><span class="nav-number">3.</span> <span class="nav-text">获取我的 id</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -676,7 +601,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       repo        : 'zhao-dongyu.github.io',
       owner       : 'zhao-dongyu',
       admin       : ['zhao-dongyu'],
-      id          : 'caebee0cbdd92ef173f807b684e42bfb',
+      id          : '861180a41db40e576b93ec999c073c53',
         language: '',
       distractionFreeMode: true
     });
