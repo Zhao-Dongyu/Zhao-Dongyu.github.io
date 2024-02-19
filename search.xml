@@ -3332,7 +3332,7 @@ href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvi
   </entry>
   <entry>
     <title>Telegram bot</title>
-    <url>/2024/02/17/100_Telegram_bot/</url>
+    <url>/2024/02/17/98_Telegram_bot/</url>
     <content><![CDATA[<p>最近学习一些telegram bot，记录一下</p>
 <span id="more"></span>
 <h1 id="installing">Installing</h1>
@@ -3359,41 +3359,22 @@ Support if you want a better username for it. Just make sure the bot is
 fully operational before you do this.</li>
 </ul>
 <p>妥善保存最后的 API Token。</p>
-<p>Use this token to access the HTTP API:</p>
-<p>6846855109:AAEbI7LVnY-TWnrOlQeTbGnIzvf-CNPGL0o</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">You can control me by sending these commands:</span><br><span class="line"></span><br><span class="line">/newbot - create a new bot</span><br><span class="line">/mybots - edit your bots</span><br><span class="line"></span><br><span class="line">Edit Bots</span><br><span class="line">/setname - change a bot&#x27;s name</span><br><span class="line">/setdescription - change bot description</span><br><span class="line">/setabouttext - change bot about info</span><br><span class="line">/setuserpic - change bot profile photo</span><br><span class="line">/setcommands - change the list of commands</span><br><span class="line">/deletebot - delete a bot</span><br><span class="line"></span><br><span class="line">Bot Settings</span><br><span class="line">/token - generate authorization token</span><br><span class="line">/revoke - revoke bot access token</span><br><span class="line">/setinline - toggle inline mode</span><br><span class="line">/setinlinegeo - toggle inline location requests</span><br><span class="line">/setinlinefeedback - change inline feedback settings</span><br><span class="line">/setjoingroups - can your bot be added to groups?</span><br><span class="line">/setprivacy - toggle privacy mode in groups</span><br><span class="line"></span><br><span class="line">Web Apps</span><br><span class="line">/myapps - edit your web apps</span><br><span class="line">/newapp - create a new web app</span><br><span class="line">/listapps - get a list of your web apps</span><br><span class="line">/editapp - edit a web app</span><br><span class="line">/deleteapp - delete an existing web app</span><br><span class="line"></span><br><span class="line">Games</span><br><span class="line">/mygames - edit your games</span><br><span class="line">/newgame - create a new game</span><br><span class="line">/listgames - get a list of your games</span><br><span class="line">/editgame - edit a game</span><br><span class="line">/deletegame - delete an existing game</span><br></pre></td></tr></table></figure>
 <h1 id="获取我的-id">获取我的 id</h1>
 <p>每个 tg 用户都有一串唯一标识，即为 user_id，可以私聊 <a
 href="https://t.me/kmuav2bot"><span class="citation"
 data-cites="kmua">@kmua</span></a> 发送 /id 来获取它</p>
-<p>Chat ID: 1460804944 Your ID: 1460804944</p>
-<p>编程 开始:响应/start 在项目文件夹内，新建 bot.py，开始编写 bot
-最基础的功能，让其响应 /start 命令</p>
-<p>首先，导入包 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from telegram import Update</span><br><span class="line">from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler</span><br></pre></td></tr></table></figure> Update 类是从 Telegram
-服务器获取到的各种"更新", 包括而不限于用户发送的消息,
-群组的信息变化等.</p>
-<p>然后，写一个异步函数 start()，当收到 /start 命令时，要调用它。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">start</span>(<span class="params">update: Update, context: ContextTypes.DEFAULT_TYPE</span>):</span><br><span class="line">    <span class="string">&#x27;&#x27;&#x27;响应start命令&#x27;&#x27;&#x27;</span></span><br><span class="line">    text = <span class="string">&#x27;你好~我是一个计算竹笋的bot&#x27;</span></span><br><span class="line">    <span class="keyword">await</span> context.bot.send_message(chat_id=update.effective_chat.<span class="built_in">id</span>,text=text)</span><br></pre></td></tr></table></figure>
-<p>这个函数接受两个参数 update 和 context，形参冒号后是类型注解。</p>
-<p>context.bot.send_message() 方法即为让 bot
-发送消息，它能接受的参数其实很多，但是往往只需要 chat_id ，和 text
-就够了，它们分别表示 要发送消息给的用户或群组 id ，要发送的文本。</p>
-<p>而 update.effective_chat.id 即为当前有效对话的 id ，bot
-收到的是哪里的消息 ，它就指向哪里的 id。</p>
-<p>现在，添加一个处理器(handler)</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">start_handler = CommandHandler(<span class="string">&#x27;start&#x27;</span>, start)</span><br></pre></td></tr></table></figure>
-<p>CommandHandler
-类可以实现当收到某个命令时，调用某个函数（命令和函数名可以不一样），我们将其实例化为了
-start_handler ，并且将命令名字 'start' 和对应要回调的函数名 start
-传递给它</p>
-<p>然后，启动bot</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 构建 bot</span></span><br><span class="line">TOKEN=<span class="string">&#x27;你 bot 的 api token&#x27;</span></span><br><span class="line">application = ApplicationBuilder().token(TOKEN).build()</span><br><span class="line"><span class="comment"># 注册 handler</span></span><br><span class="line">application.add_handler(start_handler)</span><br><span class="line"><span class="comment"># run!</span></span><br><span class="line">application.run_polling()</span><br></pre></td></tr></table></figure>
-<p>最后，就可以使用 python bot.py 启动你的 bot ，对 bot 发送 /start
-，它应该就会回复你 ”你好~我是一个bot”。 使用 Ctrl + C 结束程序运行。</p>
+<p>跟着<a
+href="https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot">Your-first-Bot</a>这个来就好了，理解的话可以参考<a
+href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
+bot吧|Telegram bot教程</a>。</p>
+<p>感觉整体比较好理解，接下来就是赋予其灵魂了～</p>
+<hr />
 <p>参考文章：</p>
 <p><a
 href="https://docs.python-telegram-bot.org/en/v20.8/">python-telegram-bot.org</a></p>
-<p>https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot</p>
+<p><a
+href="https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot">Your-first-Bot</a></p>
 <p><a
 href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
 bot吧|Telegram bot教程</a></p>

@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-02-18T06:54:52.069Z</updated>
+  <updated>2024-02-19T09:55:43.159Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>Telegram bot</title>
-    <link href="http://example.com/2024/02/17/100_Telegram_bot/"/>
-    <id>http://example.com/2024/02/17/100_Telegram_bot/</id>
+    <link href="http://example.com/2024/02/17/98_Telegram_bot/"/>
+    <id>http://example.com/2024/02/17/98_Telegram_bot/</id>
     <published>2024-02-17T07:38:00.000Z</published>
-    <updated>2024-02-18T06:54:52.069Z</updated>
+    <updated>2024-02-19T09:55:43.159Z</updated>
     
     
     <summary type="html">&lt;p&gt;最近学习一些telegram bot，记录一下&lt;/p&gt;</summary>
