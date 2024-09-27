@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在riscv平台优化SGEMM">
+<meta property="og:url" content="http://example.com/2024/02/26/102_sgemm_riscv_cn/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/bmc_qr.jpg">
+<meta property="article:published_time" content="2024-02-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-08-28T02:07:29.487Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="RISCV">
+<meta property="article:tag" content="GEMM">
+<meta property="article:tag" content="HPC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/bmc_qr.jpg">
+
+<link rel="canonical" href="http://example.com/2024/02/26/102_sgemm_riscv_cn/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>在riscv平台优化SGEMM | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/26/102_sgemm_riscv_cn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在riscv平台优化SGEMM
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-02-26 00:00:00" itemprop="dateCreated datePublished" datetime="2024-02-26T00:00:00+08:00">2024-02-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-08-28 10:07:29" itemprop="dateModified" datetime="2024-08-28T10:07:29+08:00">2024-08-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.3k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。</p>
+<span id="more"></span>
+<p><img src=/images/sgemm/data/result_all.png width=70% /></p>
+<p>本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。</p>
+<p>通用矩阵乘（<code>General Matrix Multiplication</code>，简称<code>gemm</code>）是深度学习框架的核心计算单元之一，广泛用于<code>Convolution</code>、<code>Full connection</code>、<code>Matmul</code>等算子实现。</p>
+<p>我是在 <strong>全志 Nezha D1</strong>
+开发板上进行的实验与探索，<code>version 0 - version 5</code> 是使用的 C
+语言，<code>version 6 - version 9</code> 则部分使用了汇编，涉及到
+<code>RISC-V V</code> 扩展指令。</p>
+<p>注意：不同于其他的某些gemm优化工程，在本工程中，全部使用
+<strong>行主序</strong> 的矩阵。因为我喜欢 <strong>行主序</strong>！</p>
+<h1 id="预备知识">预备知识</h1>
+<p><img src=/images/sgemm/pics/riscv.gif width=50% /></p>
+<p><a target="_blank" rel="noopener" href="https://riscv.org/">RISC-V</a> 是一种开放标准指令集架构
+(ISA)，通过开放协作开启处理器创新的新时代。</p>
+<hr />
+<p><img src=/images/sgemm/pics/GEMM.png width=70% /></p>
+<p><a
+target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms#Level_3">GEMM</a>
+通用矩阵乘法，基本线性代数子程序之一。</p>
+<hr />
+<p><a
+target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/FLOPS">FLOPS</a>每秒浮点运算次数，亦称每秒峰值速度，（英语：<code>Floating-point operations per second</code>；缩写：<code>FLOPS</code>），即每秒所执行的浮点运算次数。一个
+<code>GFLOPS(gigaFLOPS)</code> 等于每秒十亿（10^9）次的浮点运算；</p>
+<p>矩阵乘的计算量是
+<code>2 * M * N * K</code>，计算量除以耗时即为当前gemm版本的gflops。 -
+乘以 2 是因为每次操作包含一次乘法和一次加法</p>
+<h1 id="准备工作">准备工作</h1>
+<p>相关代码位于 <code>./prepare/</code>。</p>
+<h2 id="测试交叉编译">测试交叉编译</h2>
+<p>我使用的 <strong>全志 Nezha D1</strong> 开发板，在<a
+target="_blank" rel="noopener" href="https://xuantie.t-head.cn/community/download?id=4090445921563774976">这里</a>下载的交叉编译链接。</p>
+<p>详细教程见<a
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/sgemm_riscv/blob/main/prepare/README.md">readme</a></p>
+<h2 id="内存带宽测试">内存带宽测试</h2>
+<p>分别通过以下几个小工程对开发板内存带宽进行测试</p>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/2.memcpy_bandwidth_test">2.memcpy_bandwidth_test</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/3.flw_bandwidth_test">3.flw_bandwidth_test</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/4.vlw_bandwidth_test">4.vlw_bandwidth_test</a></li>
+</ul>
+<p><img src=/images/sgemm/prepare/imgs/memory_bandwidth_test.png width=70% /></p>
+<h2 id="roofline模型">roofline模型</h2>
+<p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Roofline_model">Roofline</a>
+提出了使用
+<code>Operational Intensity</code>（计算强度）进行定量分析的方法，并给出了模型在计算平台上所能达到理论计算性能上限公式。</p>
+<p>根据<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL 公开课 |
+RISC-V 技术解析</a>所说 - <code>D1</code>的算力可达
+<code>4 GFlops(@1GHz)</code> - Memory : <code>2.727 GB/s</code> (DDR3
+792 MHz)。 -
+虽然我测出来最高是<code>2.592 GB/s</code>，可能哪里出了问题？ -
+商汤还是要相信一下的，暂时以他的为准吧</p>
+<p><img src=/images/sgemm/pics/roofline.png width=70% /></p>
+<h1 id="sgemm优化">sgemm优化</h1>
+<p>相关代码位于 <code>./sgemm/</code>。</p>
+<h2 id="使用说明">使用说明</h2>
+<p>以 <code>step0</code> 为例，你需要先编辑 Makefile
+，配置自己的交叉编译链。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> sgemm/step0/</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">adb push test_bl_sgemm_step0.x ./.</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">adb shell <span class="string">&#x27;./test_bl_sgemm_step0.x&#x27;</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="version-0-naive版本">Version 0: naive版本</h2>
+<p>这个版本思路在我看来是<strong>最直观</strong>的，毕竟我当时就是这么<strong>学习</strong>、<strong>理解</strong>和<strong>计算</strong>矩阵乘法的:
+&gt; A 的一行乘以 B 的一列得到 C 的一个元素。</p>
+<p><img src=/images/sgemm/data/result_0.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step0.gif width=70% /></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i ++ ) &#123;              <span class="comment">// Start 2-th loop</span></span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j ++ ) &#123;          <span class="comment">// Start 1-nd loop</span></span><br><span class="line">        <span class="keyword">for</span> ( p = <span class="number">0</span>; p &lt; k; p ++ ) &#123;      <span class="comment">// Start 0-st loop</span></span><br><span class="line">            C( i, j ) += A( i, p ) * B( p, j );</span><br><span class="line">        &#125;                                 <span class="comment">// End   0-th loop</span></span><br><span class="line">    &#125;                                     <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                         <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>我认为<code>version 0</code>非常契合的解释了 <span
+class="math inline">\(C_{mn} = \sum_{k=1}^{K} A_{mk}B_{kn}\)</span>
+这个公式。</p>
+<p>但是这个版本缺点比较明显：在理论算力为 <code>4 GFLOPS</code>
+的平台仅发挥出最大 <code>0.03 GFLOPS</code>
+的计算性能。这是因为<strong>对于矩阵B的访问，cache命中率极低，即「空间局部性很差」</strong>。整个计算下来，相当于访问矩阵B的次数多了很多很多次。</p>
+<p>对于多维数组的元素尽量能按照顺序访问。这样可以改善内存访问的空间局部性，对缓存更加友好。</p>
+<p>另外，观察到随着尺寸的增加，性能有较大的抖动。分析数据可以知道：当<code>m=n=k</code>为
+128 164 192 228 256 288 320 352 384 时性能都很差。这几个数相差32，32 *
+4(<code>sizeof(float)</code>) = 128 B。</p>
+<p>猜测性能抖动与<code>cacheline</code>以及<code>硬件预取</code>有关——
+cacheline = 64B，cache miss
+后，硬件预取即<code>HWPrefetcher</code>，多读 1 个 cacheline。</p>
+<h2 id="version-1-循环交换版本">Version 1: 循环交换版本</h2>
+<p>重复使用Cache中的数据是最基本的高效使用Cache方法。对于多层嵌套循环，可以通过交换两个嵌套的循环（<code>loop interchange</code>）、逆转循环迭代执行的顺序（<code>loop reversal</code>）、将两个循环体合并成一个循环体（<code>loop fusion</code>）、循环拆分（<code>loop distribution</code>）、循环分块（<code>loop tiling</code>）、<code>loop unroll and jam</code>等循环变换操作。</p>
+<p>选择适当的循环变换方式，既能保持程序的语义，又能改善程序性能。</p>
+<p><img src=/images/sgemm/data/result_1.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step1.gif width=70% /></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i ++ ) &#123;              <span class="comment">// Start 2-th loop</span></span><br><span class="line">    <span class="keyword">for</span> ( p = <span class="number">0</span>; p &lt; k; p ++ ) &#123;          <span class="comment">// Start 1-st loop</span></span><br><span class="line">        <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j ++ ) &#123;      <span class="comment">// Start 0-nd loop</span></span><br><span class="line">            C( i, j ) += A( i, p ) * B( p, j );</span><br><span class="line">        &#125;                                 <span class="comment">// End   0-th loop</span></span><br><span class="line">    &#125;                                     <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                         <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>相较于<code>version 0</code>，<code>version 1</code>对于矩阵B的操作，空间局部性较好，性能有较大提升（尤其是对于尺寸较大的情况，而在
+m = n = k &lt;= 68 时，版本0的效率更高）。</p>
+<p>调整m,n,k的顺序，对结果没有影响(即保持程序的语义)，但是可以影响性能。
+测试不同循环顺序的性能（全志Nezha D1平台，以m=n=k=512为例）</p>
+<table>
+<thead>
+<tr class="header">
+<th>循环顺序</th>
+<th>GFLOPS</th>
+<th>分析</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MNK</td>
+<td>0.012</td>
+<td>访问B的cache miss高</td>
+</tr>
+<tr class="even">
+<td>MKN</td>
+<td>0.180</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>NMK</td>
+<td>0.012</td>
+<td>访问B的cache miss高</td>
+</tr>
+<tr class="even">
+<td>NKM</td>
+<td>0.009</td>
+<td>访问A的cache miss高</td>
+</tr>
+<tr class="odd">
+<td>KMN</td>
+<td>0.165</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>KNM</td>
+<td>0.009</td>
+<td>访问A的cache miss高</td>
+</tr>
+</tbody>
+</table>
+<p>但是，<code>version 1</code>
+的硬件使用率仍然很低，继续想办法优化。</p>
+<h2 id="version-2-分块版本">Version 2: 分块版本</h2>
+<p><img src=/images/sgemm/data/result_2.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step2.gif width=70% /></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;          <span class="comment">// Start 2-nd loop</span></span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;        <span class="comment">// Start 1-st loop</span></span><br><span class="line">        AddDot_4x4_opt( k, &amp;A( i, <span class="number">0</span> ), lda, &amp;B( <span class="number">0</span>, j ), ldb, &amp;C( i, j ), ldc );</span><br><span class="line">    &#125;                                          <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                              <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p><img src=/images/sgemm/pics/gemm_block.png width=70% /></p>
+<p>为了避免多余的 cache 换入换出，于是进行分块处理。<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为什么有用</a>一文讲的挺好，建议阅读学习。</p>
+<p>版本2进行了分块操作后，性能仍然不理想，这是因为，这个版本只是表面逻辑上实现了分块，块内的计算还有一些小技巧没有应用。</p>
+<h2 id="version-3-分块优化版本">Version 3: 分块优化版本</h2>
+<p><img src=/images/sgemm/data/result_3.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step3.gif width=70% /></p>
+<p>增加了AddDot_4x4_opt</p>
+<p>在<a
+target="_blank" rel="noopener" href="https://github.com/flame/blislab/blob/master/tutorial.pdf">BLISlab-tutorial</a>中提到了几个小技巧：</p>
+<ul>
+<li>循环展开 2.4.2 Loop unrolling
+<ul>
+<li>Updating loop index i and the pointer cp every time through the
+inner loop creates considerable overhead. For this reason, a compiler
+will perform loop unrolling.</li>
+</ul></li>
+<li>寄存器缓存 2.4.3 Register variables
+<ul>
+<li>Notice that computation can only happen if data is stored in
+registers. A compiler will automatically transform code so that the
+intermediate steps that place certain data in registers is
+inserted.</li>
+</ul></li>
+</ul>
+<p>使用了这个技巧后，这个版本性能有了大幅度的提升！</p>
+<p>然而，这个版本对于尺寸较大的矩阵，性能仍然比较低。查找原因，比如访问B[0,0],
+B[0,1], B[0,2],
+B[0,3]后，访问B[1,0]的时候，当尺寸较大的时候必定<code>cache miss</code>。因此，如果能提前把数据重新排列就好了。</p>
+<h2 id="version-4-b-prepack版本">Version 4: B prepack版本</h2>
+<p><img src=/images/sgemm/data/result_4.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step4.gif width=70% /></p>
+<p>我默认矩阵B是<strong>参数</strong>，所以可以提前进行<code>pack</code>操作。版本4对矩阵B进行了<code>prepack</code>，性能更进一步！</p>
+<p>性能提升的原因很明显：访问矩阵 B 的 <code>cache miss</code>
+明显减少了。这也是我第一次深刻意识到模型推理前对神经网络权重做<code>prepack</code>的重要性。</p>
+<p>可以看到，当尺寸比较大的时候，性能还是有所下降的。这应该是对矩阵A访问的
+<code>cache miss</code> 比较多。要对A做 <code>pack</code> 吗？</p>
+<p>我默认矩阵A是<strong>输入</strong>，因此对A做 <code>pack</code>
+的话是不能提前做的，是要算在整体时间内的。那么，有必要吗？</p>
+<h2 id="version-5-a-pack-b-prepack版本">Version 5: A pack &amp; B
+prepack版本</h2>
+<p><img src=/images/sgemm/data/result_5.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step5.gif width=70% /></p>
+<p>在版本4的基础上，版本5对矩阵A进行了<code>pack</code></p>
+<p>这里默认矩阵A是<strong>输入</strong>，所以需要在计算过程中进行<code>pack</code>操作，这个耗时是要放在计时里面的。</p>
+<p>结果还是让人欣喜的，尤其是在大尺寸矩阵上，取得了进一步的性能提升。</p>
+<p>我本来是试一试的心态做了这个尝试，毕竟这个操作会多读一遍<code>A</code>以及写一遍<code>packA</code>。看来接下来主要就是与<code>cache miss</code>作斗争了。</p>
+<p>目前思路方面的优化基本到头了，在计算过程中做一些<code>preload</code>是值得尝试一下的。</p>
+<p>接下来上汇编，搞向量计算，以及在汇编里面做<code>preload</code>。</p>
+<h2 id="version-6-汇编版本">Version 6: 汇编版本</h2>
+<p><img src=/images/sgemm/data/result_6.png width=70% /></p>
+<p>简要说明：A没有<code>pack</code>，B进行了16个数的<code>prepack</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;       <span class="comment">// Start 2-nd loop</span></span><br><span class="line">    <span class="type">int</span> mb = DGEMM_MR;</span><br><span class="line">    <span class="keyword">if</span>((m - i) &lt; DGEMM_MR) mb = m - i; </span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;   <span class="comment">// Start 1-st loop</span></span><br><span class="line">        <span class="type">int</span> nb = DGEMM_NR;</span><br><span class="line">        <span class="keyword">if</span>((n - j) &lt; DGEMM_NR) nb = n - j; </span><br><span class="line">        RvvSgemm4x16(   nb,                 <span class="comment">// nr &lt;= 16, a0</span></span><br><span class="line">                        mb,                 <span class="comment">// mr &lt;= 4,  a1</span></span><br><span class="line">                        k,                  <span class="comment">// astride = k*sizeof(float), a2</span></span><br><span class="line">                        &amp;A[i * k],          <span class="comment">// mr * k,   a3</span></span><br><span class="line">                        &amp;packB[j * k],      <span class="comment">// k * 16,   a4</span></span><br><span class="line">                        &amp;C( i, j ),         <span class="comment">// mr * nr,  a5</span></span><br><span class="line">                        n * <span class="keyword">sizeof</span>(<span class="type">float</span>),  <span class="comment">// Len(N) * sizeof(float), a6</span></span><br><span class="line">                        bias</span><br><span class="line">                    );</span><br><span class="line">    &#125;                                       <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                           <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>关于 <code>rvv</code> 指令的使用，我认为<code>vsetvli</code>
+是灵魂，<code>vfmacc.vf</code> 是主力。</p>
+<p>关于这些内容，我从<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL 公开课 | RISC-V
+技术解析</a>学到了很多，他们可真专业啊！建议理论指导和知识点学习去他们那里学，向
+<code>OpenPPL</code> 致敬！</p>
+<p>至于汇编算子，汇编里面的小细节就多了，强烈吐槽：<strong>写汇编真烦人啊！尤其是
+debug 过程，很折磨人。</strong>
+我上次写汇编还是本科上课的时候，重新拾起还是有一些新奇和兴奋的，而且能够非常细粒度的控制算子执行，成就感还是很大的。</p>
+<p>关于汇编文件具体怎么实现的，我认为最快的方式就是去看汇编代码。这里就不多做解释了</p>
+<p>需要注意的是，这个版本效果很差，这是为什么呢？又是
+<strong>循环顺序</strong> 的问题。</p>
+<h2 id="version-7-汇编版本-调换循环顺序">Version 7: 汇编版本
+调换循环顺序</h2>
+<p><img src=/images/sgemm/data/result_7.png width=70% /></p>
+<p>简要说明：A没有<code>pack</code>，B进行了16个数的<code>prepack</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;       <span class="comment">// Start 2-st loop</span></span><br><span class="line">    <span class="type">int</span> nb = DGEMM_NR;</span><br><span class="line">    <span class="keyword">if</span>((n - j) &lt; DGEMM_NR) nb = n - j; </span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;   <span class="comment">// Start 1-nd loop</span></span><br><span class="line">        <span class="type">int</span> mb = DGEMM_MR;</span><br><span class="line">        <span class="keyword">if</span>((m - i) &lt; DGEMM_MR) mb = m - i; </span><br><span class="line">        RvvSgemm4x16(   nb,                 <span class="comment">// nr &lt;= 16, a0</span></span><br><span class="line">                        mb,                 <span class="comment">// mr &lt;= 4,  a1</span></span><br><span class="line">                        k,                  <span class="comment">// astride = k*sizeof(float), a2</span></span><br><span class="line">                        &amp;A[i * k],          <span class="comment">// mr * k,   a3</span></span><br><span class="line">                        &amp;packB[j * k],      <span class="comment">// k * 16,   a4</span></span><br><span class="line">                        &amp;C( i, j ),         <span class="comment">// mr * nr,  a5</span></span><br><span class="line">                        n * <span class="keyword">sizeof</span>(<span class="type">float</span>),  <span class="comment">// Len(N) * sizeof(float), a6</span></span><br><span class="line">                        bias</span><br><span class="line">                    );</span><br><span class="line">    &#125;                                       <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                           <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>调换了循环的次序，先n方向后m方向，性能大大提升。</p>
+<p>但是，大尺寸矩阵的性能还不是很好。究其原因，还是在访存上。大尺寸矩阵的计算在<code>roofline</code>模型里属于是<strong>计算密集型</strong>，理想情况是<strong>计算的时间</strong>和<strong>访存的时间</strong>尽可能重叠，而现在基本是花很多时间在访存了（又是因为<code>cache miss</code>！）。</p>
+<h2 id="version-8-汇编版本-加入preload">Version 8: 汇编版本
+加入preload</h2>
+<p><img src=/images/sgemm/data/result_8.png width=70% /></p>
+<p>简要说明：A没有<code>pack</code>，B进行了16个数的<code>prepack</code>，做了
+<code>preload</code> 操作。</p>
+<p>性能相对爆炸！最高达到了 <code>2.212 GFLOPS</code>。</p>
+<p>核心操作： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">vfmacc.vf v16,  ft0, v0</span><br><span class="line">vlw.v v4, (bp0)         # b0&#x27;-&gt;v4</span><br><span class="line">flw fs4, 384(bp0)       # pre-load B</span><br><span class="line">addi bp0,bp0,64</span><br><span class="line">vfmacc.vf v20,  ft1, v0</span><br></pre></td></tr></table></figure> 在 <code>vfmacc.vf</code> 之间加入一些
+<code>load</code>
+操作，把之后要用到的数据提前<code>load</code>到<code>cache</code>中，可以大大降低
+<code>cache miss</code>。</p>
+<p>我最开始很疑惑——这样看代码明明也是顺序计算，怎么做到<strong>计算的时间</strong>和<strong>访存的时间</strong>重叠的呢？直到后来了解到<code>cacheline</code>的原理才明白这里的精髓，果然基础知识很重要啊。</p>
+<h2 id="version-9-汇编版本-a做pack">Version 9: 汇编版本 A做pack</h2>
+<p><img src=/images/sgemm/data/result_9.png width=70% /></p>
+<p>按照之前的经验，也尝试对 矩阵A 做了一下
+<code>pack</code>，出乎意料的是结果不是很好。稍微分析了一下，应该是这个版本的汇编对
+矩阵A 的<code>preload</code>写得不是很好。</p>
+<p>上个版本虽然对A没有pack，但是对4排的A都有<code>preload</code>，所以也算是解决了矩阵A的
+<code>cache miss</code>的痛点吧。</p>
+<h1 id="总结">总结</h1>
+<p>要想继续优化这个算子，后续要做的事情还有很多，比如在汇编里面重排流水线。</p>
+<p>在<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL 公开课 |
+RISC-V 技术解析</a>中也提到，如果使用 vf 指令，能够达到它理论峰值的
+80%，即
+4*80%，3.2GFLOPs。我现在只有<code>2.121 GFLOPS</code>，理论上还是有很大优化空间的。</p>
+<p>另外，
+RVV目前用的是<code>0.7.1</code>版本，感觉RVV的指令优化还是有很多工作要做，比如，目前遇到最严重的<code>vlw</code>效率低的问题。</p>
+<p>总之，做这些工作让我从很多大佬那里学到了很多知识，非常感谢。同时也希望本文能帮助到更多的人。</p>
+<h1 id="致谢">致谢</h1>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/flame/blislab">BLISlab: A Sandbox for
+Optimizing GEMM</a></p>
+<p>这个项目让我了解了如何优化GEMM。</p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://github.com/surez-ok/blislab_riscv">riscv平台优化矩阵乘(基于blislab优化实践)</a></p>
+<p>我基于这个项目进行了实验和探索。</p></li>
+<li><p>感谢丁大佬的指导。</p></li>
+</ul>
+<h1 id="参考文章">参考文章</h1>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL 公开课 |
+RISC-V 技术解析</a></p>
+<p><a target="_blank" rel="noopener" href="http://riscvbook.com/">RISC-V-Reader</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/riscv/riscv-v-spec/releases">riscv-v-spec-0.7.1</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.cs.utexas.edu/users/pingali/CS378/2008sp/papers/gotoPaper.pdf">Anatomy
+of High-Performance Matrix Multiplication</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://developer.huawei.com/consumer/cn/forum/topic/0201105374686101528">编译器优化丨Cache优化</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.leiphone.com/category/yanxishe/Puevv3ZWxn0heoEv.html">OpenBLAS项目与矩阵乘法优化
+| AI 研习社</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/34204282">Roofline
+Model与深度学习模型的性能分析</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为什么有用</a></p>
+<p><a target="_blank" rel="noopener" href="https://buymeacoffee.com/zhaodongyu">
+<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
+</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/RISCV/" rel="tag"># RISCV</a>
+              <a href="/tags/GEMM/" rel="tag"># GEMM</a>
+              <a href="/tags/HPC/" rel="tag"># HPC</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/02/26/103_sgemm_riscv_en/" rel="prev" title="Optimize sgemm on RISC-V platform">
+      <i class="fa fa-chevron-left"></i> Optimize sgemm on RISC-V platform
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/" rel="next" title="WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析">
+      WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%84%E5%A4%87%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">预备知识</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91"><span class="nav-number">2.1.</span> <span class="nav-text">测试交叉编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%B8%A6%E5%AE%BD%E6%B5%8B%E8%AF%95"><span class="nav-number">2.2.</span> <span class="nav-text">内存带宽测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#roofline%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.3.</span> <span class="nav-text">roofline模型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sgemm%E4%BC%98%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">sgemm优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="nav-number">3.1.</span> <span class="nav-text">使用说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-0-naive%E7%89%88%E6%9C%AC"><span class="nav-number">3.2.</span> <span class="nav-text">Version 0: naive版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-1-%E5%BE%AA%E7%8E%AF%E4%BA%A4%E6%8D%A2%E7%89%88%E6%9C%AC"><span class="nav-number">3.3.</span> <span class="nav-text">Version 1: 循环交换版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-2-%E5%88%86%E5%9D%97%E7%89%88%E6%9C%AC"><span class="nav-number">3.4.</span> <span class="nav-text">Version 2: 分块版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-3-%E5%88%86%E5%9D%97%E4%BC%98%E5%8C%96%E7%89%88%E6%9C%AC"><span class="nav-number">3.5.</span> <span class="nav-text">Version 3: 分块优化版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-4-b-prepack%E7%89%88%E6%9C%AC"><span class="nav-number">3.6.</span> <span class="nav-text">Version 4: B prepack版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-5-a-pack-b-prepack%E7%89%88%E6%9C%AC"><span class="nav-number">3.7.</span> <span class="nav-text">Version 5: A pack &amp; B
+prepack版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-6-%E6%B1%87%E7%BC%96%E7%89%88%E6%9C%AC"><span class="nav-number">3.8.</span> <span class="nav-text">Version 6: 汇编版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-7-%E6%B1%87%E7%BC%96%E7%89%88%E6%9C%AC-%E8%B0%83%E6%8D%A2%E5%BE%AA%E7%8E%AF%E9%A1%BA%E5%BA%8F"><span class="nav-number">3.9.</span> <span class="nav-text">Version 7: 汇编版本
+调换循环顺序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-8-%E6%B1%87%E7%BC%96%E7%89%88%E6%9C%AC-%E5%8A%A0%E5%85%A5preload"><span class="nav-number">3.10.</span> <span class="nav-text">Version 8: 汇编版本
+加入preload</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#version-9-%E6%B1%87%E7%BC%96%E7%89%88%E6%9C%AC-a%E5%81%9Apack"><span class="nav-number">3.11.</span> <span class="nav-text">Version 9: 汇编版本 A做pack</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%87%B4%E8%B0%A2"><span class="nav-number">5.</span> <span class="nav-text">致谢</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="nav-number">6.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">101k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:32</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : 'd7b704df68311ff4c7737dbd288d2484',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+  
+</body>
+</html>

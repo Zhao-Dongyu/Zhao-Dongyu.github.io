@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。 在此记录一下关于vtype寄存器相关的知识和结论。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vtype_register">
+<meta property="og:url" content="http://example.com/2023/06/14/81_vtype-register/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。 在此记录一下关于vtype寄存器相关的知识和结论。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-06-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-02-15T07:13:53.543Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="risc-v">
+<meta property="article:tag" content="tech">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2023/06/14/81_vtype-register/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>vtype_register | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/14/81_vtype-register/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          vtype_register
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-06-14 00:00:00" itemprop="dateCreated datePublished" datetime="2023-06-14T00:00:00+08:00">2023-06-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-02-15 15:13:53" itemprop="dateModified" datetime="2024-02-15T15:13:53+08:00">2024-02-15</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>4 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。</p>
+<p>在此记录一下关于vtype寄存器相关的知识和结论。</p>
+<span id="more"></span>
+<h2 id="background">Background</h2>
+<blockquote>
+<p>With a vector length specific (VLS) SIMD instruction set the main
+problem is to pick the right vector register size. Of course there is a
+trade-off between the amount of data-level parallelism and hardware
+costs. Due to Moore's law, vector register sizes can be increased over
+time without making the CPU chip more expensive. Also, some users are
+interested in powerful CPUs with wider vector registers while the
+average user is fine with averagely sized register. Thus, there is no
+one right vector register size.</p>
+</blockquote>
+<p>对于向量长度特定 (VLS) SIMD
+指令集，主要问题是选择正确的向量寄存器大小。
+当然，在数据级并行性和硬件成本之间存在权衡。
+由于<code>摩尔定律</code>，<code>矢量寄存器的大小</code>可以随着时间的推移而增加，而不会增加
+CPU 芯片的成本。 此外，一些用户对具有<code>更宽</code>向量寄存器的强大
+CPU 感兴趣，而普通用户则对<code>平均大小</code>的寄存器感兴趣。
+因此，<code>没有一个正确的向量寄存器大小</code>。</p>
+<blockquote>
+<p>The solution to all this is to design a variable length vector
+instruction set. In that way the instructions are then agnostic to the
+vector register size of a concrete CPU implementation. Thus, the binary
+code is portable between low, middle and high-end CPUs, and
+automatically makes use of wider registers in newer CPUs.</p>
+</blockquote>
+<p>解决方案是<code>设计一个可变长度的向量指令集</code>。
+这样，指令就与具体 CPU 实现的向量寄存器大小无关。
+因此，二进制代码可在低端、中端和高端 CPU 之间移植，并自动在较新的 CPU
+中使用更宽的寄存器。</p>
+<p>个人感觉，RISC-V这个后起之秀就胜在不用顾及历史积累，可以很轻易的从头开始。</p>
+<h2 id="design-challenges-opcode-space">Design Challenges: Opcode
+Space</h2>
+<p>Community wanted to stay with 32-bit instruction encoding</p>
+<ul>
+<li>Low-end embedded systems have 32-bit instruction fetch</li>
+<li>Harder to support mixed-length instruction streams, 16,32,48, &amp;
+64 bits</li>
+<li>Static code size matters on embedded platforms</li>
+</ul>
+<p>But wanted vast array of datatypes and custom datatypes, and large
+set of operations</p>
+<h2 id="opcode-solution">Opcode Solution</h2>
+<p>There are two registers used when operating vectors in RVV</p>
+<h3 id="寄存器vtype-vector-type.">寄存器<strong>vtype: Vector
+Type.</strong></h3>
+<p>Added a control register to hold some information about current
+setting of vector unit</p>
+<p>vtype describes
+<code>the type of vector we are going to operate</code> and includes</p>
+<p>vtype fields (total additional 6-7 state bits) - vsew: standard
+element width (SEW=8,16,32,…,1024) - Size in bits of the elements being
+operated - <code>8 ≤ sew ≤ ELEN</code> - vlmul: vector length multiplier
+(LMUL=1,2,4,8) - <span class="math inline">\(lmul = 2^k\)</span> where
+-3 ≤ k ≤ 3 (i.e., lmul ∈ {1/8, 1/4, 1/2, 1, 2, 4, 8}) - 寄存器分组
+Groups registers to form “longer vector” - Number of registers in each
+group is LMUL - 举例：当 LMUL=2时，<code>vadd v2, v4, v6</code> 意味着
+<code>(v2,v3) := (v4,v5) + (v6,v7)</code> - vediv: vector element
+divider (EDIV=1,2,4,8)</p>
+<p>Encoding only occupies 1.5 major opcodes</p>
+<p>Full 64-bit instruction encoding also planned - Can view current
+32-bit encoding as compressed form of full encoding</p>
+<h3
+id="寄存器vl-vector-length-not-to-be-confused-with-vlen">寄存器<strong>vl:
+Vector Length</strong> (not to be confused with VLEN!)</h3>
+<p>vl describes <code>how many elements of the vector</code> (starting
+from the element zero) <code>we are going to operate</code></p>
+<ul>
+<li><p>$ 0 ≤ vl ≤ vlmax(sew, lmul) $</p></li>
+<li><p>$ vlmax(sew, lmul) = (VLEN / sew) × lmul $</p></li>
+</ul>
+<p>Vector length <span class="math inline">\(vl\)</span> set to min(AVL,
+VLMAX)</p>
+<h2 id="rvv-defines-32-vector-registers-of-size-vlen-bits">RVV defines
+32 vector registers of size VLEN bits</h2>
+<ul>
+<li>v0 to v31</li>
+<li>VLEN is a <code>constant parameter</code> chosen by the implementor
+and must be a power of two
+<ul>
+<li>Zv* standard extensions constraint VLEN to be at least 64 or
+128</li>
+</ul></li>
+<li>E.g., VLEN=512 would be equivalent in size to Intel AVX-512</li>
+<li>VLEN is not a great name so read it as
+“<strong><code>vector register size (in bits)</code></strong>”</li>
+</ul>
+<h2 id="vectors-in-rvv-are-divided-in-elements.">Vectors in RVV are
+divided in elements.</h2>
+<ul>
+<li>The size of elements in bits is at least 8 bits up to ELEN bits</li>
+<li>ELEN is a constant parameter chosen by the implementor</li>
+<li>Must be a power of two and 8 ≤ ELEN ≤ VLEN
+<ul>
+<li>Zv* standard extensions constrain ELEN to be at least 32 or 64</li>
+</ul></li>
+</ul>
+<h2 id="vector-length-control">Vector Length control</h2>
+<p>Current maximum vector length is register length in bits divided by
+current element width setting:</p>
+<p><span class="math display">\[VLMAX = VLEN/SEW\]</span></p>
+<ul>
+<li>E.g., <code>VLEN = 512b, SEW=32b</code> =&gt;
+<code>VLMAX = 16</code></li>
+</ul>
+<p>Current active vector length set by vl register</p>
+<p><span class="math display">\[0&lt;=vl&lt;=VLMAX\]</span></p>
+<h2 id="vsetvlivsetvl-instructions">vsetvli/vsetvl instructions</h2>
+<p><span class="math inline">\(vsetvli\)</span> instruction sets both
+vector configuration and vector length:</p>
+<p><code>vsetvli rd，rs1，vtypei(e8/e16/e32/e64)，multi-num(m1-m8)</code></p>
+<p>rd - Returns setting of vector length in scalar register -
+返回值，告诉硬件接下去运行函数所需要的操作元素个数的量</p>
+<p>rs1 - Application vector length (AVL) - 设置操作元素</p>
+<p>vtypei - 每个元素的位宽大小</p>
+<p>multi-num - 寄存器的连用数量</p>
+<hr />
+<p>在 rv64 的编写中，如果 rd
+的返回值不容，会导致硬件部分中心进行设置，此步骤极大的占用运行时间，所以<code>在编写的时候需要尽量可能的减少 rd 数值的变换</code>。</p>
+<p>rv64 中每个 vector 寄存器总位宽是大于等于 128-bit,
+以128为例子，对于如何对 rd
+进行数值的变换，公式方面有一个很简单的换算：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">rd == rs1 &lt;= (vtypei * multi-num ) ? rs1 : (vtypei * multi-num )</span><br><span class="line">举个例子：</span><br><span class="line"></span><br><span class="line">vsetvli rd, rs1 == 8， vtypei == e8， multi-num == m1</span><br><span class="line">返回值便是 rd == 8 (128 / e8 == 16 &gt;= rs1 =&gt; 8)</span><br><span class="line"></span><br><span class="line">vsetvli rd, rs1 == 32，vtypei == e16， multi-num == m1</span><br><span class="line">返回值便是 rd == 16 (128 / e16 = 16)</span><br></pre></td></tr></table></figure>
+<p>如果一段代码中同时存在上述两条指令，那么便会出现硬件重设置情况，对代码整体的性能会产生负面影响。</p>
+<hr />
+<h2 id="simple-memcpy-example">Simple memcpy example</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># void*memcpy(void*dest,const void*src, size_t n)</span><br><span class="line"># a0=dest, a1=src, a2=n</span><br><span class="line">memcpy:</span><br><span class="line">mv a3, a0 # Copy destination</span><br><span class="line">loop:</span><br><span class="line">vsetvli t0, a2, e8 # Vectors of 8b</span><br><span class="line">vlb.v v0, (a1) # Load bytes</span><br><span class="line">add a1, a1, t0 # Bump pointer</span><br><span class="line">sub a2, a2, t0 # Decrement count</span><br><span class="line">vsb.v v0, (a3) # Store bytes</span><br><span class="line">add a3, a3, t0 # Bump pointer</span><br><span class="line">bnez a2, loop # Any more?</span><br><span class="line">ret # Return</span><br></pre></td></tr></table></figure>
+<h2 id="usability-code">usability code</h2>
+<p>通过intrinsic的方式，查询<code>vlenb</code>，进而可以兼容不同位宽的设备。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vl</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vl&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vtype</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vtype&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">csrr_vlenb</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, vlenb&quot;</span></span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;=r&quot;</span>(a)</span></span><br><span class="line"><span class="params">                 :</span></span><br><span class="line"><span class="params">                 : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>整理的很乱，暂时没时间仔细梳理了。</p>
+<h2 id="参考文献">参考文献</h2>
+<p><a target="_blank" rel="noopener" href="https://gms.tf/riscv-vector.html">Programming with RISC-V
+Vector Instructions</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/363901274">RISC-V
+小白优化学习</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://riscv.org/wp-content/uploads/2019/06/17.40-Vector_RISCV-20190611-Vectors.pdf">Vector
+Extension Update</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://llvm.org/devmtg/2019-04/slides/TechTalk-Kruppe-Espasa-RISC-V_Vectors_and_LLVM.pdf">Adventures
+with RISC-V Vectors and LLVM</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/risc-v/" rel="tag"># risc-v</a>
+              <a href="/tags/tech/" rel="tag"># tech</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/06/05/77_Roofline/" rel="prev" title="Roofline model学习">
+      <i class="fa fa-chevron-left"></i> Roofline model学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/06/19/79_gdb/" rel="next" title="gdb">
+      gdb <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#design-challenges-opcode-space"><span class="nav-number">2.</span> <span class="nav-text">Design Challenges: Opcode
+Space</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#opcode-solution"><span class="nav-number">3.</span> <span class="nav-text">Opcode Solution</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8vtype-vector-type."><span class="nav-number">3.1.</span> <span class="nav-text">寄存器vtype: Vector
+Type.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8vl-vector-length-not-to-be-confused-with-vlen"><span class="nav-number">3.2.</span> <span class="nav-text">寄存器vl:
+Vector Length (not to be confused with VLEN!)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rvv-defines-32-vector-registers-of-size-vlen-bits"><span class="nav-number">4.</span> <span class="nav-text">RVV defines
+32 vector registers of size VLEN bits</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vectors-in-rvv-are-divided-in-elements."><span class="nav-number">5.</span> <span class="nav-text">Vectors in RVV are
+divided in elements.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vector-length-control"><span class="nav-number">6.</span> <span class="nav-text">Vector Length control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vsetvlivsetvl-instructions"><span class="nav-number">7.</span> <span class="nav-text">vsetvli&#x2F;vsetvl instructions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#simple-memcpy-example"><span class="nav-number">8.</span> <span class="nav-text">Simple memcpy example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#usability-code"><span class="nav-number">9.</span> <span class="nav-text">usability code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">10.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">101k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:32</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : '89922cd7bbfb5bdb55b92f56f7ee4cc1',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+  
+</body>
+</html>

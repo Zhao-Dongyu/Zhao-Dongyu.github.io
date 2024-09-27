@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="开始使用并学习ChatGPT以及相关的LLM(Large Language Model)，不然就被时代淘汰了～">
+<meta property="og:type" content="article">
+<meta property="og:title" content="踏上ChatGPT旅程">
+<meta property="og:url" content="http://example.com/2023/05/26/85_ChatGPT/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="开始使用并学习ChatGPT以及相关的LLM(Large Language Model)，不然就被时代淘汰了～">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-05-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-02-15T07:14:10.995Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="tech">
+<meta property="article:tag" content="ChatGPT">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2023/05/26/85_ChatGPT/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>踏上ChatGPT旅程 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/05/26/85_ChatGPT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          踏上ChatGPT旅程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-05-26 00:00:00" itemprop="dateCreated datePublished" datetime="2023-05-26T00:00:00+08:00">2023-05-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-02-15 15:14:10" itemprop="dateModified" datetime="2024-02-15T15:14:10+08:00">2024-02-15</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>3.1k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>3 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>开始使用并学习ChatGPT以及相关的<code>LLM(Large Language Model)</code>，不然就被时代淘汰了～</p>
+<span id="more"></span>
+<h1 id="写在前面">0.写在前面</h1>
+<p>从去年11月底ChatGPT发布，到后来爆火，改变互联网，这半年时间我对ChatGPT还是比较冷漠的。</p>
+<p>期间我也体验了一下，以及体验了<code>cursor</code>（一个使用chatgpt-4的ai辅助编程工具），但自始至终还是充满了不信任感。所以也一直没注册账号，没想进一步探索。</p>
+<p>直到今天，我改变了对它看法，或者说我改变了看它的角度。</p>
+<p>以前潜意识里是觉得ChatGPT是智囊、军师、管家之类的身份，觉得人的主观能动性受到限制，所以会抵制。</p>
+<p>现在我想把它当工具，来便利我的工作和生活，便没有了心理阻碍。</p>
+<p>于是，ChatGPT旅程，出发～</p>
+<h1 id="注册chatgpt">1. 注册ChatGPT</h1>
+<p>我参考了这篇文章<a
+target="_blank" rel="noopener" href="https://www.xnbeast.com/create-openai-chatgpt-account/">ChatGPT注册教程攻略：解决手机无法接收验证码问题（亲测有效）</a>
+，在<a
+target="_blank" rel="noopener" href="https://sms-activate.org/">sms-activate</a>购买了临时国外手机号——</p>
+<ul>
+<li><p>买了个英国的手机号，结果</p>
+<p><code>Your account was flagged for potential abuse. If you feel this is an error, please contact us at help.openai.com</code></p></li>
+<li><p>换了个美国的也不行</p></li>
+<li><p>最后换了个印度尼西亚的手机号，顺利注册，但是进入ChatGPT又显示</p>
+<p><code>Sorry, you have been blocked</code></p></li>
+</ul>
+<p>出师不利啊……突然想起来我买的VPN的维护者说过，这个vpn不搞chatGPT那破玩意儿。于是在tg上找了个<code>@chatgptzs_bot</code>，暂时先用着，也挺好用的。</p>
+<p>但是还不甘心，之后我用<code>自由鲸</code>的欧洲节点，开启全局模式，能正常使用ChatGPT了。不过目前不是付费用户，所以没有联网功能和插件功能。</p>
+<h1 id="chatgpt使用技巧">2. ChatGPT使用技巧</h1>
+<p>昨晚在B站看到一个视频挺好的——</p>
+<p><a
+target="_blank" rel="noopener" href="https://b23.tv/XCclvE1">学完这个视频，简历加一条：熟练掌握ChatGPT解决复杂问题｜ChatGPT使用教程-哔哩哔哩</a></p>
+<p>说实话，我也是有一部分被这个视频驱动来搞ChatGPT的。</p>
+<h2 id="乔哈里johari沟通视窗">乔哈里(Johari)沟通视窗</h2>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>你知道</th>
+<th>你不知道</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPT知道</td>
+<td>公开区</td>
+<td>盲区</td>
+</tr>
+<tr class="even">
+<td>GPT不知道</td>
+<td>隐私区</td>
+<td>未知区</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>盲区｜问法1:
+<code>我想了解xxx，我应该向你问哪些问题？</code></p></li>
+<li><p>盲区｜问法2:<code>请给我列出xxx领域/行业相关的，最常用的50个概念，并做简单解释。如果有英文缩写，请给出完整的英文解释。</code></p></li>
+<li><p>盲区｜问法3:<code>请详细介绍一下xxx的主要生平事迹。</code>
+<code>请详细介绍一下xxx公司的发展历程。</code></p></li>
+<li><p>公开区｜检验认知:<code>对于xxx主题/技能，你认为哪些是我必须理解和掌握的核心要点？</code></p></li>
+<li><p>公开区｜检验认知:<code>我理解的xxx是这样的，你觉得我的理解对吗？</code></p></li>
+<li><p>公开区｜检验认知:<code>我对xxx有一些想法，你能帮我批判性地分析一下这些想法的优点和缺点吗？</code></p></li>
+<li><p>公开区｜检验认知:<code>我正在考虑xxx的决定，你能帮我分析一下可能的结果和影响吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我知道xxx的概念，我想知道更多关于xxx的信息。</code></p></li>
+<li><p>公开区｜扩充认知:<code>我在xxx问题上遇到困难，你能提供一些可能的解决方案或建议吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想要深入学习xxx，你能推荐一些进阶的学习资源或学习路径吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想要在xxx领域有所创新，你能提供一些启发或想法吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想在xxx领域提升自己，你能根据最新的研究和趋势给我一些建议吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我正在考虑学习xxx，你能给我一些关于这个领域未来发展的观点吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>（背景信息）我要做关于xxx的研究，我认为原因是，还有其他可能的原因吗？给出一些可能的研究假设。</code></p></li>
+<li><p>公开区｜扩充认知:<code>我是一个xx行业新手，马上要采访这个行业的资深大佬，我应该向他请教哪些有价值的问题？</code></p></li>
+<li><p>盲区｜问法1: <code>你怎么看待这种现象？</code></p></li>
+<li><p>盲区｜问法2: <code>可能的原因有哪些？</code></p></li>
+<li><p>盲区｜问法3: <code>这会对xxx产生什么样的影响？</code></p></li>
+<li><p>盲区｜问法4: <code>你觉得xxx应该怎么做？</code></p></li>
+<li><p>未知区｜问法1:
+<code>如果xxx，这对社会会产生什么影响？</code></p></li>
+<li><p>未知区｜反向提问:
+<code>为了测试我对xxx的了解程度，你会问我什么问题来检验我的水平，最少10个</code></p></li>
+<li><p>未知区｜反向提问:
+<code>我是xx领域的专家，你会问我哪些问题来检验我的专业水平？最少10个。</code></p></li>
+<li><p>未知区｜反向提问:
+<code>现在我们玩个“你问我答”的游戏，目的是为了测试我在xxxx方面的专业水平。你负责提问，我负责回答。你要根据我的答案进行反馈、评价、补充。如果我说不知道，你就直接输出正确答案，然后你继续提问。</code></p></li>
+<li><p>未知区｜反向提问:
+<code>我已经很精通xxx了，我想知道我是否还有需要学习的地方？</code></p></li>
+</ul>
+<p>1 知道自己要干什么，但是不知道ChatGPT能帮你什么。 -
+<code>我要做xxx，你能帮我做什么？</code></p>
+<p>2 知道要ChatGPT帮你做什么，但是你不知道给它输入什么具体的信息。 -
+<code>我想要你xxx，我应该给你输入什么信息？</code></p>
+<p>3 直接给ChatGPT指令。任务目标、背景信息、输出要求都非常清晰。 -
+<code>请推荐（书名、电视剧、电影、网站、博主、专家、学习资源） 等等。请翻译.请总结.请润色。</code></p>
+<h1 id="llm学习">3. LLM学习</h1>
+<p>我：给我推荐一些学习大规模语言模型的资料吧</p>
+<blockquote>
+<p>当然！以下是一些学习大规模语言模型的资料推荐： 1.
+论文和研究文章：深入了解大规模语言模型的原理和技术，可以阅读相关的论文和研究文章，例如《Transformers:
+Attention Is All You Need》、《BERT: Pre-training of Deep Bidirectional
+Transformers for Language Understanding》和《GPT (Generative Pre-trained
+Transformer)》。 2.
+博客文章和教程：有许多博客文章和教程可供学习，这些文章会解释大规模语言模型的概念、实现和应用。可以查找像Towards
+Data Science、Medium和OpenAI Blog等平台上的相关文章。 3. GitHub
+上的代码库：学习大规模语言模型的实现和代码细节，可以查看GitHub上的开源代码库，如Hugging
+Face的transformers库、OpenAI的GPT代码库等。 4.
+视频教程和在线课程：有一些在线课程和视频教程专门介绍大规模语言模型。例如，Coursera
+上的 "Natural Language Processing with Sequence Models" 和 YouTube 上的
+"The Transformer Explained" 等。 5.
+社区和论坛：加入与自然语言处理和大规模语言模型相关的社区和论坛，与其他人交流讨论，获取实践经验和最新动态。</p>
+<p>这些资源可以帮助你深入了解大规模语言模型的背后原理、应用和实现。希望对你的学习有所帮助！如需更具体的资源或问题，请随时告诉我。</p>
+</blockquote>
+<h2 id="学习视频">学习视频</h2>
+<p>Google Cloud Tech</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=zizonToFXDs">Introduction
+to Large Language Models</a></li>
+</ul>
+<p>ZOMI</p>
+<ul>
+<li><p><a
+target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=XujuQB9AxGA">ChatGPT狂飙原理剖析：GPT系列详解！【ChatGPT】系列第01篇</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=qf2zcev7mHQ">ChatGPT狂飙：强化学习RLHF与PPO！【ChatGPT】系列第02篇</a></p></li>
+<li><p><a
+target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=Oy-8BqwXck8&amp;t=1s">ChatGPT狂飙：InstructGPT解析！【ChatGPT】原理第03篇</a></p></li>
+<li><p>【ChatGPT狂飙：InstructGPT解析！】思考：</p>
+<ul>
+<li>大模型通过计算的方式模拟人类的思考，类似于ChatGPT的RLHF技术是否会给世界带来新的技术产业革命？</li>
+<li>ChatGPT 使用了 Ray 作为细粒度的并行计算和昇构计算，管理分配
+RLIDL模型完成复杂训练任务，方便利用强化学习对环境和计算任务进行控制，这对A框架的分布式能力边界带来哪些新的冲击？</li>
+<li>ChatGPT
+非常重数据交互，存算一体技术会不会针对ChatGPT等应用的现专用芯片和新的架构?</li>
+</ul></li>
+</ul>
+<p><a
+target="_blank" rel="noopener" href="https://imzhanghao.com/2023/02/24/chatgpt/">ChatGPT模型的三层理解</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/dalinvip/Awesome-ChatGPT">Awesome-ChatGPT</a></p>
+<p>2023.6.1 学习<a
+target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LLM/" rel="tag"># LLM</a>
+              <a href="/tags/tech/" rel="tag"># tech</a>
+              <a href="/tags/ChatGPT/" rel="tag"># ChatGPT</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/05/04/97_transposed-convolution/" rel="prev" title="一文搞懂转置卷积的定义、计算和加速">
+      <i class="fa fa-chevron-left"></i> 一文搞懂转置卷积的定义、计算和加速
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/05/30/69_LaTeX/" rel="next" title="LaTeX学习">
+      LaTeX学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">0.写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B3%A8%E5%86%8Cchatgpt"><span class="nav-number">2.</span> <span class="nav-text">1. 注册ChatGPT</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#chatgpt%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-number">3.</span> <span class="nav-text">2. ChatGPT使用技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%94%E5%93%88%E9%87%8Cjohari%E6%B2%9F%E9%80%9A%E8%A7%86%E7%AA%97"><span class="nav-number">3.1.</span> <span class="nav-text">乔哈里(Johari)沟通视窗</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#llm%E5%AD%A6%E4%B9%A0"><span class="nav-number">4.</span> <span class="nav-text">3. LLM学习</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%A7%86%E9%A2%91"><span class="nav-number">4.1.</span> <span class="nav-text">学习视频</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">101k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:32</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : 'caebee0cbdd92ef173f807b684e42bfb',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  <script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+  
+</body>
+</html>

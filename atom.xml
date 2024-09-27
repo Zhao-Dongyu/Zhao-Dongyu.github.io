@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Zhao Dongyu&#39;s Blog</title>
+  <icon>http://example.com/icon.png</icon>
+  <subtitle>A life which is unexamined is not worth living.</subtitle>
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2024-09-27T08:25:26.746Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>Zhao Dongyu</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Marlin代码解读</title>
+    <link href="http://example.com/2024/09/26/104_marlin/"/>
+    <id>http://example.com/2024/09/26/104_marlin/</id>
+    <published>2024-09-25T16:00:00.000Z</published>
+    <updated>2024-09-27T08:25:26.746Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;作为一个不会cuda的小白，研究完&lt;a
+href=&quot;https://github.com/IST-DASLab/marlin&quot;&gt;&lt;code&gt;marlin&lt;/code&gt;&lt;/a&gt;算子之后神清气爽，&lt;/p&gt;
+&lt;p&gt;【长文预警 &amp;amp; 多图预警】&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
+    
+    <category term="MARLIN" scheme="http://example.com/tags/MARLIN/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
+    <link href="http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
+    <id>http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</id>
+    <published>2024-08-12T01:52:02.000Z</published>
+    <updated>2024-08-28T02:07:39.481Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
+kernel的反量化。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="AWQ" scheme="http://example.com/tags/AWQ/"/>
+    
+    <category term="dequantize" scheme="http://example.com/tags/dequantize/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>在riscv平台优化SGEMM</title>
+    <link href="http://example.com/2024/02/26/102_sgemm_riscv_cn/"/>
+    <id>http://example.com/2024/02/26/102_sgemm_riscv_cn/</id>
+    <published>2024-02-25T16:00:00.000Z</published>
+    <updated>2024-08-28T02:07:29.487Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="RISCV" scheme="http://example.com/tags/RISCV/"/>
+    
+    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Optimize sgemm on RISC-V platform</title>
+    <link href="http://example.com/2024/02/26/103_sgemm_riscv_en/"/>
+    <id>http://example.com/2024/02/26/103_sgemm_riscv_en/</id>
+    <published>2024-02-25T16:00:00.000Z</published>
+    <updated>2024-08-27T13:07:27.285Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;This project records the process of optimizing SGEMM
+(single-precision floating point General Matrix Multiplication) on the
+riscv platform.&lt;/p&gt;
+&lt;p&gt;&lt;img src=/images/sgemm/data/result_all.png width=70% /&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="RISCV" scheme="http://example.com/tags/RISCV/"/>
+    
+    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Telegram bot</title>
+    <link href="http://example.com/2024/02/17/98_Telegram_bot/"/>
+    <id>http://example.com/2024/02/17/98_Telegram_bot/</id>
+    <published>2024-02-17T07:38:00.000Z</published>
+    <updated>2024-02-19T09:55:43.159Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;最近学习一些telegram bot，记录一下&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="ingress" scheme="http://example.com/tags/ingress/"/>
+    
+    <category term="Homogeneous" scheme="http://example.com/tags/Homogeneous/"/>
+    
+    <category term="Telegram bot" scheme="http://example.com/tags/Telegram-bot/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>tflite-micro</title>
+    <link href="http://example.com/2023/10/27/91_tflite-micro/"/>
+    <id>http://example.com/2023/10/27/91_tflite-micro/</id>
+    <published>2023-10-27T09:55:37.000Z</published>
+    <updated>2024-08-28T02:08:17.245Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="tflite-micro" scheme="http://example.com/tags/tflite-micro/"/>
+    
+    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Homogeneous_ShangHai</title>
+    <link href="http://example.com/2023/08/04/99_Homogeneous-ShangHai/"/>
+    <id>http://example.com/2023/08/04/99_Homogeneous-ShangHai/</id>
+    <published>2023-08-04T08:16:16.000Z</published>
+    <updated>2024-08-28T02:07:49.576Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;0、背景&lt;/h1&gt;
+&lt;h2 id=&quot;前年2021&quot;&gt;0.0 前年（2021）&lt;/h2&gt;
+&lt;p&gt;我在北京的校园里，设计并制作了一个六重竹笋，&lt;a
+href=&quot;https://mp.weixin.qq.com/s/O6tBVdg4Saa4KtITM-UNng&quot;&gt;《六重蓝笋成长记（上）》&lt;/a&gt;和&lt;a
+href=&quot;https://mp.weixin.qq.com/s/6t3HY1REaKn-AUS1TxTOdQ&quot;&gt;《六重蓝笋成长记（下）》&lt;/a&gt;，开始体会到竹笋的乐趣，并立志于做更高重的笋。&lt;/p&gt;
+&lt;h2 id=&quot;去年2022&quot;&gt;0.1 去年（2022）&lt;/h2&gt;
+&lt;p&gt;我在上海的某个特殊时期，闲得实在是无聊，制作了 &lt;a
+href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：从入门到夺笋&lt;/a&gt;，以缓解不能出去玩的郁闷，并立志于做更高重的七重(七色彩虹)竹笋。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="ingress" scheme="http://example.com/tags/ingress/"/>
+    
+    <category term="Homogeneous" scheme="http://example.com/tags/Homogeneous/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Battlegrounds</title>
+    <link href="http://example.com/2023/07/09/100_Battlegrounds/"/>
+    <id>http://example.com/2023/07/09/100_Battlegrounds/</id>
+    <published>2023-07-08T18:04:51.000Z</published>
+    <updated>2024-09-23T02:14:03.873Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
+&lt;p&gt;Now at &lt;strong&gt;98%&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="游戏" scheme="http://example.com/categories/%E6%B8%B8%E6%88%8F/"/>
+    
+    
+    <category term="Hearthstone" scheme="http://example.com/tags/Hearthstone/"/>
+    
+    <category term="Battlegrounds" scheme="http://example.com/tags/Battlegrounds/"/>
+    
+    <category term="game" scheme="http://example.com/tags/game/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Final Cut study notes</title>
+    <link href="http://example.com/2023/07/08/75_Final-cut-study-notes/"/>
+    <id>http://example.com/2023/07/08/75_Final-cut-study-notes/</id>
+    <published>2023-07-07T16:04:56.000Z</published>
+    <updated>2024-02-15T07:13:32.010Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习Final Cut Pro的笔记，提高生产力。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>FasterTransformer</title>
+    <link href="http://example.com/2023/07/06/83_FasterTransformer/"/>
+    <id>http://example.com/2023/07/06/83_FasterTransformer/</id>
+    <published>2023-07-06T09:21:08.000Z</published>
+    <updated>2024-02-15T07:14:04.497Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录一下部署大模型的经历&lt;/p&gt;
+&lt;p&gt;【更新中】&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Using Ubuntu from scratch</title>
+    <link href="http://example.com/2023/06/30/87_Using-Ubuntu-from-scratch/"/>
+    <id>http://example.com/2023/06/30/87_Using-Ubuntu-from-scratch/</id>
+    <published>2023-06-29T16:00:00.000Z</published>
+    <updated>2024-02-15T07:11:06.179Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="notes" scheme="http://example.com/tags/notes/"/>
+    
+    <category term="ubuntu" scheme="http://example.com/tags/ubuntu/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>万物皆可RSS</title>
+    <link href="http://example.com/2023/06/29/67_RSS/"/>
+    <id>http://example.com/2023/06/29/67_RSS/</id>
+    <published>2023-06-28T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:01.509Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;万物皆可RSS！&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="RSS" scheme="http://example.com/tags/RSS/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>flatc</title>
+    <link href="http://example.com/2023/06/28/71_flatc/"/>
+    <id>http://example.com/2023/06/28/71_flatc/</id>
+    <published>2023-06-27T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:18.351Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录一下flatbuffer的学习&lt;/p&gt;</summary>
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>git</title>
+    <link href="http://example.com/2023/06/19/73_git/"/>
+    <id>http://example.com/2023/06/19/73_git/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:25.807Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。&lt;/p&gt;
+&lt;p&gt;在此记录一下需要经常查阅的情景。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="git" scheme="http://example.com/tags/git/"/>
+    
+    <category term="branch" scheme="http://example.com/tags/branch/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gdb</title>
+    <link href="http://example.com/2023/06/19/79_gdb/"/>
+    <id>http://example.com/2023/06/19/79_gdb/</id>
+    <published>2023-06-18T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:46.730Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
+&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vtype_register</title>
+    <link href="http://example.com/2023/06/14/81_vtype-register/"/>
+    <id>http://example.com/2023/06/14/81_vtype-register/</id>
+    <published>2023-06-13T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:53.543Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。&lt;/p&gt;
+&lt;p&gt;在此记录一下关于vtype寄存器相关的知识和结论。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="risc-v" scheme="http://example.com/tags/risc-v/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Roofline model学习</title>
+    <link href="http://example.com/2023/06/05/77_Roofline/"/>
+    <id>http://example.com/2023/06/05/77_Roofline/</id>
+    <published>2023-06-04T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:38.829Z</updated>
+    
+    
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;学习Roofline，有一种理论指导实践的感觉。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
+    
+    <category term="Roofline" scheme="http://example.com/tags/Roofline/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LaTeX学习</title>
+    <link href="http://example.com/2023/05/30/69_LaTeX/"/>
+    <id>http://example.com/2023/05/30/69_LaTeX/</id>
+    <published>2023-05-29T16:00:00.000Z</published>
+    <updated>2024-02-15T07:13:08.534Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天看的论文的排版真的太好看了！开始学习&lt;code&gt;LaTeX&lt;/code&gt;，整个过程记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="LaTeX" scheme="http://example.com/tags/LaTeX/"/>
+    
+    <category term="study" scheme="http://example.com/tags/study/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>踏上ChatGPT旅程</title>
+    <link href="http://example.com/2023/05/26/85_ChatGPT/"/>
+    <id>http://example.com/2023/05/26/85_ChatGPT/</id>
+    <published>2023-05-25T16:00:00.000Z</published>
+    <updated>2024-02-15T07:14:10.995Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;开始使用并学习ChatGPT以及相关的&lt;code&gt;LLM(Large Language Model)&lt;/code&gt;，不然就被时代淘汰了～&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>一文搞懂转置卷积的定义、计算和加速</title>
+    <link href="http://example.com/2023/05/04/97_transposed-convolution/"/>
+    <id>http://example.com/2023/05/04/97_transposed-convolution/</id>
+    <published>2023-05-03T16:00:00.000Z</published>
+    <updated>2024-08-28T02:07:57.550Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;最近做了一些转置卷积的相关部署工作，最开始搞的时候其实有点晕头转向的，总是试图在用卷积的计算方式反过来理解转置卷积，尤其是看到&lt;code&gt;padding&lt;/code&gt;部分和&lt;code&gt;stride&lt;/code&gt;部分，搞得我头更大了，心想怎么这么反人类？（后来发现是我理解的问题，其实一点也不反人类）&lt;/p&gt;
+&lt;p&gt;现在也算是了解了具体工作机制以及加速方式，在这里整理总结一下。欢迎留言、指正
+:)&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
+    
+    <category term="engineering" scheme="http://example.com/tags/engineering/"/>
+    
+    <category term="Transposed Convolution" scheme="http://example.com/tags/Transposed-Convolution/"/>
+    
+  </entry>
+  
+</feed>
