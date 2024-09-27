@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-08-28T02:07:39.481Z</updated>
+  <updated>2024-09-27T08:25:26.746Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Marlin代码解读</title>
+    <link href="http://example.com/2024/09/26/104_marlin/"/>
+    <id>http://example.com/2024/09/26/104_marlin/</id>
+    <published>2024-09-25T16:00:00.000Z</published>
+    <updated>2024-09-27T08:25:26.746Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;作为一个不会cuda的小白，研究完&lt;a
+href=&quot;https://github.com/IST-DASLab/marlin&quot;&gt;&lt;code&gt;marlin&lt;/code&gt;&lt;/a&gt;算子之后神清气爽，&lt;/p&gt;
+&lt;p&gt;【长文预警 &amp;amp; 多图预警】&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
+    
+    <category term="MARLIN" scheme="http://example.com/tags/MARLIN/"/>
+    
+  </entry>
   
   <entry>
     <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
@@ -417,27 +446,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="engineering" scheme="http://example.com/tags/engineering/"/>
     
     <category term="Transposed Convolution" scheme="http://example.com/tags/Transposed-Convolution/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>内存对齐的实现</title>
-    <link href="http://example.com/2022/12/13/95_memory-align/"/>
-    <id>http://example.com/2022/12/13/95_memory-align/</id>
-    <published>2022-12-12T16:00:00.000Z</published>
-    <updated>2024-02-15T07:09:41.612Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些&lt;code&gt;特定类型的数据&lt;/code&gt;只能从某些&lt;code&gt;特定地址&lt;/code&gt;开始存取,而不是内存中任意地址都是可以读取的。&lt;/p&gt;
-&lt;p&gt;内存对齐不仅&lt;strong&gt;便于CPU快速访问&lt;/strong&gt;，同时合理的利用字节对齐可以&lt;strong&gt;有效的节省存储空间&lt;/strong&gt;。&lt;/p&gt;
-&lt;p&gt;花了一点点时间搞懂了内存对齐的实现与细节——&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
-    <category term="memory align" scheme="http://example.com/tags/memory-align/"/>
     
   </entry>
   
