@@ -4369,9 +4369,16 @@ href="https://github.com/IST-DASLab/marlin"><code>marlin</code></a>算子之后�
 <p>在 <strong>test.py</strong> 中起一个 m = 128, sms = 5 的
 <code>marlin.mul</code></p>
 <p>即 <code>self.run_problem(128, 768, 256, -1, -1)</code>。</p>
-<p>⚠️注意： 1. 本文全部使用这个case的数值进行带入。即 - m = 128 - k =
-256 - n = 768 2. 听 Ding
-大佬的话，这个算子不要老是按照拿到的数进行理解，要结合代码进行理解。</p>
+<p>⚠️注意： 1. 本文全部使用这个case的数值进行带入。即</p>
+<ul>
+<li>m = 128</li>
+<li>k = 256</li>
+<li>n = 768</li>
+</ul>
+<ol start="2" type="1">
+<li>听 Ding
+大佬的话，这个算子不要老是按照拿到的数进行理解，要结合代码进行理解。</li>
+</ol>
 <p>接下来进入 <strong>marlin_cuda_kernel.cu</strong> 文件的
 <code>marlin_cuda</code> 函数逐步分析。</p>
 <h2 id="int-marlin_cuda函数">int marlin_cuda()函数</h2>
@@ -4385,8 +4392,11 @@ CUDA 设备（dev）的多处理器数量。</p>
 <p>如注释所说：对于小批量处理来说，<strong>较好的分区(better
 partioning)</strong> 比 <strong>较好的计算资源利用(better compute
 utilization)</strong> 稍微更重要。​在目前的例子中，prob_m =
-128，所以得到的分区是 - <code>thread_k = 64</code> -
-<code>thread_n = 256</code></p>
+128，所以得到的分区是</p>
+<ul>
+<li><code>thread_k = 64</code></li>
+<li><code>thread_n = 256</code></li>
+</ul>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> thread_k_blocks = thread_k / <span class="number">16</span>;</span><br><span class="line"><span class="type">int</span> thread_n_blocks = thread_n / <span class="number">16</span>;</span><br><span class="line"><span class="type">int</span> group_blocks = (groupsize == <span class="number">-1</span>) ? <span class="number">-1</span> : groupsize / <span class="number">16</span>;</span><br><span class="line"><span class="type">int</span> blocks = sms;</span><br></pre></td></tr></table></figure>
 <ul>
 <li><code>thread_k_blocks = 64/16 = 4</code></li>
@@ -4418,8 +4428,13 @@ W4A16&amp;W4A8代码走读</a></p>
 <p><code>i</code>进入for循环的<code>i+=4</code>，不再满足循环条件，循环结束。</p>
 <pre><code>这里的par是2，如果par超过了max_par，那么应该就会多循环几次了。</code></pre>
 <p>这一段的作用就是确定了m方向上的blocks = 4 和 parallel = 2。</p>
-<p>目前的结果是 - thread_m_blocks = 4 - thread_n_blocks = 16 -
-thread_k_blocks = 4 - group_blocks = -1</p>
+<p>目前的结果是</p>
+<ul>
+<li>thread_m_blocks = 4</li>
+<li>thread_n_blocks = 16</li>
+<li>thread_k_blocks = 4</li>
+<li>group_blocks = -1</li>
+</ul>
 <p>于是进入<code>CALL_IF(4,16,4,-1)</code></p>
 <p>各个参数都确定下来了，先画个图整理一下：</p>
 <p><img src="/images/marlin/0_gemm.png" width="95%"></p>
@@ -4429,8 +4444,12 @@ Marlin()函数</h2>
 <p>开始核心代码 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> parallel = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">if</span> (prob_m &gt; <span class="number">16</span> * thread_m_blocks) &#123;</span><br><span class="line">  parallel = prob_m / (<span class="number">16</span> * thread_m_blocks);</span><br><span class="line">  prob_m = <span class="number">16</span> * thread_m_blocks;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 这里是对prob_m进行了限制，如前文所说，<strong>m方向最大的基本执行单元是64</strong>，对于较大的
 GEMM，并行运行多个batch大小为 64 的版本。</p>
-<p>所以这几句的结果是 - thread_m_blocks = 4 - parallel = 2 - prob_m =
-64</p>
+<p>所以这几句的结果是</p>
+<ul>
+<li>thread_m_blocks = 4</li>
+<li>parallel = 2</li>
+<li>prob_m = 64</li>
+</ul>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> k_tiles = prob_k / <span class="number">16</span> / thread_k_blocks;</span><br><span class="line"><span class="type">int</span> n_tiles = prob_n / <span class="number">16</span> / thread_n_blocks;</span><br><span class="line"><span class="type">int</span> iters = ceildiv(k_tiles * n_tiles * parallel, gridDim.x);</span><br></pre></td></tr></table></figure>
 <p>得到k_tiles = 4, n_tiles = 3, 所以目前一共有 k_tiles * n_tiles *
 parallel =
