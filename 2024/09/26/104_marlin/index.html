@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/4.png">
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-09-29T02:14:33.769Z">
+<meta property="article:modified_time" content="2024-09-29T02:21:44.951Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -254,7 +254,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-09-29 10:14:33" itemprop="dateModified" datetime="2024-09-29T10:14:33+08:00">2024-09-29</time>
+                <time title="Modified: 2024-09-29 10:21:44" itemprop="dateModified" datetime="2024-09-29T10:21:44+08:00">2024-09-29</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -465,7 +465,8 @@ threadblock) - 这个索引从下到上编号。以第二个slice为例，block
 1的idx是0，block 0的idx是1。</p>
 <h2 id="a_sh_wr_iters变量">a_sh_wr_iters变量</h2>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a_gl_stride = prob_k / <span class="number">8</span>; <span class="comment">// stride of the A matrix in global memory</span></span><br><span class="line"><span class="comment">// We typically use `constexpr` to indicate that this value is a compile-time constant</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_stride = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// stride of an A matrix tile in shared memory</span></span><br><span class="line">constexpr <span class="type">int</span> a_gl_rd_delta_o = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// delta between subsequent A tiles in global memory</span></span><br><span class="line"><span class="type">int</span> a_gl_rd_delta_i = a_gl_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between subsequent accesses within a tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between shared memory writes</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_rd_delta_o = <span class="number">2</span> * ((threads / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>)); <span class="comment">// between shared memory tile reads</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_rd_delta_i = a_sh_stride * <span class="number">16</span>; <span class="comment">// within a shared memory tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_stage = a_sh_stride * (<span class="number">16</span> * thread_m_blocks); <span class="comment">// overall size of a tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta); <span class="comment">// number of shared write iterations for a tile</span></span><br></pre></td></tr></table></figure>
-<p>接下来<strong>着重</strong>看一下 a_sh_wr_iters 这个变量：</p>
+<p>接下来<strong>着重</strong>看一下 <code>a_sh_wr_iters</code>
+这个变量：</p>
 <p>从 Global mem 加载数据到 Shared mem
 的时候，每一个thread会读取一个int4（即4个int，128 bits），一个thread
 blocks 256个线程需要分多次才能将完整的tile数据块读取完毕。</p>
@@ -545,12 +546,14 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 <hr />
 <p>接下来看一下A矩阵是怎么load到寄存器的。</p>
 <p>对一个数进行两次异或（XOR）运算可以还原原来的数。这是异或运算的一个非常重要的性质。</p>
-<p>异或的基本性质：<br />
-1. A ^ A = 0：任何数与自己异或，结果为0。 2. A ^ 0 =
-A：任何数与0异或，结果还是这个数本身。 3. A ^ B ^ B =
-A：对同一个数异或两次，可以还原为原来的数。
+<p>异或的基本性质：</p>
+<ol type="1">
+<li><p>A ^ A = 0：任何数与自己异或，结果为0。</p></li>
+<li><p>A ^ 0 = A：任何数与0异或，结果还是这个数本身。</p></li>
+<li><p>A ^ B ^ B = A：对同一个数异或两次，可以还原为原来的数。
 异或操作具有结合律和交换律，可以得到 (a ^ b) ^ b = a ^ (b ^ b) = a ^ 0 =
-a</p>
+a</p></li>
+</ol>
 <h3 id="marlin的swizzle的必要性">marlin的swizzle的必要性？</h3>
 <p>相信你已经发现问题了：swizzle似乎没什么用啊？</p>
 <p>其实这里我纠结了很久，关于bank conflict 和
