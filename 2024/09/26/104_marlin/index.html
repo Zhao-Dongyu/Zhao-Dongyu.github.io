@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/4.png">
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-09-29T02:21:44.951Z">
+<meta property="article:modified_time" content="2024-10-01T09:34:01.878Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -254,7 +254,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-09-29 10:21:44" itemprop="dateModified" datetime="2024-09-29T10:21:44+08:00">2024-09-29</time>
+                <time title="Modified: 2024-10-01 17:34:01" itemprop="dateModified" datetime="2024-10-01T17:34:01+08:00">2024-10-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,7 +286,7 @@
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>15 mins.</span>
+              <span>16 mins.</span>
             </span>
 
         </div>
@@ -500,6 +500,8 @@ GPU 编程中的小规模循环，因为展开循环可以减少分支跳转。<
 <p>shared memory被分为 32 bank，每个bank的位宽是 4
 bytes，如果同一个warp中的不同线程访存到同一个bank中，会造成bank
 conflict。</p>
+<p>bank conflict 指的就是在一个 warp 内，有2个或者以上的线程访问了同一个
+bank 上不同地址的内存。</p>
 <p>最大 transaction 大小为 128 个字节。如果每个线程请求 16 个字节，那么
 warp 宽度将为每次请求（warp 宽度）的 512 个字节。</p>
 <p>当GPU每个线程访存大于 4 bytes，即每个 warp 大于 128 bytes 时,GPU
@@ -575,19 +577,34 @@ conflict。 -
 但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
 conflict free。</p>
 <p>总之，</p>
-<p>在每个stage，thread block分配的A矩阵shared mem
-size为[16xthread_m_blocks, 16xthread_k_blocks]，B矩阵的shared mem
-size为[thread_k_blocks, 32xthread_n_blocks]。 Bank conflict free
-B矩阵经过重排，使得MMA计算需要的[8, 16]
-tile全部处于一行，读取的时候不会发生bank
-conflict，而A矩阵没有进行重排，因此ldmatrix指令读取的时候，会发生bank
-conflict。为了解决这个问题，需要对A矩阵的存储地址进行转换： 参考资料：
-https://arxiv.org/pdf/2408.11743 进击的Killua：MARLIN: Mixed-Precision
-Auto-Regressive Parallel Inference on Large Language Models论文解读
-suluner：Marlin W4A16&amp;W4A8代码走读 进击的Killua：cute Swizzle细谈
-cutlass/media/docs/implicit_gemm_convolution.md at main · NVIDIA/cutlass
-reed：cute 之 GEMM流水线 cutlass/media/docs/implicit_gemm_convolution.md
-at main · NVIDIA/cutlass</p>
+<h2 id="b矩阵的load">B矩阵的load</h2>
+<p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
+<p>这里困扰了我很久，在这里一定要记录一下：</p>
+<ul>
+<li>32 = 16 * 16 * 4 / 32
+<ul>
+<li>16 * 16 是warp大小</li>
+<li>4是重复4次</li>
+<li>32是类型转换 int4-&gt;INT4（128bit/4bit=32）</li>
+</ul></li>
+<li>4是重复4次</li>
+</ul>
+<p>在每个stage，thread block分配的</p>
+<ul>
+<li><p>A矩阵shared mem size为[16xthread_m_blocks,
+16xthread_k_blocks]，</p></li>
+<li><p>B矩阵的shared mem size为[thread_k_blocks,
+32xthread_n_blocks]。</p></li>
+</ul>
+<p>Bank conflict free</p>
+<p>B矩阵经过重排，使得MMA计算需要的[8, 16]
+tile全部处于一行，读取的时候不会发生bank conflict，</p>
+<p>参考资料：</p>
+<p>https://arxiv.org/pdf/2408.11743 进击的Killua：MARLIN:
+Mixed-Precision Auto-Regressive Parallel Inference on Large Language
+Models论文解读 suluner：Marlin W4A16&amp;W4A8代码走读 进击的Killua：cute
+Swizzle细谈 cutlass/media/docs/implicit_gemm_convolution.md at main ·
+NVIDIA/cutlass reed：cute 之 GEMM流水线</p>
 <p>reed：cute 之 GEMM流水线</p>
 <p>在GPU中，线程通常共享一块高速缓存存储，称为共享内存。共享内存分为多个bank，每个bank可以在同一时间处理一个请求。如果多个线程同时访问同一个bank，称为bank
 conflict，会导致性能下降。为避免bank
@@ -600,27 +617,29 @@ unrolling）是一种常用的优化技术。通过展开循环，编译器可�
 此外，共享内存的访问模式非常重要，尤其是在并行计算中，避免bank
 conflict和优化读写顺序是提升性能的关键。
 根据NSight-Compute工具的分析结果，似乎每个warp（32个线程组成的线程组）必须写入一个连续的内存片段。这一观察与使用XOR变换重新排列数据的方式有关。
-a_sh_rd_trans[b_sh_wr_iters][thread_m_blocks]：这是一个二维数组，存储了读取共享内存的变换后的索引。b_sh_wr_iters表示外层迭代次数，thread_m_blocks表示内层迭代次数（每个线程块中的计算单元数量）。
-总结： 1.
-预计算索引：在循环展开的情况下，所有共享内存的读写访问模式是静态的（即索引是固定的）。为了减少每次访问时的计算开销，代码通过预计算读写索引，提前准备好每个线程需要访问的共享内存位置。
-2. 循环展开优化：使用#pragma
-unroll对循环进行展开，有助于减少循环控制的开销，特别是在大规模并行的GPU计算中，循环展开可以极大提升性能。
-3.
-共享内存优化：通过使用XOR变换函数transform_a()，保证了读取和写入共享内存时，线程不会访问相同的内存银行，从而避免银行冲突，提高了并行性能。</p>
+a_sh_rd_trans[b_sh_wr_iters][thread_m_blocks]：这是一个二维数组，存储了读取共享内存的变换后的索引。b_sh_wr_iters表示外层迭代次数，thread_m_blocks表示内层迭代次数（每个线程块中的计算单元数量）。</p>
+<p>总结：</p>
+<ol type="1">
+<li><p>预计算索引：在循环展开的情况下，所有共享内存的读写访问模式是静态的（即索引是固定的）。为了减少每次访问时的计算开销，代码通过预计算读写索引，提前准备好每个线程需要访问的共享内存位置。</p></li>
+<li><p>循环展开优化：使用#pragma
+unroll对循环进行展开，有助于减少循环控制的开销，特别是在大规模并行的GPU计算中，循环展开可以极大提升性能。</p></li>
+<li><p>共享内存优化：通过使用XOR变换函数transform_a()，保证了读取和写入共享内存时，线程不会访问相同的内存银行，从而避免银行冲突，提高了并行性能。</p></li>
+</ol>
 <p>•
 B矩阵访问的非恒定步幅：在很多情况下，矩阵的访问模式并不是恒定的步幅（constant
-stride），特别是在执行一些块（tile）操作时。非恒定步幅意味着每次访问的内存地址增量不相同，这可能会导致性能瓶颈，尤其是在高并发的GPU程序中，因为连续的依赖会阻碍并行化。
-•
+stride），特别是在执行一些块（tile）操作时。非恒定步幅意味着每次访问的内存地址增量不相同，这可能会导致性能瓶颈，尤其是在高并发的GPU程序中，因为连续的依赖会阻碍并行化。</p>
+<p>•
 打破依赖关系：通常在多次内存访问之间，如果存在某种依赖关系（即下一个访问依赖于上一个访问的结果），它会限制并行计算的效率。通过维护多个指针，这段代码能够消除访问之间的依赖关系，从而提高并行性。</p>
 <p>从全局内存（global
 memory）异步地将下一块A、B以及可能的scale数据传输到共享内存（shared
-memory） • 异步数据传输
-(cp_async)：为了提高并行执行效率，代码使用了cp_async函数，它是一种GPU的异步内存传输指令，允许从全局内存向共享内存加载数据，而不需要等待数据传输完成。这种机制可以在数据传输的同时进行其他计算，从而隐藏内存延迟。
-•
-流水线（Pipeline）机制：pipe表示流水线中的阶段。通过将数据加载分成多个阶段，可以在数据传输的同时继续进行计算，利用流水线机制进一步提高效率。
-A矩阵使用cp_async4_pred()：这是异步加载数据的指令，它从全局内存中将A矩阵的下一块数据加载到共享内存中。
-B和S矩阵使用cp_async4_stream()：这是另一种异步加载的指令，它从B矩阵的全局内存中将数据加载到共享内存中。
-cp_async_fence()：插入一个异步栅栏，确保在后续操作中，数据加载已经完成。即使当前流水线阶段即将结束，仍然需要确保数据传输已经完成，避免数据访问错误。</p>
+memory）</p>
+<p>• 异步数据传输
+(cp_async)：为了提高并行执行效率，代码使用了cp_async函数，它是一种GPU的异步内存传输指令，允许从全局内存向共享内存加载数据，而不需要等待数据传输完成。这种机制可以在数据传输的同时进行其他计算，从而隐藏内存延迟。</p>
+<p>•
+流水线（Pipeline）机制：pipe表示流水线中的阶段。通过将数据加载分成多个阶段，可以在数据传输的同时继续进行计算，利用流水线机制进一步提高效率。</p>
+<p>A矩阵使用cp_async4_pred()：这是异步加载数据的指令，它从全局内存中将A矩阵的下一块数据加载到共享内存中。</p>
+<p>B和S矩阵使用cp_async4_stream()：这是另一种异步加载的指令，它从B矩阵的全局内存中将数据加载到共享内存中。</p>
+<p>cp_async_fence()：插入一个异步栅栏，确保在后续操作中，数据加载已经完成。即使当前流水线阶段即将结束，仍然需要确保数据传输已经完成，避免数据访问错误。</p>
 <p>通过
 cp_async4_pred()，程序可以有选择性地从全局内存加载数据到共享内存，以节省内存带宽并减少不必要的数据传输。
 •
@@ -730,6 +749,23 @@ float4）的访存特点</a> - Alan 小分享</p>
 <p><a
 target="_blank" rel="noopener" href="https://forums.developer.nvidia.com/t/how-to-understand-the-bank-conflict-of-shared-mem/260900">How
 to understand the bank conflict of shared_mem</a></p>
+<p>国庆前还没看完的页面</p>
+<p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/697228676">cuda的ldmatrix指令的详细解释</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/702818267">CUTLASS CuTe
+GEMM细节分析（一）——ldmatrix的选择</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf">Optimizing
+Parallel Reduction in CUDA</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/698715169">fp16*int4计算kernel--MARLIN代码走读</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/665082713">cute 之
+GEMM流水线</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/716412368">MARLIN:
+Mixed-Precision Auto-Regressive Parallel Inference on Large Language
+Models论文解读</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/707470647">Marlin
+W4A16&amp;W4A8代码走读</a></p>
 
     </div>
 
@@ -817,7 +853,7 @@ to understand the bank conflict of shared_mem</a></p>
       <div class="post-toc-wrap sidebar-panel">
           <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#int-marlin_cuda%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">int marlin_cuda()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#global-void-marlin%E5%87%BD%E6%95%B0"><span class="nav-number">2.2.</span> <span class="nav-text">global void
 Marlin()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#init_slice%E5%87%BD%E6%95%B0"><span class="nav-number">2.3.</span> <span class="nav-text">init_slice()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a_sh_wr_iters%E5%8F%98%E9%87%8F"><span class="nav-number">2.4.</span> <span class="nav-text">a_sh_wr_iters变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.5.</span> <span class="nav-text">A矩阵的load</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E7%9A%84%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-number">2.5.1.</span> <span class="nav-text">关于 bank conflict
-的背景知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#marlin%E7%9A%84swizzle%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="nav-number">2.5.2.</span> <span class="nav-text">marlin的swizzle的必要性？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E5%92%8C-swizzle"><span class="nav-number">2.6.</span> <span class="nav-text">关于 bank conflict 和
+的背景知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#marlin%E7%9A%84swizzle%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="nav-number">2.5.2.</span> <span class="nav-text">marlin的swizzle的必要性？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.6.</span> <span class="nav-text">B矩阵的load</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E5%92%8C-swizzle"><span class="nav-number">2.7.</span> <span class="nav-text">关于 bank conflict 和
 swizzle</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
@@ -898,13 +934,13 @@ swizzle</span></a></li></ol></li></ol></div>
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">101k</span>
+    <span title="Symbols count total">102k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:32</span>
+    <span title="Reading time total">1:33</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
