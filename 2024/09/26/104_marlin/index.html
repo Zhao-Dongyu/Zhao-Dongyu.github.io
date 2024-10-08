@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/4.png">
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-10-01T09:34:01.878Z">
+<meta property="article:modified_time" content="2024-10-08T05:39:17.814Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -254,7 +254,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-10-01 17:34:01" itemprop="dateModified" datetime="2024-10-01T17:34:01+08:00">2024-10-01</time>
+                <time title="Modified: 2024-10-08 13:39:17" itemprop="dateModified" datetime="2024-10-08T13:39:17+08:00">2024-10-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -303,6 +303,12 @@ target="_blank" rel="noopener" href="https://github.com/IST-DASLab/marlin"><code
 <p>【长文预警 &amp; 多图预警】</p>
 <span id="more"></span>
 <h1 id="准备工作">准备工作</h1>
+<p>先把工具学习了，学习nsight-compute。NVIDIA Nsight Compute
+是一款适用于 CUDA
+应用程序的交互式内核分析器。它通过用户界面和命令行工具提供详细的性能指标和
+API 调试。</p>
+<p>https://docs.nvidia.com/nsight-compute/NsightCompute/index.html</p>
+<p>/usr/local/NVIDIA_Nsight-Compute-2024.3$ ./ncu-ui</p>
 <ul>
 <li><code>git clone https://github.com/IST-DASLab/marlin.git</code></li>
 <li><code>export TORCH_CUDA_ARCH_LIST="8.6"</code>
@@ -512,18 +518,22 @@ transactions（在这种情况下：T0-T7 组成一个transaction，T8-T15
 进行的，而不是按request、warp 或instruction进行的。</p>
 <p>因此，每个wrap则会分割成多个 transaction 去执行，每个 transaction
 保证线程内的访存不落在同一bank即可，所以当我们用最大访存指令时，需要保证1/4个连续线程不会存在地址重叠。</p>
-<p>这也就是这个说法：an access to Shared Memory will be conflict-free if
-the following conditions are satisfied across each warp: - {T0, T1, ..,
-T7} do not access the same 128-bit bank - {T8, T9, .., T15} do not
-access the same 128-bit bank - {T16, T17, .., T23} do not access the
-same 128-bit bank - {T24, T25, .., T31} do not access the same 128-bit
-bank</p>
+<p>这也就是这个说法：</p>
+<p>an access to Shared Memory will be conflict-free if the following
+conditions are satisfied across each warp:</p>
+<ul>
+<li>{T0, T1, .., T7} do not access the same 128-bit bank</li>
+<li>{T8, T9, .., T15} do not access the same 128-bit bank</li>
+<li>{T16, T17, .., T23} do not access the same 128-bit bank</li>
+<li>{T24, T25, .., T31} do not access the same 128-bit bank</li>
+</ul>
 <hr />
 <p>在marlin中，为了提高 load
 效率，一般会使用<strong>向量化</strong>的读取命令，一次读取
 128bit，也就是 16byte，对应<strong>4个bank</strong>。那么 8
-个线程就可以一次完成 32 个bank 的load，所以问题简化为研究 T0 - T7 or T8
-- T15 or T16 - T23 or T24 - T32 这 8 个线程内没有 bank 冲突。</p>
+个线程就可以一次完成 32 个bank 的load，所以问题简化为研究
+<code>T0 - T7</code> or <code>T8 - T15</code> or <code>T16 - T23</code>
+or <code>T24 - T32</code> 这 8 个线程内没有 bank 冲突。</p>
 <p>如上文所讲，bank conflict 是针对单次 memory transaction
 而言的。如果单次 memory transaction 需要访问的 128 bytes 中有多个 word
 属于同一个 bank，就产生了 bank conflict。</p>
@@ -533,11 +543,14 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 ⊕ j)位置来避免冲突， 其中⊕是异或计算。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> transform_a = [&amp;] (<span class="type">int</span> i) &#123;</span><br><span class="line">  <span class="type">int</span> row = i / a_gl_rd_delta_o;</span><br><span class="line">  <span class="keyword">return</span> a_gl_rd_delta_o * row + (i % a_gl_rd_delta_o) ^ row;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// Since the computation of this remapping is non-trivial and, due to our main loop unrolls, all shared memory </span></span><br><span class="line"><span class="comment">// accesses are static, we simply precompute both transformed reads and writes.</span></span><br><span class="line"><span class="type">int</span> a_sh_wr_trans[a_sh_wr_iters];</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; a_sh_wr_iters; i++)</span><br><span class="line">  a_sh_wr_trans[i] = transform_a(a_sh_wr_delta * i + a_sh_wr);</span><br></pre></td></tr></table></figure>
 <p>由于重映射计算较为复杂，且主循环进行了展开（unroll），所有的共享内存访问都是静态的，因此预先计算好重映射的读取和写入索引可以提高性能。</p>
-<p>A矩阵的swizzle实现是<code>transform_a</code>这个函数，其实现很简单 -
-<code>row = i / a_gl_rd_delta_o</code> 算出来是在第几行 -
-<code>i % a_gl_rd_delta_o</code> 算出来是在第几列 -
-<code>(i % a_gl_rd_delta_o) ^ row</code> 进行异或，修改了列的位置 -
-<code>a_gl_rd_delta_o * row + (i % a_gl_rd_delta_o) ^ row</code>加上整体偏移</p>
+<p>A矩阵的swizzle实现是<code>transform_a</code>这个函数，其实现很简单</p>
+<ul>
+<li><code>row = i / a_gl_rd_delta_o</code> 算出来是在第几行</li>
+<li><code>i % a_gl_rd_delta_o</code> 算出来是在第几列</li>
+<li><code>(i % a_gl_rd_delta_o) ^ row</code>
+进行异或，修改了列的位置</li>
+<li><code>a_gl_rd_delta_o * row + (i % a_gl_rd_delta_o) ^ row</code>加上整体偏移</li>
+</ul>
 <p><code>a_sh_wr_trans</code>这个数组记录了进行swizzle的相关映射。</p>
 <p>做了个动图看一下，就非常明晰了：</p>
 <p><img src="/images/marlin/5.gif" width="95%"></p>
@@ -569,13 +582,15 @@ swizzle ——这个矩阵在 global memory 本身就是 row-major
 <p>为此我在<a
 target="_blank" rel="noopener" href="https://www.zhihu.com/question/667972067">cuda的swizzle是怎么实现bank
 conflict free的？</a>进行了提问，<a
-target="_blank" rel="noopener" href="https://www.zhihu.com/question/667972067/answer/3634692524">Arthur</a>的回答我认为很合理，即：
-- swizzle 是在更复杂访问模式下，确保每个线程不会访问到相同的memory
-bank。 -
-如果矩阵是row-major的且读取是连续的，那么可能无需swizzle操作就能避免bank
-conflict。 -
-但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
-conflict free。</p>
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/667972067/answer/3634692524">Arthur</a>的回答我认为很合理，即：</p>
+<ul>
+<li>swizzle 是在更复杂访问模式下，确保每个线程不会访问到相同的memory
+bank。</li>
+<li>如果矩阵是row-major的且读取是连续的，那么可能无需swizzle操作就能避免bank
+conflict。</li>
+<li>但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
+conflict free。</li>
+</ul>
 <p>总之，</p>
 <h2 id="b矩阵的load">B矩阵的load</h2>
 <p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
