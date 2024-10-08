@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/4.png">
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-10-08T05:39:17.814Z">
+<meta property="article:modified_time" content="2024-10-08T06:20:13.668Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -254,7 +254,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-10-08 13:39:17" itemprop="dateModified" datetime="2024-10-08T13:39:17+08:00">2024-10-08</time>
+                <time title="Modified: 2024-10-08 14:20:13" itemprop="dateModified" datetime="2024-10-08T14:20:13+08:00">2024-10-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -461,14 +461,23 @@ pointers)，就可以轻松实现并行问题执行。</p>
 <p>接下来看比较容易迷惑的部分，如果不想细看这部分代码，可以直接看结论
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Compute all information about the current slice which is required for synchronization.</span></span><br><span class="line"><span class="keyword">auto</span> init_slice = [&amp;] () &#123;</span><br><span class="line">  slice_iters = iters * (blockIdx.x + <span class="number">1</span>) - (k_tiles * slice_col_par + slice_row);</span><br><span class="line">  <span class="keyword">if</span> (slice_iters &lt; <span class="number">0</span> || slice_col_par &gt;= n_tiles * parallel)</span><br><span class="line">    slice_iters = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">if</span> (slice_iters == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  <span class="keyword">if</span> (slice_row + slice_iters &gt; k_tiles) </span><br><span class="line">    slice_iters = k_tiles - slice_row;</span><br><span class="line">  slice_count = <span class="number">1</span>;</span><br><span class="line">  slice_idx = <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> col_first = iters * ceildiv(k_tiles * slice_col_par, iters);</span><br><span class="line">  <span class="keyword">if</span> (col_first &lt;= k_tiles * (slice_col_par + <span class="number">1</span>)) &#123;</span><br><span class="line">    <span class="type">int</span> col_off = col_first - k_tiles * slice_col_par;</span><br><span class="line">    slice_count = ceildiv(k_tiles - col_off, iters);</span><br><span class="line">    <span class="keyword">if</span> (col_off &gt; <span class="number">0</span>)</span><br><span class="line">      slice_count++;</span><br><span class="line">    <span class="type">int</span> delta_first = iters * blockIdx.x - col_first;</span><br><span class="line">    <span class="keyword">if</span> (delta_first &lt; <span class="number">0</span> || (col_off == <span class="number">0</span> &amp;&amp; delta_first == <span class="number">0</span>))</span><br><span class="line">      slice_idx = slice_count - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      slice_idx = slice_count - <span class="number">1</span> - delta_first / iters;</span><br><span class="line">      <span class="keyword">if</span> (col_off &gt; <span class="number">0</span>)</span><br><span class="line">        slice_idx--;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (slice_col == n_tiles) &#123;</span><br><span class="line">    A += <span class="number">16</span> * thread_m_blocks * prob_k / <span class="number">8</span>;</span><br><span class="line">    C += <span class="number">16</span> * thread_m_blocks * prob_n / <span class="number">8</span>;</span><br><span class="line">    locks += n_tiles;</span><br><span class="line">    slice_col = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
 <p><img src="/images/marlin/3.png" width="95%"></p>
-<p><code>slice_iters</code> - 当前slice中的线程块(threadblock)块数 -
-block 0有4个，要迭代4次，block 1有3个，要迭代3次，依此类比</p>
-<p><code>slice_count</code> - 当前slice中活跃线程块(active
-threadblock)的总数 - 第一个slice有1个（只有block
-0），第二个slice有2个（有block 0和block 1）</p>
-<p><code>slice_idx</code> - 当前slice中的线程块索引(index of
-threadblock) - 这个索引从下到上编号。以第二个slice为例，block
-1的idx是0，block 0的idx是1。</p>
+<p><code>slice_iters</code></p>
+<ul>
+<li>当前slice中的线程块(threadblock)块数</li>
+<li>block 0有4个，要迭代4次，block 1有3个，要迭代3次，依此类比</li>
+</ul>
+<p><code>slice_count</code></p>
+<ul>
+<li>当前slice中活跃线程块(active threadblock)的总数</li>
+<li>第一个slice有1个（只有block 0），第二个slice有2个（有block 0和block
+1）</li>
+</ul>
+<p><code>slice_idx</code></p>
+<ul>
+<li>当前slice中的线程块索引(index of threadblock)</li>
+<li>这个索引从下到上编号。以第二个slice为例，block 1的idx是0，block
+0的idx是1。</li>
+</ul>
 <h2 id="a_sh_wr_iters变量">a_sh_wr_iters变量</h2>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a_gl_stride = prob_k / <span class="number">8</span>; <span class="comment">// stride of the A matrix in global memory</span></span><br><span class="line"><span class="comment">// We typically use `constexpr` to indicate that this value is a compile-time constant</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_stride = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// stride of an A matrix tile in shared memory</span></span><br><span class="line">constexpr <span class="type">int</span> a_gl_rd_delta_o = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// delta between subsequent A tiles in global memory</span></span><br><span class="line"><span class="type">int</span> a_gl_rd_delta_i = a_gl_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between subsequent accesses within a tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between shared memory writes</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_rd_delta_o = <span class="number">2</span> * ((threads / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>)); <span class="comment">// between shared memory tile reads</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_rd_delta_i = a_sh_stride * <span class="number">16</span>; <span class="comment">// within a shared memory tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_stage = a_sh_stride * (<span class="number">16</span> * thread_m_blocks); <span class="comment">// overall size of a tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta); <span class="comment">// number of shared write iterations for a tile</span></span><br></pre></td></tr></table></figure>
 <p>接下来<strong>着重</strong>看一下 <code>a_sh_wr_iters</code>
@@ -478,13 +487,22 @@ threadblock) - 这个索引从下到上编号。以第二个slice为例，block
 blocks 256个线程需要分多次才能将完整的tile数据块读取完毕。</p>
 <pre><code>为什么用int4？因为 kernel 使用的读取全局显存数据的`cp.async.cg.shared.global`指令最大处理长度是128 bits。</code></pre>
 <p>在本文中，读取A矩阵tile需要的次数<code>a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta)</code>,
-表示A的一个tile的shared write迭代次数。 其中， - a_sh_stage =
-512，表示A的一个 tile 的整体尺寸 - A矩阵一个 tile
+表示A的一个tile的shared write迭代次数。 其中，</p>
+<ul>
+<li>a_sh_stage = 512，表示A的一个 tile 的整体尺寸
+<ul>
+<li>A矩阵一个 tile
 为<code>[16 x thread_m_blocks, 16 x thread_k_blocks]</code>，所以大小是
-64 * 64 / 8 - 除以8是因为A的指针是int4类型，4个int32_t, 128
-bit，对应8个fp16， - a_sh_wr_delta = 256，表示between shared memory
-writes。 - a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o); -
-8 * (256 / 8) = 256</p>
+64 * 64 / 8</li>
+<li>除以8是因为A的指针是int4类型，4个int32_t, 128
+bit，对应8个fp16，</li>
+</ul></li>
+<li>a_sh_wr_delta = 256，表示between shared memory writes。
+<ul>
+<li>a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o);</li>
+<li>8 * (256 / 8) = 256</li>
+</ul></li>
+</ul>
 <p><img src="/images/marlin/4.png" width="95%"></p>
 <p>也就意味着，一个thread blocks
 256个线程能够读取256个<code>int4</code>，一个tile有 512
