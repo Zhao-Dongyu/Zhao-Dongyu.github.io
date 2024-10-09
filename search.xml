@@ -4856,6 +4856,12 @@ Mixed-Precision Auto-Regressive Parallel Inference on Large Language
 Models论文解读</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/707470647">Marlin
 W4A16&amp;W4A8代码走读</a></p>
+<h1 id="ncu-rep">ncu-rep</h1>
+<p>输入 m = 128, k = 256, n = 768</p>
+<ul>
+<li>0_base.ncu-rep: 原始版本，不限制SM数量</li>
+<li>1_base_sm5.ncu-sep: 限制SM数量为5</li>
+</ul>
 ]]></content>
       <categories>
         <category>技术</category>
