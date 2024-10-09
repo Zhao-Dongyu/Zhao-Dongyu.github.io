@@ -83,13 +83,13 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in 1st place in Duos
 </td>
 <td>
-174/250
+175/250
 </td>
 <td>
 Finish in top 2 in Duos
 </td>
 <td>
-252/1000
+253/1000
 </td>
 </tr>
 <tr>
@@ -4358,12 +4358,14 @@ href="https://github.com/IST-DASLab/marlin"><code>marlin</code></a>算子之后�
 <p>【长文预警 &amp; 多图预警】</p>
 <span id="more"></span>
 <h1 id="准备工作">准备工作</h1>
+<h2 id="分析工具">分析工具</h2>
 <p>先把工具学习了，学习nsight-compute。NVIDIA Nsight Compute
 是一款适用于 CUDA
 应用程序的交互式内核分析器。它通过用户界面和命令行工具提供详细的性能指标和
 API 调试。</p>
 <p>https://docs.nvidia.com/nsight-compute/NsightCompute/index.html</p>
-<p>/usr/local/NVIDIA_Nsight-Compute-2024.3$ ./ncu-ui</p>
+<p>https://www.bilibili.com/video/BV13w411o7cu/?vd_source=a706cf2a9a33f4c298a6ef4764cea661</p>
+<h2 id="搭建环境">搭建环境</h2>
 <ul>
 <li><code>git clone https://github.com/IST-DASLab/marlin.git</code></li>
 <li><code>export TORCH_CUDA_ARCH_LIST="8.6"</code>
