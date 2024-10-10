@@ -4542,9 +4542,11 @@ pointers)，就可以轻松实现并行问题执行。</p>
 <p>从 Global mem 加载数据到 Shared mem
 的时候，每一个thread会读取一个int4（即4个int，128 bits），一个thread
 blocks 256个线程需要分多次才能将完整的tile数据块读取完毕。</p>
-<pre><code>为什么用int4？因为 kernel 使用的读取全局显存数据的`cp.async.cg.shared.global`指令最大处理长度是128 bits。</code></pre>
-<p>在本文中，读取A矩阵tile需要的次数<code>a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta)</code>,
-表示A的一个tile的shared write迭代次数。 其中，</p>
+<pre><code>为什么用int4？
+因为 kernel 使用的读取全局显存数据的`cp.async.cg.shared.global`指令最大处理长度是128 bits。</code></pre>
+<p>在本文中，读取A矩阵tile需要的次数</p>
+<p><code>a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta)</code>,</p>
+<p>表示A的一个tile的shared write迭代次数。 其中，</p>
 <ul>
 <li>a_sh_stage = 512，表示A的一个 tile 的整体尺寸
 <ul>
