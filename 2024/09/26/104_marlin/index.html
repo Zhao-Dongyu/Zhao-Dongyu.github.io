@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/4.png">
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-10-10T02:14:52.212Z">
+<meta property="article:modified_time" content="2024-10-10T05:19:15.562Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -254,7 +254,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-10-10 10:14:52" itemprop="dateModified" datetime="2024-10-10T10:14:52+08:00">2024-10-10</time>
+                <time title="Modified: 2024-10-10 13:19:15" itemprop="dateModified" datetime="2024-10-10T13:19:15+08:00">2024-10-10</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -510,7 +510,9 @@ bit，对应8个fp16，</li>
 <p><img src="/images/marlin/4.png" width="95%"></p>
 <p>也就意味着，一个thread blocks
 256个线程能够读取256个<code>int4</code>，一个tile有 512
-个<code>int4</code>，读取A矩阵tile要循环两次。</p>
+个<code>int4</code>，读取A矩阵tile要循环两次。在后面的
+<code>fetch_to_shared</code> 函数里，一次是fetch
+A的一个tile，这里会体现出循环两次。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Precompute which thread should not read memory in which iterations; this is needed if there are more threads than</span></span><br><span class="line"><span class="comment">// required for a certain tilesize or when the batchsize is not a multiple of 16.</span></span><br><span class="line"><span class="type">bool</span> a_sh_wr_pred[a_sh_wr_iters];</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; a_sh_wr_iters; i++)</span><br><span class="line">  a_sh_wr_pred[i] = a_sh_wr_delta * i + a_sh_wr &lt; a_sh_stride * prob_m;</span><br><span class="line"><span class="type">bool</span> s_sh_wr_pred = threadIdx.x &lt; s_sh_stride;</span><br></pre></td></tr></table></figure>
 <p>在矩阵运算中预先计算出哪些线程在特定的迭代过程中不应该从内存中读取数据。这是为了优化计算资源的使用，特别是在以下两种情况下：</p>
 <ul>
@@ -525,17 +527,24 @@ GPU 编程中的小规模循环，因为展开循环可以减少分支跳转。<
 <h2 id="a矩阵的load">A矩阵的load</h2>
 <h3 id="关于-bank-conflict-的背景知识">关于 bank conflict
 的背景知识</h3>
-<p>shared memory被分为 32 bank，每个bank的位宽是 4
-bytes，如果同一个warp中的不同线程访存到同一个bank中，会造成bank
-conflict。</p>
-<p>bank conflict 指的就是在一个 warp 内，有2个或者以上的线程访问了同一个
-bank 上不同地址的内存。</p>
-<p>最大 transaction 大小为 128 个字节。如果每个线程请求 16 个字节，那么
-warp 宽度将为每次请求（warp 宽度）的 512 个字节。</p>
-<p>当GPU每个线程访存大于 4 bytes，即每个 warp 大于 128 bytes 时,GPU
-不会发出单个transaction，GPU 会将其分成 4 个
-transactions（在这种情况下：T0-T7 组成一个transaction，T8-T15
-是一个transaction，依此类推），每个transaction的宽度为 128 个字节。</p>
+<p>Shared memory是片上存储器，因此与 local memory 或 global memory
+相比更高的带宽和更低的延迟。前提是线程之间没有 bank conflicts。</p>
+<p>为了实现高带宽，共享内存被划分为大小相等的内存模块，称为
+Banks，可以同时访问。因此，任何由 n
+个地址组成的内存读取或写入请求都可以同时提供服务，从而产生比单个模块带宽高
+n 倍的总带宽。</p>
+<p>但是，如果warp内多个线程的内存请求的两个地址位于同一Bank中，则存在bank
+conflict，并且必须序列化访问。也就是说，<strong>Bank conflict 是在一个
+warp 内，有2个或者以上的线程访问了同一个 bank
+上不同地址的内存。</strong></p>
+<p>shared memory被分为 32 bank，每个bank的位宽是 4 byte。最大
+transaction 大小为 128 bit。如果每个线程请求 16 bit，那么 warp
+宽度将为每次请求（warp 宽度）的 512 bit。</p>
+<p>当GPU每个线程访存大于 4 bytes，即每个 warp 大于
+<code>4 * 32 = 128</code> bytes 时,GPU 不会发出单个transaction，GPU
+会将其分成 4 个 transactions（在这种情况下：T0-T7
+组成一个transaction，T8-T15
+是一个transaction，依此类推），每个transaction的宽度为 128 bit。</p>
 <p>需要注意的是，bank conflicts 的确定是按 <strong>transaction</strong>
 进行的，而不是按request、warp 或instruction进行的。</p>
 <p>因此，每个wrap则会分割成多个 transaction 去执行，每个 transaction
@@ -551,8 +560,8 @@ conditions are satisfied across each warp:</p>
 </ul>
 <hr />
 <p>在marlin中，为了提高 load
-效率，一般会使用<strong>向量化</strong>的读取命令，一次读取
-128bit，也就是 16byte，对应<strong>4个bank</strong>。那么 8
+效率，一般会使用<strong>向量化</strong>的读取命令，一次读取 128
+bit，也就是 16 byte，对应<strong>4个bank</strong>。那么 8
 个线程就可以一次完成 32 个bank 的load，所以问题简化为研究
 <code>T0 - T7</code> or <code>T8 - T15</code> or <code>T16 - T23</code>
 or <code>T24 - T32</code> 这 8 个线程内没有 bank 冲突。</p>
@@ -582,7 +591,8 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 使用的是异步拷贝指令。后面在讲流水线的时候还会再提到这块。</p>
 <hr />
 <p>接下来看一下A矩阵是怎么load到寄存器的。</p>
-<p>对一个数进行两次异或（XOR）运算可以还原原来的数。这是异或运算的一个非常重要的性质。</p>
+<p><strong>对一个数进行两次异或（XOR）运算可以还原原来的数。</strong>
+这是异或运算的一个非常重要的性质。</p>
 <p>异或的基本性质：</p>
 <ol type="1">
 <li><p>A ^ A = 0：任何数与自己异或，结果为0。</p></li>
@@ -591,6 +601,10 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 异或操作具有结合律和交换律，可以得到 (a ^ b) ^ b = a ^ (b ^ b) = a ^ 0 =
 a</p></li>
 </ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++)</span><br><span class="line">  ldsm4(frag_a[k % <span class="number">2</span>][i], &amp;sh_a_stage[a_sh_rd_trans[k % b_sh_wr_iters][i]]);</span><br></pre></td></tr></table></figure>
+<p>可以看到，在 shared memory 到 frag 的过程中，用到了
+<code>a_sh_rd_trans</code>
+进行索引，而这也是通过上述的<code>transform_a</code>函数实现的。相当于做了两次异或，A又被还原回去了。</p>
 <h3 id="marlin的swizzle的必要性">marlin的swizzle的必要性？</h3>
 <p>相信你已经发现问题了：swizzle似乎没什么用啊？</p>
 <p>其实这里我纠结了很久，关于bank conflict 和
@@ -598,7 +612,7 @@ swizzle的内容我能够理解，但是我不能理解 marlin 用 <code>swizzle
 实现 <code>bank conflict free</code> ：本来就不会bank
 conflict，为什么还要多此一举呢？</p>
 <p>在 marlin 中，A矩阵是 row-major 排布的，所以我一直疑惑为什么需要进行
-swizzle ——这个矩阵在 global memory 本身就是 row-major
+swizzle ：这个矩阵在 global memory 本身就是 row-major
 排布的，岂不是按照原始顺序 load 到 shared memory，然后 ldmatrix
 读取的话也不会 bank conflict？</p>
 <p>为此我在<a
@@ -613,7 +627,8 @@ conflict。</li>
 <li>但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
 conflict free。</li>
 </ul>
-<p>总之，</p>
+<p>总之，我认为在目前A矩阵是 row-major
+排布的情况下，是无需做swizzle的。之后做实验具体分析一下。</p>
 <h2 id="b矩阵的load">B矩阵的load</h2>
 <p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
 <p>这里困扰了我很久，在这里一定要记录一下：</p>
@@ -977,7 +992,7 @@ swizzle</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">102k</span>
+    <span title="Symbols count total">103k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
