@@ -4652,14 +4652,13 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 进行索引，而这也是通过上述的<code>transform_a</code>函数实现的，相当于往shared
 memory写的时候是按照异或规则写的，读的时候也要按照异或规则读出来，这样才能正确地映射。</p>
 <hr />
-<p>说一下题外话： 其实这里我纠结了很久，关于bank conflict 和
+<p>说一下题外话：</p>
+<p>其实这里我纠结了很久，关于bank conflict 和
 swizzle的内容我能够理解，但是我不能理解 marlin 用 <code>swizzle</code>
-实现 <code>bank conflict free</code> ：本来就不会bank
-conflict，为什么还要多此一举呢？</p>
-<p>在 marlin 中，A矩阵是 row-major 排布的，所以我一直疑惑为什么需要进行
-swizzle ：这个矩阵在 global memory 本身就是 row-major
-排布的，岂不是按照原始顺序 load 到 shared memory，然后 ldmatrix
-读取的话也不会 bank conflict？</p>
+实现 <code>bank conflict free</code>: 在 marlin 中，A矩阵是 row-major
+排布的，所以我一直疑惑为什么需要进行 swizzle ：这个矩阵在 global memory
+本身就是 row-major 排布的，岂不是按照原始顺序 load 到 shared
+memory，然后顺序读取的话也不会 bank conflict？</p>
 <p>为此我在<a
 href="https://www.zhihu.com/question/667972067">cuda的swizzle是怎么实现bank
 conflict free的？</a>进行了提问，<a
