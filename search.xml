@@ -4646,23 +4646,13 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 使用的是异步拷贝指令。后面在讲流水线的时候还会再提到这块。</p>
 <hr />
 <p>接下来看一下A矩阵是怎么load到寄存器的。</p>
-<p><strong>对一个数进行两次异或（XOR）运算可以还原原来的数。</strong>
-这是异或运算的一个非常重要的性质。</p>
-<p>异或的基本性质：</p>
-<ol type="1">
-<li><p>A ^ A = 0：任何数与自己异或，结果为0。</p></li>
-<li><p>A ^ 0 = A：任何数与0异或，结果还是这个数本身。</p></li>
-<li><p>A ^ B ^ B = A：对同一个数异或两次，可以还原为原来的数。
-异或操作具有结合律和交换律，可以得到 (a ^ b) ^ b = a ^ (b ^ b) = a ^ 0 =
-a</p></li>
-</ol>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++)</span><br><span class="line">  ldsm4(frag_a[k % <span class="number">2</span>][i], &amp;sh_a_stage[a_sh_rd_trans[k % b_sh_wr_iters][i]]);</span><br></pre></td></tr></table></figure>
 <p>可以看到，在 shared memory 到 frag 的过程中，用到了
 <code>a_sh_rd_trans</code>
-进行索引，而这也是通过上述的<code>transform_a</code>函数实现的。相当于做了两次异或，A又被还原回去了。</p>
-<h3 id="marlin的swizzle的必要性">marlin的swizzle的必要性？</h3>
-<p>相信你已经发现问题了：swizzle似乎没什么用啊？</p>
-<p>其实这里我纠结了很久，关于bank conflict 和
+进行索引，而这也是通过上述的<code>transform_a</code>函数实现的，相当于往shared
+memory写的时候是按照异或规则写的，读的时候也要按照异或规则读出来，这样才能正确地映射。</p>
+<hr />
+<p>说一下题外话： 其实这里我纠结了很久，关于bank conflict 和
 swizzle的内容我能够理解，但是我不能理解 marlin 用 <code>swizzle</code>
 实现 <code>bank conflict free</code> ：本来就不会bank
 conflict，为什么还要多此一举呢？</p>
@@ -4682,8 +4672,14 @@ conflict。</li>
 <li>但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
 conflict free。</li>
 </ul>
-<p>总之，我认为在目前A矩阵是 row-major
-排布的情况下，是无需做swizzle的。之后做实验具体分析一下。</p>
+<hr />
+<p>后来发现，其实是会发生<code>bank conflict</code>的，有一个细节：</p>
+<p>在计算<code>a_sh_rd_trans</code>的时候 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; b_sh_wr_iters; i++) &#123;</span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; thread_m_blocks; j++)</span><br><span class="line">    a_sh_rd_trans[i][j] = transform_a(a_sh_rd_delta_o * i + a_sh_rd_delta_i * j + a_sh_rd); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+要注意输入<code>a_sh_rd</code>变量： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Shared read index.</span></span><br><span class="line"><span class="type">int</span> a_sh_rd = a_sh_stride * ((threadIdx.x % <span class="number">32</span>) % <span class="number">16</span>) + (threadIdx.x % <span class="number">32</span>) / <span class="number">16</span>;</span><br><span class="line">a_sh_rd += <span class="number">2</span> * ((threadIdx.x / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>));</span><br></pre></td></tr></table></figure>
+所以读的时候是竖向读的。横向写，竖向读，那确实是要做swizzle。</p>
+<p>这里画了一个图展示Global memory -&gt; Shared Memory -&gt; Frag
+的过程：</p>
+<p><img src="/images/marlin/6.png" width="95%"></p>
 <h2 id="b矩阵的load">B矩阵的load</h2>
 <p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
 <p>这里困扰了我很久，在这里一定要记录一下：</p>

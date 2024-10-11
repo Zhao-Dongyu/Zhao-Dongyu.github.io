@@ -33,8 +33,9 @@
 <meta property="og:image" content="http://example.com/images/marlin/3.png">
 <meta property="og:image" content="http://example.com/images/marlin/4.png">
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
+<meta property="og:image" content="http://example.com/images/marlin/6.png">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-10-10T05:19:15.562Z">
+<meta property="article:modified_time" content="2024-10-11T07:35:56.395Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -254,7 +255,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-10-10 13:19:15" itemprop="dateModified" datetime="2024-10-10T13:19:15+08:00">2024-10-10</time>
+                <time title="Modified: 2024-10-11 15:35:56" itemprop="dateModified" datetime="2024-10-11T15:35:56+08:00">2024-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,7 +287,7 @@
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>16 mins.</span>
+              <span>17 mins.</span>
             </span>
 
         </div>
@@ -591,23 +592,13 @@ conflict。为了解决这个问题，需要对A矩阵的存储地址进行转�
 使用的是异步拷贝指令。后面在讲流水线的时候还会再提到这块。</p>
 <hr />
 <p>接下来看一下A矩阵是怎么load到寄存器的。</p>
-<p><strong>对一个数进行两次异或（XOR）运算可以还原原来的数。</strong>
-这是异或运算的一个非常重要的性质。</p>
-<p>异或的基本性质：</p>
-<ol type="1">
-<li><p>A ^ A = 0：任何数与自己异或，结果为0。</p></li>
-<li><p>A ^ 0 = A：任何数与0异或，结果还是这个数本身。</p></li>
-<li><p>A ^ B ^ B = A：对同一个数异或两次，可以还原为原来的数。
-异或操作具有结合律和交换律，可以得到 (a ^ b) ^ b = a ^ (b ^ b) = a ^ 0 =
-a</p></li>
-</ol>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++)</span><br><span class="line">  ldsm4(frag_a[k % <span class="number">2</span>][i], &amp;sh_a_stage[a_sh_rd_trans[k % b_sh_wr_iters][i]]);</span><br></pre></td></tr></table></figure>
 <p>可以看到，在 shared memory 到 frag 的过程中，用到了
 <code>a_sh_rd_trans</code>
-进行索引，而这也是通过上述的<code>transform_a</code>函数实现的。相当于做了两次异或，A又被还原回去了。</p>
-<h3 id="marlin的swizzle的必要性">marlin的swizzle的必要性？</h3>
-<p>相信你已经发现问题了：swizzle似乎没什么用啊？</p>
-<p>其实这里我纠结了很久，关于bank conflict 和
+进行索引，而这也是通过上述的<code>transform_a</code>函数实现的，相当于往shared
+memory写的时候是按照异或规则写的，读的时候也要按照异或规则读出来，这样才能正确地映射。</p>
+<hr />
+<p>说一下题外话： 其实这里我纠结了很久，关于bank conflict 和
 swizzle的内容我能够理解，但是我不能理解 marlin 用 <code>swizzle</code>
 实现 <code>bank conflict free</code> ：本来就不会bank
 conflict，为什么还要多此一举呢？</p>
@@ -627,8 +618,14 @@ conflict。</li>
 <li>但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
 conflict free。</li>
 </ul>
-<p>总之，我认为在目前A矩阵是 row-major
-排布的情况下，是无需做swizzle的。之后做实验具体分析一下。</p>
+<hr />
+<p>后来发现，其实是会发生<code>bank conflict</code>的，有一个细节：</p>
+<p>在计算<code>a_sh_rd_trans</code>的时候 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; b_sh_wr_iters; i++) &#123;</span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; thread_m_blocks; j++)</span><br><span class="line">    a_sh_rd_trans[i][j] = transform_a(a_sh_rd_delta_o * i + a_sh_rd_delta_i * j + a_sh_rd); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+要注意输入<code>a_sh_rd</code>变量： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Shared read index.</span></span><br><span class="line"><span class="type">int</span> a_sh_rd = a_sh_stride * ((threadIdx.x % <span class="number">32</span>) % <span class="number">16</span>) + (threadIdx.x % <span class="number">32</span>) / <span class="number">16</span>;</span><br><span class="line">a_sh_rd += <span class="number">2</span> * ((threadIdx.x / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>));</span><br></pre></td></tr></table></figure>
+所以读的时候是竖向读的。横向写，竖向读，那确实是要做swizzle。</p>
+<p>这里画了一个图展示Global memory -&gt; Shared Memory -&gt; Frag
+的过程：</p>
+<p><img src="/images/marlin/6.png" width="95%"></p>
 <h2 id="b矩阵的load">B矩阵的load</h2>
 <p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
 <p>这里困扰了我很久，在这里一定要记录一下：</p>
@@ -911,7 +908,7 @@ W4A16&amp;W4A8代码走读</a></p>
       <div class="post-toc-wrap sidebar-panel">
           <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="nav-number">1.1.</span> <span class="nav-text">分析工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83"><span class="nav-number">1.2.</span> <span class="nav-text">搭建环境</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#int-marlin_cuda%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">int marlin_cuda()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#global-void-marlin%E5%87%BD%E6%95%B0"><span class="nav-number">2.2.</span> <span class="nav-text">global void
 Marlin()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#init_slice%E5%87%BD%E6%95%B0"><span class="nav-number">2.3.</span> <span class="nav-text">init_slice()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a_sh_wr_iters%E5%8F%98%E9%87%8F"><span class="nav-number">2.4.</span> <span class="nav-text">a_sh_wr_iters变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.5.</span> <span class="nav-text">A矩阵的load</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E7%9A%84%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-number">2.5.1.</span> <span class="nav-text">关于 bank conflict
-的背景知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#marlin%E7%9A%84swizzle%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="nav-number">2.5.2.</span> <span class="nav-text">marlin的swizzle的必要性？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.6.</span> <span class="nav-text">B矩阵的load</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E5%92%8C-swizzle"><span class="nav-number">2.7.</span> <span class="nav-text">关于 bank conflict 和
+的背景知识</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.6.</span> <span class="nav-text">B矩阵的load</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E5%92%8C-swizzle"><span class="nav-number">2.7.</span> <span class="nav-text">关于 bank conflict 和
 swizzle</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ncu-rep"><span class="nav-number">3.</span> <span class="nav-text">ncu-rep</span></a></li></ol></div>
       </div>
       <!--/noindex-->
@@ -998,7 +995,7 @@ swizzle</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:33</span>
+    <span title="Reading time total">1:34</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
