@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/5.gif">
 <meta property="og:image" content="http://example.com/images/marlin/6.png">
 <meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-10-11T07:41:17.347Z">
+<meta property="article:modified_time" content="2024-10-11T10:27:28.093Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="GEMM">
 <meta property="article:tag" content="HPC">
@@ -255,7 +255,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-10-11 15:41:17" itemprop="dateModified" datetime="2024-10-11T15:41:17+08:00">2024-10-11</time>
+                <time title="Modified: 2024-10-11 18:27:28" itemprop="dateModified" datetime="2024-10-11T18:27:28+08:00">2024-10-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -280,14 +280,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>18k</span>
+              <span>19k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>17 mins.</span>
+              <span>18 mins.</span>
             </span>
 
         </div>
@@ -626,6 +626,7 @@ conflict free。</li>
 的过程：</p>
 <p><img src="/images/marlin/6.png" width="95%"></p>
 <h2 id="b矩阵的load">B矩阵的load</h2>
+<p>B矩阵的load相对简单，没有做swizzle。需要关注的是在算子之前的矩阵的排布，也就是</p>
 <p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
 <p>这里困扰了我很久，在这里一定要记录一下：</p>
 <ul>
@@ -647,6 +648,19 @@ conflict free。</li>
 <p>Bank conflict free</p>
 <p>B矩阵经过重排，使得MMA计算需要的[8, 16]
 tile全部处于一行，读取的时候不会发生bank conflict，</p>
+<h2 id="matmul">matmul</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Execute the actual tensor core matmul of a sub-tile. </span></span><br><span class="line"><span class="keyword">auto</span> matmul = [&amp;] (<span class="type">int</span> k) &#123;</span><br><span class="line">  <span class="comment">// We have the m dimension as the inner loop in order to encourage overlapping dequantization and matmul operations.</span></span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span>; j++) &#123;</span><br><span class="line">    <span class="type">int</span> b_quant = frag_b_quant[k % <span class="number">2</span>][j];</span><br><span class="line">    <span class="type">int</span> b_quant_shift = b_quant &gt;&gt; <span class="number">8</span>;</span><br><span class="line">    FragB frag_b0 = dequant(b_quant);</span><br><span class="line">    <span class="comment">// If there are no groups, we can just scale the final output once and can avoid doing so for each weight.</span></span><br><span class="line">    <span class="keyword">if</span> (group_blocks != <span class="number">-1</span>)</span><br><span class="line">      scale(frag_b0, frag_s[k % <span class="number">2</span>][j], <span class="number">0</span>);</span><br><span class="line">    FragB frag_b1 = dequant(b_quant_shift);</span><br><span class="line">    <span class="keyword">if</span> (group_blocks != <span class="number">-1</span>)</span><br><span class="line">      scale(frag_b1, frag_s[k % <span class="number">2</span>][j], <span class="number">1</span>);</span><br><span class="line">    <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++) &#123;</span><br><span class="line">      mma(frag_a[k % <span class="number">2</span>][i], frag_b0, frag_c[i][j][<span class="number">0</span>]);</span><br><span class="line">      mma(frag_a[k % <span class="number">2</span>][i], frag_b1, frag_c[i][j][<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>关于dequant这个函数，我之前在<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/710203211">WeightonlyGEMM:
+dequantize_s4_to_fp16x2代码解析</a>详细分析过。思路是一样的，区别就是
+marlin 想要 <code>signed int4</code> 输出，将 <code>-8</code> 这个
+symmetric zero point 直接融合到 <code>SUB</code> 和 <code>ADD</code> 的
+magic number 中。</p>
+<p>这里仅以e0和e1为例：</p>
+<p>6408的指数位部分是 11001，对应数字25，fp16指数位的偏移量为 2**4−1=15,
+那么偏移后指数为 25 - 15 = 10。</p>
+<p>frag_b_quant 类型是 <code>Vec&lt;int, 4&gt;</code></p>
+<p>FragB 类型是 <code>Vec&lt;half2, 2&gt;</code></p>
 <p>参考资料：</p>
 <p>https://arxiv.org/pdf/2408.11743 进击的Killua：MARLIN:
 Mixed-Precision Auto-Regressive Parallel Inference on Large Language
@@ -907,7 +921,7 @@ W4A16&amp;W4A8代码走读</a></p>
       <div class="post-toc-wrap sidebar-panel">
           <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="nav-number">1.1.</span> <span class="nav-text">分析工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83"><span class="nav-number">1.2.</span> <span class="nav-text">搭建环境</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#int-marlin_cuda%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">int marlin_cuda()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#global-void-marlin%E5%87%BD%E6%95%B0"><span class="nav-number">2.2.</span> <span class="nav-text">global void
 Marlin()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#init_slice%E5%87%BD%E6%95%B0"><span class="nav-number">2.3.</span> <span class="nav-text">init_slice()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a_sh_wr_iters%E5%8F%98%E9%87%8F"><span class="nav-number">2.4.</span> <span class="nav-text">a_sh_wr_iters变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.5.</span> <span class="nav-text">A矩阵的load</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E7%9A%84%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-number">2.5.1.</span> <span class="nav-text">关于 bank conflict
-的背景知识</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.6.</span> <span class="nav-text">B矩阵的load</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E5%92%8C-swizzle"><span class="nav-number">2.7.</span> <span class="nav-text">关于 bank conflict 和
+的背景知识</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">2.6.</span> <span class="nav-text">B矩阵的load</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#matmul"><span class="nav-number">2.7.</span> <span class="nav-text">matmul</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E5%92%8C-swizzle"><span class="nav-number">2.8.</span> <span class="nav-text">关于 bank conflict 和
 swizzle</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ncu-rep"><span class="nav-number">3.</span> <span class="nav-text">ncu-rep</span></a></li></ol></div>
       </div>
       <!--/noindex-->
@@ -988,13 +1002,13 @@ swizzle</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">103k</span>
+    <span title="Symbols count total">104k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:33</span>
+    <span title="Reading time total">1:34</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>

@@ -4680,6 +4680,7 @@ conflict free。</li>
 的过程：</p>
 <p><img src="/images/marlin/6.png" width="95%"></p>
 <h2 id="b矩阵的load">B矩阵的load</h2>
+<p>B矩阵的load相对简单，没有做swizzle。需要关注的是在算子之前的矩阵的排布，也就是</p>
 <p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
 <p>这里困扰了我很久，在这里一定要记录一下：</p>
 <ul>
@@ -4701,6 +4702,19 @@ conflict free。</li>
 <p>Bank conflict free</p>
 <p>B矩阵经过重排，使得MMA计算需要的[8, 16]
 tile全部处于一行，读取的时候不会发生bank conflict，</p>
+<h2 id="matmul">matmul</h2>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Execute the actual tensor core matmul of a sub-tile. </span></span><br><span class="line"><span class="keyword">auto</span> matmul = [&amp;] (<span class="type">int</span> k) &#123;</span><br><span class="line">  <span class="comment">// We have the m dimension as the inner loop in order to encourage overlapping dequantization and matmul operations.</span></span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span>; j++) &#123;</span><br><span class="line">    <span class="type">int</span> b_quant = frag_b_quant[k % <span class="number">2</span>][j];</span><br><span class="line">    <span class="type">int</span> b_quant_shift = b_quant &gt;&gt; <span class="number">8</span>;</span><br><span class="line">    FragB frag_b0 = dequant(b_quant);</span><br><span class="line">    <span class="comment">// If there are no groups, we can just scale the final output once and can avoid doing so for each weight.</span></span><br><span class="line">    <span class="keyword">if</span> (group_blocks != <span class="number">-1</span>)</span><br><span class="line">      scale(frag_b0, frag_s[k % <span class="number">2</span>][j], <span class="number">0</span>);</span><br><span class="line">    FragB frag_b1 = dequant(b_quant_shift);</span><br><span class="line">    <span class="keyword">if</span> (group_blocks != <span class="number">-1</span>)</span><br><span class="line">      scale(frag_b1, frag_s[k % <span class="number">2</span>][j], <span class="number">1</span>);</span><br><span class="line">    <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++) &#123;</span><br><span class="line">      mma(frag_a[k % <span class="number">2</span>][i], frag_b0, frag_c[i][j][<span class="number">0</span>]);</span><br><span class="line">      mma(frag_a[k % <span class="number">2</span>][i], frag_b1, frag_c[i][j][<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>关于dequant这个函数，我之前在<a
+href="https://zhuanlan.zhihu.com/p/710203211">WeightonlyGEMM:
+dequantize_s4_to_fp16x2代码解析</a>详细分析过。思路是一样的，区别就是
+marlin 想要 <code>signed int4</code> 输出，将 <code>-8</code> 这个
+symmetric zero point 直接融合到 <code>SUB</code> 和 <code>ADD</code> 的
+magic number 中。</p>
+<p>这里仅以e0和e1为例：</p>
+<p>6408的指数位部分是 11001，对应数字25，fp16指数位的偏移量为 2**4−1=15,
+那么偏移后指数为 25 - 15 = 10。</p>
+<p>frag_b_quant 类型是 <code>Vec&lt;int, 4&gt;</code></p>
+<p>FragB 类型是 <code>Vec&lt;half2, 2&gt;</code></p>
 <p>参考资料：</p>
 <p>https://arxiv.org/pdf/2408.11743 进击的Killua：MARLIN:
 Mixed-Precision Auto-Regressive Parallel Inference on Large Language
