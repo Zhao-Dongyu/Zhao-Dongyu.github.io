@@ -2182,9 +2182,6 @@ href="https://www.leiphone.com/category/yanxishe/Puevv3ZWxn0heoEv.html">OpenBLAS
 Model与深度学习模型的性能分析</a></p>
 <p><a
 href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为什么有用</a></p>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
@@ -2394,9 +2391,6 @@ fma（乘法累加）具有相同的吞吐量，这意味着它们的性能相�
 href="https://zhuanlan.zhihu.com/p/657073857?utm_medium=social&amp;utm_oi=56635854684160&amp;utm_psn=1692002696943525888&amp;utm_source=wechat_session&amp;s_r=0">[LLM推理优化]🔥WINT8/4-(03):
 LOP3指令详解及INT4转FP16/BF16分析</a> 讲解的比较详细。</p></li>
 </ul>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <tags>
         <tag>LLM</tag>
@@ -3193,9 +3187,6 @@ href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <tags>
         <tag>tech</tag>
@@ -3362,9 +3353,6 @@ href="https://haokan.baidu.com/v?vid=8288616481555786115&amp;tab=recommend">WEY
 VV6智能驾驶辅助系统深度体验</a></p>
 <p><a
 href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动驾驶第二弹</a></p>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <tags>
         <tag>ADAS</tag>
@@ -3642,9 +3630,6 @@ Layer</a>里面的动图计算是很开心的，毕竟这有助于我理解转�
 href="https://github.com/aqeelanwar/conv_layers_animation">aqeelanwar</a>的代码，非常感谢。</p>
 <p>图像压缩用了<a
 href="https://www.iloveimg.com/zh-cn">iloveimg</a>，非常好用～</p>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <tags>
         <tag>HPC</tag>
@@ -4022,9 +4007,10 @@ href="https://www.leiphone.com/category/yanxishe/Puevv3ZWxn0heoEv.html">OpenBLAS
 Model与深度学习模型的性能分析</a></p>
 <p><a
 href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为什么有用</a></p>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
+<h1 id="thanks-for-your-support">Thanks for your support!</h1>
+<p><a
+href="https://buymeacoffee.com/zhaodongyu"><strong>Buymeacoffee</strong></a>
+<a href="https://paypal.me/ZhaoDongyu"><strong>Paypal</strong></a></p>
 ]]></content>
       <categories>
         <category>技术</category>
@@ -4205,9 +4191,6 @@ la，上海大竹笋计划又一次被我记起！</p>
 <p>遍地开花</p>
 <hr />
 <p>至于上海高重竹笋计划，大概会在某个月黑风高夜顺利完成吧。</p>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <tags>
         <tag>ingress</tag>
@@ -4339,9 +4322,6 @@ Micro的GitHub仓库中，你可以使用以下步骤来编译静态库：</p>
 <h1 id="进一步减小库体积">进一步减小库体积</h1>
 <p>为了压缩体积，<code>BUILD_TYPE</code>使用了<code>release</code>进行编译，这期间会遇到<code>MicroPrintf</code>不支持的问题（release_with_logs是可以的），进行一些注释就可以。</p>
 <p>以及进行<code>-Os</code>编译，可以减少很多体积占用。</p>
-<p><a href="https://buymeacoffee.com/zhaodongyu">
-<img src="/images/bmc_qr.jpg" width="50%" style="display: inline-block; vertical-align: middle;" />
-</a></p>
 ]]></content>
       <tags>
         <tag>notes</tag>

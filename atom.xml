@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-08-28T02:07:39.481Z</updated>
+  <updated>2024-10-14T06:09:10.723Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
     <id>http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</id>
     <published>2024-08-12T01:52:02.000Z</published>
-    <updated>2024-08-28T02:07:39.481Z</updated>
+    <updated>2024-10-14T06:09:10.723Z</updated>
     
     
     <summary type="html">&lt;p&gt;本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
@@ -43,7 +43,7 @@ kernel的反量化。&lt;/p&gt;</summary>
     <link href="http://example.com/2024/02/26/102_sgemm_riscv_cn/"/>
     <id>http://example.com/2024/02/26/102_sgemm_riscv_cn/</id>
     <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2024-08-28T02:07:29.487Z</updated>
+    <updated>2024-10-14T06:08:55.544Z</updated>
     
     
     <summary type="html">&lt;p&gt;本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。&lt;/p&gt;</summary>
@@ -66,7 +66,7 @@ kernel的反量化。&lt;/p&gt;</summary>
     <link href="http://example.com/2024/02/26/103_sgemm_riscv_en/"/>
     <id>http://example.com/2024/02/26/103_sgemm_riscv_en/</id>
     <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2024-08-27T13:07:27.285Z</updated>
+    <updated>2024-10-14T06:11:14.904Z</updated>
     
     
     <summary type="html">&lt;p&gt;This project records the process of optimizing SGEMM
@@ -113,7 +113,7 @@ riscv platform.&lt;/p&gt;
     <link href="http://example.com/2023/10/27/91_tflite-micro/"/>
     <id>http://example.com/2023/10/27/91_tflite-micro/</id>
     <published>2023-10-27T09:55:37.000Z</published>
-    <updated>2024-08-28T02:08:17.245Z</updated>
+    <updated>2024-10-14T06:09:31.021Z</updated>
     
     
     <summary type="html">&lt;p&gt;最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。&lt;/p&gt;</summary>
@@ -136,7 +136,7 @@ riscv platform.&lt;/p&gt;
     <link href="http://example.com/2023/08/04/99_Homogeneous-ShangHai/"/>
     <id>http://example.com/2023/08/04/99_Homogeneous-ShangHai/</id>
     <published>2023-08-04T08:16:16.000Z</published>
-    <updated>2024-08-28T02:07:49.576Z</updated>
+    <updated>2024-10-14T06:09:16.889Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;背景&quot;&gt;0、背景&lt;/h1&gt;
@@ -400,7 +400,7 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <link href="http://example.com/2023/05/04/97_transposed-convolution/"/>
     <id>http://example.com/2023/05/04/97_transposed-convolution/</id>
     <published>2023-05-03T16:00:00.000Z</published>
-    <updated>2024-08-28T02:07:57.550Z</updated>
+    <updated>2024-10-14T06:09:22.900Z</updated>
     
     
     <summary type="html">&lt;p&gt;最近做了一些转置卷积的相关部署工作，最开始搞的时候其实有点晕头转向的，总是试图在用卷积的计算方式反过来理解转置卷积，尤其是看到&lt;code&gt;padding&lt;/code&gt;部分和&lt;code&gt;stride&lt;/code&gt;部分，搞得我头更大了，心想怎么这么反人类？（后来发现是我理解的问题，其实一点也不反人类）&lt;/p&gt;
