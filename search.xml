@@ -2368,6 +2368,107 @@ href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为�
       </tags>
   </entry>
   <entry>
+    <title>flatc</title>
+    <url>/2023/06/28/71_flatc/</url>
+    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
+<span id="more"></span>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
+<p>./flatc -t schema.fbs -- test.tflite</p>
+<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
+~/Downloads/encoder.tflite</p>
+<p>参考资料：</p>
+<p><a
+href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>万物皆可RSS</title>
+    <url>/2023/06/29/67_RSS/</url>
+    <content><![CDATA[<p>万物皆可RSS！</p>
+<span id="more"></span>
+<p><a href="https://sspai.com/post/60781">指路文章</a></p>
+<p><a
+href="https://www.bilibili.com/video/BV1oU4y1s7o8/?spm_id_from=333.337.search-card.all.click&amp;vd_source=a706cf2a9a33f4c298a6ef4764cea661">入坑视频教程</a></p>
+<p><a
+href="https://www.runningcheese.com/rss-subscriptions">入坑文章指南</a></p>
+<blockquote>
+<p>RSS，英文全称Really Simple
+Syndication，中文译作简易信息聚合（也叫聚合内容），是一种基于XML标准，在互联网上被广泛采用的内容包装盒投递协议。它能够描述和同步网站内容，而RSS订阅这种形式则可以更快地获取最新信息。</p>
+</blockquote>
+<ul>
+<li><p>碎片化阅读</p>
+<blockquote>
+<p>碎片化阅读是指一种通过手机、电子书、计算机等进行的不完整的、断断续续的阅读模式。</p>
+</blockquote></li>
+<li><p>信息茧房 &gt;
+信息茧房概念是由哈佛大学法学院教授、奥巴马总统的法律顾问凯斯·桑斯坦在其2006年出版的著作《信息乌托邦——众人如何生产知识》中提出的。通过对互联网的考察，桑斯坦指出，在信息传播中，因公众自身的信息需求并非全方位的，公众只注意自己选择的东西和使自己愉悦的通讯领域，久而久之，会将自身桎梏于像蚕茧一般的“茧房”中。</p></li>
+</ul>
+<p>众所周知，我们身处一个信息爆炸的网络大数据时代，再加上数据埋点、人群画像等精准营销手段，往往会产生这样的一个结果：<strong>我们经常会被迫接收到来自服务商提供的，经由大数据算法检验认为的“所谓匹配我们”的信息。</strong></p>
+<p>而这些“精准匹配的个性化”信息会不断缩小我们的认知范围，久而久之，渐渐我们会失去对信息的敏感，处于一种“<strong>别人推荐什么，你就看什么</strong>”的状态中。这是很可怕的！！</p>
+<p>我们每个人都是独立的个体，应当是“自由”的。这份自由中自然包含着“思想自由”：个人拥有或思考独立于他人之外的观点、事实、思想之自由。</p>
+<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
+<h1 id="rsshub-feedly-reeder搭配">RSSHub + Feedly + Reeder搭配</h1>
+<p>RSSHub是一个开源、简单易用、易于扩展的 RSS
+生成器，可以给任何奇奇怪怪的内容生成 RSS
+订阅源。目前借助于开源社区的力量快速发展中，已经适配数百家网站的上千项内容。</p>
+<ul>
+<li>RSSHub可以为几乎所有网站提供RSS订阅源，比如知乎、虎扑、博客、微信公众号、B站、起点等媒体站点。甚至即使该站点不提供RSS订阅服务，我们也可以基于它来制作一个RSS订阅源，可谓非常强大</li>
+</ul>
+<p>Feedly是一个RSS聚合器应用程序，支持各种网页浏览器和运行iOS或Android的移动设备，也是一个基于云端的服务。其从各种在线资源聚合用户自定的新闻订阅源，并可与他人分享。</p>
+<ul>
+<li>选择Feedly则是因为其提供了文件夹分类功能，且也拥有数量不菲的订阅源，在对RSS订阅源的管理上十分方便，同时恰好也在Reeder支持的第三方订阅服务列表中。</li>
+</ul>
+<p>Reeder是一款评价极高的iOS端RSS阅读应用。其支持与Feedbin、Feedly、Inoreader等RSS第三方服务云端同步，甚至也支持与FreshRSS、Reader、Fever等自建RSS服务同步数据。</p>
+<ul>
+<li>使用Reeder则仅仅是因为它是iOS上广受好评的RSS阅读端APP，而我购买后体验的效果也很满意。</li>
+</ul>
+<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
+<p>我绕了一大圈，看各种资料，最终的选择也恰巧是如此。</p>
+<h1 id="我的一些操作">我的一些操作：</h1>
+<h2 id="mac安装reeder4">1、mac安装Reeder4</h2>
+<p>程序体积比我想象的要小</p>
+<p>新建了个账户，icloud的feeds。</p>
+<p>订阅了一下自己的博客，阅读体验还可以。</p>
+<h2 id="iphone安装reeder5">2、iphone安装Reeder5</h2>
+<p>重新注册了个美区账号，<a
+href="https://mp.weixin.qq.com/s/s9fMsBzVu4nXBbBuYym9mA">步骤</a></p>
+<p>使用礼品卡的方式下载了Reeder5</p>
+<p>新建了个账户，icloud的feeds，和电脑的订阅同步上了～</p>
+<h2 id="浏览器安装rss插件">3、浏览器安装<a
+href="https://greasyfork.org/zh-CN/scripts/373252-rss-show-site-all-rss">RSS+插件</a></h2>
+<p>安装后，在网页的右下角会有一个“蓝色圆点”，显示当前网页有多少个可用
+RSS 源，如果没有，则不会显示。</p>
+<p>有了它，我们就再也不需要到处找 RSS 订阅源。</p>
+<p>只需要和平时上网一样，遇到喜欢的 RSS 源，一键添加即可。</p>
+<h2 id="注册feedly">4、注册feedly</h2>
+<p>https://feedly.com/</p>
+<p>但是，<a href="https://www.v2ex.com/t/797931">Reeder 4 无法添加
+feedly</a></p>
+<p>决定买Reeder5，既然拥有国外信用卡是早晚的事，那就早点做吧。</p>
+<h2 id="注册币安">5、注册币安</h2>
+<p><a href="https://www.binance.com/zh-CN">币安</a></p>
+<p><a
+href="https://www.youtube.com/watch?v=sWm0RgSapp8">币安使用方式</a></p>
+<p>欧易似乎更好用，但我还是先入为主了。</p>
+<h2 id="注册onekey-visa卡">6、注册onekey visa卡</h2>
+<p>在<a
+href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p>
+<p><a href="https://www.youtube.com/watch?v=nIfFC7hFZ90">教程</a></p>
+<p>我是用币安向onekey提现USDT实现激活的，期间扣除了1USDT的手续费。以及onekey有1$的开卡费和一点手续费。</p>
+<h2 id="添加feedly账户">7、添加feedly账户</h2>
+<p>下载Reeder5之后，就可以绑定Feedly账户了。</p>
+<hr />
+<p>目前我是<code>RSS+插件</code>的重度使用者</p>
+<hr />
+<h1 id="rss真香"><strong>RSS真香！</strong></h1>
+]]></content>
+      <tags>
+        <tag>RSS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Optimize sgemm on RISC-V platform</title>
     <url>/2024/02/26/103_sgemm_riscv_en/</url>
     <content><![CDATA[<p>This project records the process of optimizing SGEMM
@@ -2782,88 +2883,100 @@ href="https://zhuanlan.zhihu.com/p/521649367">知乎</a>看到一篇很好的文
       </tags>
   </entry>
   <entry>
-    <title>万物皆可RSS</title>
-    <url>/2023/06/29/67_RSS/</url>
-    <content><![CDATA[<p>万物皆可RSS！</p>
+    <title>Final Cut study notes</title>
+    <url>/2023/07/08/75_Final-cut-study-notes/</url>
+    <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
 <span id="more"></span>
-<p><a href="https://sspai.com/post/60781">指路文章</a></p>
-<p><a
-href="https://www.bilibili.com/video/BV1oU4y1s7o8/?spm_id_from=333.337.search-card.all.click&amp;vd_source=a706cf2a9a33f4c298a6ef4764cea661">入坑视频教程</a></p>
-<p><a
-href="https://www.runningcheese.com/rss-subscriptions">入坑文章指南</a></p>
-<blockquote>
-<p>RSS，英文全称Really Simple
-Syndication，中文译作简易信息聚合（也叫聚合内容），是一种基于XML标准，在互联网上被广泛采用的内容包装盒投递协议。它能够描述和同步网站内容，而RSS订阅这种形式则可以更快地获取最新信息。</p>
-</blockquote>
-<ul>
-<li><p>碎片化阅读</p>
-<blockquote>
-<p>碎片化阅读是指一种通过手机、电子书、计算机等进行的不完整的、断断续续的阅读模式。</p>
-</blockquote></li>
-<li><p>信息茧房 &gt;
-信息茧房概念是由哈佛大学法学院教授、奥巴马总统的法律顾问凯斯·桑斯坦在其2006年出版的著作《信息乌托邦——众人如何生产知识》中提出的。通过对互联网的考察，桑斯坦指出，在信息传播中，因公众自身的信息需求并非全方位的，公众只注意自己选择的东西和使自己愉悦的通讯领域，久而久之，会将自身桎梏于像蚕茧一般的“茧房”中。</p></li>
-</ul>
-<p>众所周知，我们身处一个信息爆炸的网络大数据时代，再加上数据埋点、人群画像等精准营销手段，往往会产生这样的一个结果：<strong>我们经常会被迫接收到来自服务商提供的，经由大数据算法检验认为的“所谓匹配我们”的信息。</strong></p>
-<p>而这些“精准匹配的个性化”信息会不断缩小我们的认知范围，久而久之，渐渐我们会失去对信息的敏感，处于一种“<strong>别人推荐什么，你就看什么</strong>”的状态中。这是很可怕的！！</p>
-<p>我们每个人都是独立的个体，应当是“自由”的。这份自由中自然包含着“思想自由”：个人拥有或思考独立于他人之外的观点、事实、思想之自由。</p>
-<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
-<h1 id="rsshub-feedly-reeder搭配">RSSHub + Feedly + Reeder搭配</h1>
-<p>RSSHub是一个开源、简单易用、易于扩展的 RSS
-生成器，可以给任何奇奇怪怪的内容生成 RSS
-订阅源。目前借助于开源社区的力量快速发展中，已经适配数百家网站的上千项内容。</p>
-<ul>
-<li>RSSHub可以为几乎所有网站提供RSS订阅源，比如知乎、虎扑、博客、微信公众号、B站、起点等媒体站点。甚至即使该站点不提供RSS订阅服务，我们也可以基于它来制作一个RSS订阅源，可谓非常强大</li>
-</ul>
-<p>Feedly是一个RSS聚合器应用程序，支持各种网页浏览器和运行iOS或Android的移动设备，也是一个基于云端的服务。其从各种在线资源聚合用户自定的新闻订阅源，并可与他人分享。</p>
-<ul>
-<li>选择Feedly则是因为其提供了文件夹分类功能，且也拥有数量不菲的订阅源，在对RSS订阅源的管理上十分方便，同时恰好也在Reeder支持的第三方订阅服务列表中。</li>
-</ul>
-<p>Reeder是一款评价极高的iOS端RSS阅读应用。其支持与Feedbin、Feedly、Inoreader等RSS第三方服务云端同步，甚至也支持与FreshRSS、Reader、Fever等自建RSS服务同步数据。</p>
-<ul>
-<li>使用Reeder则仅仅是因为它是iOS上广受好评的RSS阅读端APP，而我购买后体验的效果也很满意。</li>
-</ul>
-<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
-<p>我绕了一大圈，看各种资料，最终的选择也恰巧是如此。</p>
-<h1 id="我的一些操作">我的一些操作：</h1>
-<h2 id="mac安装reeder4">1、mac安装Reeder4</h2>
-<p>程序体积比我想象的要小</p>
-<p>新建了个账户，icloud的feeds。</p>
-<p>订阅了一下自己的博客，阅读体验还可以。</p>
-<h2 id="iphone安装reeder5">2、iphone安装Reeder5</h2>
-<p>重新注册了个美区账号，<a
-href="https://mp.weixin.qq.com/s/s9fMsBzVu4nXBbBuYym9mA">步骤</a></p>
-<p>使用礼品卡的方式下载了Reeder5</p>
-<p>新建了个账户，icloud的feeds，和电脑的订阅同步上了～</p>
-<h2 id="浏览器安装rss插件">3、浏览器安装<a
-href="https://greasyfork.org/zh-CN/scripts/373252-rss-show-site-all-rss">RSS+插件</a></h2>
-<p>安装后，在网页的右下角会有一个“蓝色圆点”，显示当前网页有多少个可用
-RSS 源，如果没有，则不会显示。</p>
-<p>有了它，我们就再也不需要到处找 RSS 订阅源。</p>
-<p>只需要和平时上网一样，遇到喜欢的 RSS 源，一键添加即可。</p>
-<h2 id="注册feedly">4、注册feedly</h2>
-<p>https://feedly.com/</p>
-<p>但是，<a href="https://www.v2ex.com/t/797931">Reeder 4 无法添加
-feedly</a></p>
-<p>决定买Reeder5，既然拥有国外信用卡是早晚的事，那就早点做吧。</p>
-<h2 id="注册币安">5、注册币安</h2>
-<p><a href="https://www.binance.com/zh-CN">币安</a></p>
-<p><a
-href="https://www.youtube.com/watch?v=sWm0RgSapp8">币安使用方式</a></p>
-<p>欧易似乎更好用，但我还是先入为主了。</p>
-<h2 id="注册onekey-visa卡">6、注册onekey visa卡</h2>
-<p>在<a
-href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p>
-<p><a href="https://www.youtube.com/watch?v=nIfFC7hFZ90">教程</a></p>
-<p>我是用币安向onekey提现USDT实现激活的，期间扣除了1USDT的手续费。以及onekey有1$的开卡费和一点手续费。</p>
-<h2 id="添加feedly账户">7、添加feedly账户</h2>
-<p>下载Reeder5之后，就可以绑定Feedly账户了。</p>
+<h1 id="配置">配置</h1>
 <hr />
-<p>目前我是<code>RSS+插件</code>的重度使用者</p>
-<hr />
-<h1 id="rss真香"><strong>RSS真香！</strong></h1>
+<h1 id="插件">插件</h1>
+<h2 id="motion-vfx"><a href="https://www.motionvfx.com/">MOTION
+VFX</a></h2>
+<p>一个插件集合的网站，巨好用！</p>
+<h3 id="mcamrig摄像机运动"><a
+href="https://www.motionvfx.com/store,mcamrig,p2219.html?category=63&amp;irgwc=1&amp;irgwc=1">mCamRig</a>摄像机运动</h3>
+<ul>
+<li>对出教程的UP主特别有用</li>
+<li>可以快速制作缩放、旋转，添加镜头模糊、镜头运动效果</li>
+<li>用法：
+<ul>
+<li>字幕里找到插件，拉到对应的片段上</li>
+</ul></li>
+</ul>
+<h3 id="mvertical手机视频背景虚化"><a
+href="https://www.motionvfx.com/store,mvertical,p2176.html?irgwc=1">mVertical</a>手机视频背景虚化</h3>
+<ul>
+<li>横版视频插入竖版视频时，填充两边的黑色</li>
+<li>实现背景重叠的背景虚化</li>
+<li>小技巧
+<ul>
+<li>选择片段，按一下X，就自动选择这个片段长度</li>
+<li>在字幕里找到mVertical，按Q，就可以整段附着到这个片段</li>
+</ul></li>
+</ul>
+<h2 id="commandpost最强辅助"><a
+href="https://commandpost.io">Commandpost</a>最强辅助</h2>
+<h1 id="清理缓存">清理缓存</h1>
+<p>资源库 右键 显示包内容</p>
+<h1 id="高效技巧">高效技巧</h1>
+<p>添加视频时，进行了部分选择，标记 -&gt; 清除所选范围（快捷键：Option +
+X 取消选择）</p>
+<p>添加字幕：按enter会换行，按commond+enter退出编辑状态</p>
+<p>把当前片段拉长（某一帧拉长） - 编辑 -&gt; 添加静帧 - 快捷键：shift +
+H，片段是完整的没有被切割</p>
+<p>固定音乐位置 - 第一帧最前面加一个空隙 Edit -&gt; Insert Generator
+-&gt; Gap(option+W) - 选择Gap，control+D，输入1（1帧时长） -
+把音乐放最前面 - 删除的时候，Option + commond + Delete</p>
+<p>调整变速，不影响整体时长 - 右键， Lift from storyline - Overwrite to
+Primary Storyline</p>
+<p>添加的时候只要要画面，不要声音</p>
+<p>Final cut pro 1. 资源管理 - 关系： 资源库 -&gt; 事件 -&gt; 项目 -
+导入素材 - 按住 command， 手动点击素材，批量选择</p>
+<p>2.添加 素材到时间线，基本操作 - 1. 片段选择 - 选择入点： I - 选择出点
+： O - 添加到时间线： E - 取消选择 - Option + X - 2. 预览素材 -
+顺序播放： L - 加速： 连续按2,3次L - 暂停 ：K - 倒序播放 ：J -
+3.添加字幕 - 添加到选定时间点： Q - 4. 在2个素材之间快速插入： W - 5.
+进阶学习 - 个人收藏 - 关键词 - 3.剪辑 - 1. 切割工具 - B - 2. 延长 缩短
+选择的视频 - 逗号 和 句号 - 3. 切割并选中 - command + B - 4.
+范围选择工具 - 按住R不松 - 5. 删除 播放头开始 到 选中位置 - Option + [ -
+6. 删除 选中位置 到 素材结束位置 - Option + ] - 7. 删除 主时间线视频，
+同时不删除连接的视频 ， 且保留 B-roll - Option + command + delete - 8.
+速度条<br />
+- command + R - 9. 速度条 分段 - shift + B - 10. 完整 显示时间线 - shift
++ Z - 11. 吸附 开关 - N - 12. 打上标记 - M - 13. 预览 开关 - S - 14.
+音频 - 音量调节 - Control + or Control - - 15. 字幕 - 添加字幕 到 浏览头
+右边 - Q - 添加字幕 到 浏览头 左边 - shift + Q - 直接添加 基本字幕 -
+control + T - 16. 转场 - 添加默认转场 - command + T - 17. 添加 静止帧 -
+Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数）
+- 19. 从故事情节中 提取 - 不影响 时间线 option + command + 向上</p>
 ]]></content>
       <tags>
-        <tag>RSS</tag>
+        <tag>finalcut</tag>
+        <tag>notes</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Roofline model学习</title>
+    <url>/2023/06/05/77_Roofline/</url>
+    <content><![CDATA[<blockquote>
+<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
+</blockquote>
+<p>学习Roofline，有一种理论指导实践的感觉。</p>
+<span id="more"></span>
+<p>阅读论文：<a
+href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
+An Insightful Visual Performance Model for Floating-Point Programs and
+Multicore Architectures</a></p>
+<p>博客：<a
+href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
+<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
+Model与深度学习模型的性能分析</a></p>
+<p>我的总结：</p>
+<p>【更新中】</p>
+]]></content>
+      <tags>
+        <tag>study</tag>
+        <tag>Roofline</tag>
       </tags>
   </entry>
   <entry>
@@ -2981,119 +3094,6 @@ LFS的使用</a></p>
       </tags>
   </entry>
   <entry>
-    <title>flatc</title>
-    <url>/2023/06/28/71_flatc/</url>
-    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
-<span id="more"></span>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
-<p>./flatc -t schema.fbs -- test.tflite</p>
-<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
-~/Downloads/encoder.tflite</p>
-<p>参考资料：</p>
-<p><a
-href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>Roofline model学习</title>
-    <url>/2023/06/05/77_Roofline/</url>
-    <content><![CDATA[<blockquote>
-<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
-</blockquote>
-<p>学习Roofline，有一种理论指导实践的感觉。</p>
-<span id="more"></span>
-<p>阅读论文：<a
-href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
-An Insightful Visual Performance Model for Floating-Point Programs and
-Multicore Architectures</a></p>
-<p>博客：<a
-href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
-<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
-Model与深度学习模型的性能分析</a></p>
-<p>我的总结：</p>
-<p>【更新中】</p>
-]]></content>
-      <tags>
-        <tag>study</tag>
-        <tag>Roofline</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Final Cut study notes</title>
-    <url>/2023/07/08/75_Final-cut-study-notes/</url>
-    <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
-<span id="more"></span>
-<h1 id="配置">配置</h1>
-<hr />
-<h1 id="插件">插件</h1>
-<h2 id="motion-vfx"><a href="https://www.motionvfx.com/">MOTION
-VFX</a></h2>
-<p>一个插件集合的网站，巨好用！</p>
-<h3 id="mcamrig摄像机运动"><a
-href="https://www.motionvfx.com/store,mcamrig,p2219.html?category=63&amp;irgwc=1&amp;irgwc=1">mCamRig</a>摄像机运动</h3>
-<ul>
-<li>对出教程的UP主特别有用</li>
-<li>可以快速制作缩放、旋转，添加镜头模糊、镜头运动效果</li>
-<li>用法：
-<ul>
-<li>字幕里找到插件，拉到对应的片段上</li>
-</ul></li>
-</ul>
-<h3 id="mvertical手机视频背景虚化"><a
-href="https://www.motionvfx.com/store,mvertical,p2176.html?irgwc=1">mVertical</a>手机视频背景虚化</h3>
-<ul>
-<li>横版视频插入竖版视频时，填充两边的黑色</li>
-<li>实现背景重叠的背景虚化</li>
-<li>小技巧
-<ul>
-<li>选择片段，按一下X，就自动选择这个片段长度</li>
-<li>在字幕里找到mVertical，按Q，就可以整段附着到这个片段</li>
-</ul></li>
-</ul>
-<h2 id="commandpost最强辅助"><a
-href="https://commandpost.io">Commandpost</a>最强辅助</h2>
-<h1 id="清理缓存">清理缓存</h1>
-<p>资源库 右键 显示包内容</p>
-<h1 id="高效技巧">高效技巧</h1>
-<p>添加视频时，进行了部分选择，标记 -&gt; 清除所选范围（快捷键：Option +
-X 取消选择）</p>
-<p>添加字幕：按enter会换行，按commond+enter退出编辑状态</p>
-<p>把当前片段拉长（某一帧拉长） - 编辑 -&gt; 添加静帧 - 快捷键：shift +
-H，片段是完整的没有被切割</p>
-<p>固定音乐位置 - 第一帧最前面加一个空隙 Edit -&gt; Insert Generator
--&gt; Gap(option+W) - 选择Gap，control+D，输入1（1帧时长） -
-把音乐放最前面 - 删除的时候，Option + commond + Delete</p>
-<p>调整变速，不影响整体时长 - 右键， Lift from storyline - Overwrite to
-Primary Storyline</p>
-<p>添加的时候只要要画面，不要声音</p>
-<p>Final cut pro 1. 资源管理 - 关系： 资源库 -&gt; 事件 -&gt; 项目 -
-导入素材 - 按住 command， 手动点击素材，批量选择</p>
-<p>2.添加 素材到时间线，基本操作 - 1. 片段选择 - 选择入点： I - 选择出点
-： O - 添加到时间线： E - 取消选择 - Option + X - 2. 预览素材 -
-顺序播放： L - 加速： 连续按2,3次L - 暂停 ：K - 倒序播放 ：J -
-3.添加字幕 - 添加到选定时间点： Q - 4. 在2个素材之间快速插入： W - 5.
-进阶学习 - 个人收藏 - 关键词 - 3.剪辑 - 1. 切割工具 - B - 2. 延长 缩短
-选择的视频 - 逗号 和 句号 - 3. 切割并选中 - command + B - 4.
-范围选择工具 - 按住R不松 - 5. 删除 播放头开始 到 选中位置 - Option + [ -
-6. 删除 选中位置 到 素材结束位置 - Option + ] - 7. 删除 主时间线视频，
-同时不删除连接的视频 ， 且保留 B-roll - Option + command + delete - 8.
-速度条<br />
-- command + R - 9. 速度条 分段 - shift + B - 10. 完整 显示时间线 - shift
-+ Z - 11. 吸附 开关 - N - 12. 打上标记 - M - 13. 预览 开关 - S - 14.
-音频 - 音量调节 - Control + or Control - - 15. 字幕 - 添加字幕 到 浏览头
-右边 - Q - 添加字幕 到 浏览头 左边 - shift + Q - 直接添加 基本字幕 -
-control + T - 16. 转场 - 添加默认转场 - command + T - 17. 添加 静止帧 -
-Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数）
-- 19. 从故事情节中 提取 - 不影响 时间线 option + command + 向上</p>
-]]></content>
-      <tags>
-        <tag>finalcut</tag>
-        <tag>notes</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>gdb</title>
     <url>/2023/06/19/79_gdb/</url>
     <content><![CDATA[<p>今天遇到段错误，旁观大佬一番操作定位解决。</p>
@@ -3129,6 +3129,39 @@ Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数�
       <tags>
         <tag>study</tag>
         <tag>gdb</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>FasterTransformer</title>
+    <url>/2023/07/06/83_FasterTransformer/</url>
+    <content><![CDATA[<p>记录一下部署大模型的经历</p>
+<p>【更新中】</p>
+<span id="more"></span>
+<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
+<p>查看<code>docs/bert_guide.md</code></p>
+<p>https://github.com/NVIDIA/nvidia-docker</p>
+<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
+的安装和使用</a> 好文！</p>
+<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
+<pre><code>遇到问题
+`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
+
+解决方式：
+
+docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
+<p>事实上，后来我跟着<a
+href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+<p>查看<code>nvidia-smi</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
+]]></content>
+      <tags>
+        <tag>LLM</tag>
+        <tag>notes</tag>
+        <tag>tech</tag>
       </tags>
   </entry>
   <entry>
@@ -3273,84 +3306,8 @@ href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读
 ]]></content>
       <tags>
         <tag>LLM</tag>
-        <tag>ChatGPT</tag>
         <tag>tech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Using Ubuntu from scratch</title>
-    <url>/2023/06/30/87_Using-Ubuntu-from-scratch/</url>
-    <content><![CDATA[<p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
-<span id="more"></span>
-<h1 id="系统安装">1.系统安装</h1>
-<h2 id="下载">1.1 下载</h2>
-<p><a href="http://mirrors.aliyun.com/ubuntu-releases/20.04/">Ubuntu
-20.4镜像</a></p>
-<h2 id="把iso镜像文件转换成dmg文件">1.2 把iso镜像文件转换成dmg文件</h2>
-<p><code>cd Downloads</code></p>
-<p><code>hdiutil convert -format UDRW -o ubuntu.iso ubuntu-20.04.6-desktop-amd64.iso</code></p>
-<ul>
-<li><p><code>-format</code>为生成文件的权限；</p></li>
-<li><p><code>UDRW</code> :表示转换成有read/write的权限的镜像。</p></li>
-</ul>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Reading Driver Descriptor Map (DDM : 0)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 1)…</span><br><span class="line">Reading Apple (Apple_partition_map : 2)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 3)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading EFI (Apple_HFS : 4)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 5)…</span><br><span class="line">...............................................................................</span><br><span class="line">Elapsed Time:  4.971s</span><br><span class="line">Speed: 834.8MB/s</span><br><span class="line">Savings: 0.0%</span><br><span class="line">created: /Users/zhaodongyu/Downloads/ubuntu.iso.dmg</span><br></pre></td></tr></table></figure>
-<h2 id="烧录至优盘">1.3 烧录至优盘</h2>
-<p>注意找到U盘的路径，使用<code>diskutil list</code>命令查询。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/dev/disk4 (external, physical):</span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">:                       TYPE NAME                    SIZE       IDENTIFIER</span></span><br><span class="line">   0:     FDisk_partition_scheme                        *16.0 GB    disk4</span><br><span class="line">   1:             Windows_FAT_32 NO NAME                 16.0 GB    disk4s1</span><br></pre></td></tr></table></figure>
-<p>找到U盘的路径为/dev/disk4，并使用命令行卸载U盘：</p>
-<p><code>diskutil unmountDisk /dev/disk4</code></p>
-<p>显示信息：Unmount of all volumes on disk4 was successful</p>
-<p>把iso文件写入U盘 <code>mv ubuntu.iso.dmg ubuntu.iso</code></p>
-<p><code>sudo dd if=./ubuntu.iso of=/dev/disk4 bs=1m</code></p>
-<p>等了几分钟后，显示 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">4149+1 records in</span><br><span class="line">4149+1 records out</span><br><span class="line">4351463424 bytes transferred in 369.833082 secs (11766020 bytes/sec)</span><br></pre></td></tr></table></figure></p>
-<p>弹出优盘</p>
-<p><code>sudo eject /dev/disk4</code></p>
-<h1 id="系统设置">2.系统设置</h1>
-<h2 id="开启ssh连接">2.1 开启SSH连接</h2>
-<p><a
-href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服务远程登录</a></p>
-<p><code>sudo apt-get install openssh-server</code></p>
-<p>可以ssh连接了</p>
-<h2 id="更新vim">2.2 更新vim</h2>
-<ul>
-<li><p>卸载旧版的vi：sudo apt-get remove vim-common</p></li>
-<li><p>安装新版的vim：sudo apt-get install vim</p></li>
-</ul>
-<h2 id="挂载硬盘">2.3 挂载硬盘</h2>
-<p>查看磁盘信息命令: <code>sudo fdisk -l</code></p>
-<p>其中有： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Disk /dev/sdb: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors</span><br><span class="line">Disk model: ST1000DM003-1SB1</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 4096 bytes</span><br><span class="line">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span><br></pre></td></tr></table></figure></p>
-<p>查看硬盘的UUID命令: <code>sudo blkid</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb: UUID=&quot;2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f&quot; BLOCK_SIZE=&quot;4096&quot; TYPE=&quot;ext4&quot;</span><br></pre></td></tr></table></figure>
-<p>mkdir创建挂载点data</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">zhaodongyu@portal:/$ sudo mkdir data</span><br><span class="line">zhaodongyu@portal:/$ ls</span><br><span class="line">bin   cdrom  dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr</span><br><span class="line">boot  data   etc  lib   lib64  lost+found  mnt    proc  run   snap  swapfile  tmp  var</span><br></pre></td></tr></table></figure>
-<p>手动挂载</p>
-<p><code>sudo mount /dev/sdb /data</code></p>
-<p>永久性挂载分区，修改分区文件，输入命令<code>sudo vi /etc/fstab</code>，增加
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UUID=2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f /data           ext4    defaults          0       0</span><br></pre></td></tr></table></figure></p>
-<p>查看挂载好的硬盘信息 <code>df -hT</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb       ext4   916G  207G  663G  24% /data</span><br></pre></td></tr></table></figure>
-<h2 id="安装-vs-code">2.4 安装 VS code</h2>
-<p>打开 Ubuntu
-软件中心，并且搜索<code>Visual Studio Code</code>,然后安装应用</p>
-<h2 id="安装make">2.5 安装make</h2>
-<p><code>sudo apt install make</code></p>
-<h2 id="cmake升级">2.5 cmake升级</h2>
-<p><a
-href="https://blog.csdn.net/Boys_Wu/article/details/104940575">参考</a></p>
-<p>我在<a
-href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc4-linux-x86_64.tar.gz</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tar -zxvf cmake-3.27.0-rc4-linux-x86_64.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mv cmake-3.27.0-rc4-linux-x86_64 /opt/cmake-3.27.0</span><br><span class="line"></span><br><span class="line">sudo ln -sf /opt/cmake-3.27.0/bin/* /usr/bin/</span><br><span class="line"></span><br><span class="line">cmake --version</span><br><span class="line">    cmake version 3.27.0-rc4</span><br><span class="line"></span><br><span class="line">sudo vim ~/.bashrc </span><br><span class="line">    export  PATH=$PATH:/opt/cmake-3.27.0/bin</span><br><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
-<h2 id="gcc降级">2.6 gcc降级</h2>
-<p>原来的gcc版本是9.4</p>
-<p><code>sudo apt-get install gcc-9</code></p>
-<p><code>sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100</code></p>
-<p>sudo apt-get install g++-9</p>
-<p>sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9
-100</p>
-]]></content>
-      <tags>
-        <tag>notes</tag>
-        <tag>ubuntu</tag>
+        <tag>ChatGPT</tag>
       </tags>
   </entry>
   <entry>
@@ -3507,36 +3464,79 @@ with RISC-V Vectors and LLVM</a></p>
       </tags>
   </entry>
   <entry>
-    <title>FasterTransformer</title>
-    <url>/2023/07/06/83_FasterTransformer/</url>
-    <content><![CDATA[<p>记录一下部署大模型的经历</p>
-<p>【更新中】</p>
+    <title>Using Ubuntu from scratch</title>
+    <url>/2023/06/30/87_Using-Ubuntu-from-scratch/</url>
+    <content><![CDATA[<p>原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～</p>
 <span id="more"></span>
-<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
-<p>查看<code>docs/bert_guide.md</code></p>
-<p>https://github.com/NVIDIA/nvidia-docker</p>
-<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
-的安装和使用</a> 好文！</p>
-<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
-<pre><code>遇到问题
-`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
-
-解决方式：
-
-docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
-<p>事实上，后来我跟着<a
-href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
-<p>查看<code>nvidia-smi</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<h1 id="系统安装">1.系统安装</h1>
+<h2 id="下载">1.1 下载</h2>
+<p><a href="http://mirrors.aliyun.com/ubuntu-releases/20.04/">Ubuntu
+20.4镜像</a></p>
+<h2 id="把iso镜像文件转换成dmg文件">1.2 把iso镜像文件转换成dmg文件</h2>
+<p><code>cd Downloads</code></p>
+<p><code>hdiutil convert -format UDRW -o ubuntu.iso ubuntu-20.04.6-desktop-amd64.iso</code></p>
+<ul>
+<li><p><code>-format</code>为生成文件的权限；</p></li>
+<li><p><code>UDRW</code> :表示转换成有read/write的权限的镜像。</p></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Reading Driver Descriptor Map (DDM : 0)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 1)…</span><br><span class="line">Reading Apple (Apple_partition_map : 2)…</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 3)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading EFI (Apple_HFS : 4)…</span><br><span class="line">.....................................................</span><br><span class="line">Reading Ubuntu 20.04.6 LTS amd64         (Apple_ISO : 5)…</span><br><span class="line">...............................................................................</span><br><span class="line">Elapsed Time:  4.971s</span><br><span class="line">Speed: 834.8MB/s</span><br><span class="line">Savings: 0.0%</span><br><span class="line">created: /Users/zhaodongyu/Downloads/ubuntu.iso.dmg</span><br></pre></td></tr></table></figure>
+<h2 id="烧录至优盘">1.3 烧录至优盘</h2>
+<p>注意找到U盘的路径，使用<code>diskutil list</code>命令查询。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">/dev/disk4 (external, physical):</span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">:                       TYPE NAME                    SIZE       IDENTIFIER</span></span><br><span class="line">   0:     FDisk_partition_scheme                        *16.0 GB    disk4</span><br><span class="line">   1:             Windows_FAT_32 NO NAME                 16.0 GB    disk4s1</span><br></pre></td></tr></table></figure>
+<p>找到U盘的路径为/dev/disk4，并使用命令行卸载U盘：</p>
+<p><code>diskutil unmountDisk /dev/disk4</code></p>
+<p>显示信息：Unmount of all volumes on disk4 was successful</p>
+<p>把iso文件写入U盘 <code>mv ubuntu.iso.dmg ubuntu.iso</code></p>
+<p><code>sudo dd if=./ubuntu.iso of=/dev/disk4 bs=1m</code></p>
+<p>等了几分钟后，显示 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">4149+1 records in</span><br><span class="line">4149+1 records out</span><br><span class="line">4351463424 bytes transferred in 369.833082 secs (11766020 bytes/sec)</span><br></pre></td></tr></table></figure></p>
+<p>弹出优盘</p>
+<p><code>sudo eject /dev/disk4</code></p>
+<h1 id="系统设置">2.系统设置</h1>
+<h2 id="开启ssh连接">2.1 开启SSH连接</h2>
 <p><a
-href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
+href="https://blog.csdn.net/jackghq/article/details/54974141">ubuntu开启SSH服务远程登录</a></p>
+<p><code>sudo apt-get install openssh-server</code></p>
+<p>可以ssh连接了</p>
+<h2 id="更新vim">2.2 更新vim</h2>
+<ul>
+<li><p>卸载旧版的vi：sudo apt-get remove vim-common</p></li>
+<li><p>安装新版的vim：sudo apt-get install vim</p></li>
+</ul>
+<h2 id="挂载硬盘">2.3 挂载硬盘</h2>
+<p>查看磁盘信息命令: <code>sudo fdisk -l</code></p>
+<p>其中有： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Disk /dev/sdb: 931.51 GiB, 1000204886016 bytes, 1953525168 sectors</span><br><span class="line">Disk model: ST1000DM003-1SB1</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 4096 bytes</span><br><span class="line">I/O size (minimum/optimal): 4096 bytes / 4096 bytes</span><br></pre></td></tr></table></figure></p>
+<p>查看硬盘的UUID命令: <code>sudo blkid</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb: UUID=&quot;2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f&quot; BLOCK_SIZE=&quot;4096&quot; TYPE=&quot;ext4&quot;</span><br></pre></td></tr></table></figure>
+<p>mkdir创建挂载点data</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">zhaodongyu@portal:/$ sudo mkdir data</span><br><span class="line">zhaodongyu@portal:/$ ls</span><br><span class="line">bin   cdrom  dev  home  lib32  libx32      media  opt   root  sbin  srv       sys  usr</span><br><span class="line">boot  data   etc  lib   lib64  lost+found  mnt    proc  run   snap  swapfile  tmp  var</span><br></pre></td></tr></table></figure>
+<p>手动挂载</p>
+<p><code>sudo mount /dev/sdb /data</code></p>
+<p>永久性挂载分区，修改分区文件，输入命令<code>sudo vi /etc/fstab</code>，增加
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UUID=2b4d86ff-3fb8-40c4-b5ef-dd840f65f94f /data           ext4    defaults          0       0</span><br></pre></td></tr></table></figure></p>
+<p>查看挂载好的硬盘信息 <code>df -hT</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/dev/sdb       ext4   916G  207G  663G  24% /data</span><br></pre></td></tr></table></figure>
+<h2 id="安装-vs-code">2.4 安装 VS code</h2>
+<p>打开 Ubuntu
+软件中心，并且搜索<code>Visual Studio Code</code>,然后安装应用</p>
+<h2 id="安装make">2.5 安装make</h2>
+<p><code>sudo apt install make</code></p>
+<h2 id="cmake升级">2.5 cmake升级</h2>
+<p><a
+href="https://blog.csdn.net/Boys_Wu/article/details/104940575">参考</a></p>
+<p>我在<a
+href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc4-linux-x86_64.tar.gz</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tar -zxvf cmake-3.27.0-rc4-linux-x86_64.tar.gz</span><br><span class="line"></span><br><span class="line">sudo mv cmake-3.27.0-rc4-linux-x86_64 /opt/cmake-3.27.0</span><br><span class="line"></span><br><span class="line">sudo ln -sf /opt/cmake-3.27.0/bin/* /usr/bin/</span><br><span class="line"></span><br><span class="line">cmake --version</span><br><span class="line">    cmake version 3.27.0-rc4</span><br><span class="line"></span><br><span class="line">sudo vim ~/.bashrc </span><br><span class="line">    export  PATH=$PATH:/opt/cmake-3.27.0/bin</span><br><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
+<h2 id="gcc降级">2.6 gcc降级</h2>
+<p>原来的gcc版本是9.4</p>
+<p><code>sudo apt-get install gcc-9</code></p>
+<p><code>sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100</code></p>
+<p>sudo apt-get install g++-9</p>
+<p>sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9
+100</p>
 ]]></content>
       <tags>
-        <tag>LLM</tag>
         <tag>notes</tag>
-        <tag>tech</tag>
+        <tag>ubuntu</tag>
       </tags>
   </entry>
   <entry>
@@ -3652,6 +3652,31 @@ Micro的GitHub仓库中，你可以使用以下步骤来编译静态库：</p>
         <tag>tech</tag>
         <tag>tflite-micro</tag>
         <tag>TinyML</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>内存对齐的实现</title>
+    <url>/2022/12/13/95_memory-align/</url>
+    <content><![CDATA[<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
+<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
+<p>花了一点点时间搞懂了内存对齐的实现与细节——</p>
+<span id="more"></span>
+<h2 id="什么是内存对齐">0.什么是内存对齐？</h2>
+<p>计算机中内存空间是按照<code>byte</code>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问<code>特定类型变量</code>的时候通常在<code>特定的内存地址</code>访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。</p>
+<p>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。</p>
+<h2 id="为什么要内存对齐">1.为什么要内存对齐？</h2>
+<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
+<p><strong>比如有些架构的CPU在访问一个没有进行对齐的变量的时候会发生错误,那么在这种架构下编程必须保证字节对齐.</strong></p>
+<p>其他平台可能没有这种情况，但是最常见的是如果不按照适合其平台要求对数据存放进行对齐，会在存取效率上带来损失。</p>
+<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
+<p>参考链接：https://juejin.cn/post/6870162226032934926</p>
+<h2 id="我的分析实践">2.我的分析实践</h2>
+<p><img src="/images/memory_align/MemoryAlign1.png" width="90%"></p>
+<p><img src="/images/memory_align/MemoryAlign2.png" width="90%"></p>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>memory align</tag>
       </tags>
   </entry>
   <entry>
@@ -3821,28 +3846,58 @@ href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动�
       </tags>
   </entry>
   <entry>
-    <title>内存对齐的实现</title>
-    <url>/2022/12/13/95_memory-align/</url>
-    <content><![CDATA[<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
-<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
-<p>花了一点点时间搞懂了内存对齐的实现与细节——</p>
+    <title>Telegram bot</title>
+    <url>/2024/02/17/98_Telegram_bot/</url>
+    <content><![CDATA[<p>最近学习一些telegram bot，记录一下</p>
 <span id="more"></span>
-<h2 id="什么是内存对齐">0.什么是内存对齐？</h2>
-<p>计算机中内存空间是按照<code>byte</code>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问<code>特定类型变量</code>的时候通常在<code>特定的内存地址</code>访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。</p>
-<p>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。</p>
-<h2 id="为什么要内存对齐">1.为什么要内存对齐？</h2>
-<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
-<p><strong>比如有些架构的CPU在访问一个没有进行对齐的变量的时候会发生错误,那么在这种架构下编程必须保证字节对齐.</strong></p>
-<p>其他平台可能没有这种情况，但是最常见的是如果不按照适合其平台要求对数据存放进行对齐，会在存取效率上带来损失。</p>
-<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
-<p>参考链接：https://juejin.cn/post/6870162226032934926</p>
-<h2 id="我的分析实践">2.我的分析实践</h2>
-<p><img src="/images/memory_align/MemoryAlign1.png" width="90%"></p>
-<p><img src="/images/memory_align/MemoryAlign2.png" width="90%"></p>
+<h1 id="installing">Installing</h1>
+<p>安装 python-telegram-bot 库</p>
+<p><code>pip install python-telegram-bot --upgrade</code></p>
+<p>安装完毕 &gt; Successfully installed h11-0.14.0 httpcore-1.0.3
+httpx-0.26.0 python-telegram-bot-20.8</p>
+<h1 id="bot-申请">bot 申请</h1>
+<p>私聊<a href="https://t.me/BotFather">BotFather</a>,</p>
+<ul>
+<li>/start</li>
+<li>/newbot</li>
+<li>Alright, a new bot. How are we going to call it? Please choose a
+name for your bot.</li>
+<li>IngressHomogeneous</li>
+<li>Good. Now let's choose a username for your bot. It must end in
+<code>bot</code>. Like this, for example: TetrisBot or tetris_bot.</li>
+<li>IngressHomogeneousBot</li>
+<li>Done! Congratulations on your new bot. You will find it at
+t.me/IngressHomogeneousBot. You can now add a description, about section
+and profile picture for your bot, see /help for a list of commands. By
+the way, when you've finished creating your cool bot, ping our Bot
+Support if you want a better username for it. Just make sure the bot is
+fully operational before you do this.</li>
+</ul>
+<p>妥善保存最后的 API Token。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">You can control me by sending these commands:</span><br><span class="line"></span><br><span class="line">/newbot - create a new bot</span><br><span class="line">/mybots - edit your bots</span><br><span class="line"></span><br><span class="line">Edit Bots</span><br><span class="line">/setname - change a bot&#x27;s name</span><br><span class="line">/setdescription - change bot description</span><br><span class="line">/setabouttext - change bot about info</span><br><span class="line">/setuserpic - change bot profile photo</span><br><span class="line">/setcommands - change the list of commands</span><br><span class="line">/deletebot - delete a bot</span><br><span class="line"></span><br><span class="line">Bot Settings</span><br><span class="line">/token - generate authorization token</span><br><span class="line">/revoke - revoke bot access token</span><br><span class="line">/setinline - toggle inline mode</span><br><span class="line">/setinlinegeo - toggle inline location requests</span><br><span class="line">/setinlinefeedback - change inline feedback settings</span><br><span class="line">/setjoingroups - can your bot be added to groups?</span><br><span class="line">/setprivacy - toggle privacy mode in groups</span><br><span class="line"></span><br><span class="line">Web Apps</span><br><span class="line">/myapps - edit your web apps</span><br><span class="line">/newapp - create a new web app</span><br><span class="line">/listapps - get a list of your web apps</span><br><span class="line">/editapp - edit a web app</span><br><span class="line">/deleteapp - delete an existing web app</span><br><span class="line"></span><br><span class="line">Games</span><br><span class="line">/mygames - edit your games</span><br><span class="line">/newgame - create a new game</span><br><span class="line">/listgames - get a list of your games</span><br><span class="line">/editgame - edit a game</span><br><span class="line">/deletegame - delete an existing game</span><br></pre></td></tr></table></figure>
+<h1 id="获取我的-id">获取我的 id</h1>
+<p>每个 tg 用户都有一串唯一标识，即为 user_id，可以私聊 <a
+href="https://t.me/kmuav2bot"><span class="citation"
+data-cites="kmua">@kmua</span></a> 发送 /id 来获取它</p>
+<p>跟着<a
+href="https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot">Your-first-Bot</a>这个来就好了，理解的话可以参考<a
+href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
+bot吧|Telegram bot教程</a>。</p>
+<p>感觉整体比较好理解，接下来就是赋予其灵魂了～</p>
+<hr />
+<p>参考文章：</p>
+<p><a
+href="https://docs.python-telegram-bot.org/en/v20.8/">python-telegram-bot.org</a></p>
+<p><a
+href="https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot">Your-first-Bot</a></p>
+<p><a
+href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
+bot吧|Telegram bot教程</a></p>
 ]]></content>
       <tags>
-        <tag>tech</tag>
-        <tag>memory align</tag>
+        <tag>Telegram bot</tag>
+        <tag>ingress</tag>
+        <tag>Homogeneous</tag>
       </tags>
   </entry>
   <entry>
@@ -4097,61 +4152,6 @@ href="https://www.iloveimg.com/zh-cn">iloveimg</a>，非常好用～</p>
         <tag>tech</tag>
         <tag>engineering</tag>
         <tag>Transposed Convolution</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Telegram bot</title>
-    <url>/2024/02/17/98_Telegram_bot/</url>
-    <content><![CDATA[<p>最近学习一些telegram bot，记录一下</p>
-<span id="more"></span>
-<h1 id="installing">Installing</h1>
-<p>安装 python-telegram-bot 库</p>
-<p><code>pip install python-telegram-bot --upgrade</code></p>
-<p>安装完毕 &gt; Successfully installed h11-0.14.0 httpcore-1.0.3
-httpx-0.26.0 python-telegram-bot-20.8</p>
-<h1 id="bot-申请">bot 申请</h1>
-<p>私聊<a href="https://t.me/BotFather">BotFather</a>,</p>
-<ul>
-<li>/start</li>
-<li>/newbot</li>
-<li>Alright, a new bot. How are we going to call it? Please choose a
-name for your bot.</li>
-<li>IngressHomogeneous</li>
-<li>Good. Now let's choose a username for your bot. It must end in
-<code>bot</code>. Like this, for example: TetrisBot or tetris_bot.</li>
-<li>IngressHomogeneousBot</li>
-<li>Done! Congratulations on your new bot. You will find it at
-t.me/IngressHomogeneousBot. You can now add a description, about section
-and profile picture for your bot, see /help for a list of commands. By
-the way, when you've finished creating your cool bot, ping our Bot
-Support if you want a better username for it. Just make sure the bot is
-fully operational before you do this.</li>
-</ul>
-<p>妥善保存最后的 API Token。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">You can control me by sending these commands:</span><br><span class="line"></span><br><span class="line">/newbot - create a new bot</span><br><span class="line">/mybots - edit your bots</span><br><span class="line"></span><br><span class="line">Edit Bots</span><br><span class="line">/setname - change a bot&#x27;s name</span><br><span class="line">/setdescription - change bot description</span><br><span class="line">/setabouttext - change bot about info</span><br><span class="line">/setuserpic - change bot profile photo</span><br><span class="line">/setcommands - change the list of commands</span><br><span class="line">/deletebot - delete a bot</span><br><span class="line"></span><br><span class="line">Bot Settings</span><br><span class="line">/token - generate authorization token</span><br><span class="line">/revoke - revoke bot access token</span><br><span class="line">/setinline - toggle inline mode</span><br><span class="line">/setinlinegeo - toggle inline location requests</span><br><span class="line">/setinlinefeedback - change inline feedback settings</span><br><span class="line">/setjoingroups - can your bot be added to groups?</span><br><span class="line">/setprivacy - toggle privacy mode in groups</span><br><span class="line"></span><br><span class="line">Web Apps</span><br><span class="line">/myapps - edit your web apps</span><br><span class="line">/newapp - create a new web app</span><br><span class="line">/listapps - get a list of your web apps</span><br><span class="line">/editapp - edit a web app</span><br><span class="line">/deleteapp - delete an existing web app</span><br><span class="line"></span><br><span class="line">Games</span><br><span class="line">/mygames - edit your games</span><br><span class="line">/newgame - create a new game</span><br><span class="line">/listgames - get a list of your games</span><br><span class="line">/editgame - edit a game</span><br><span class="line">/deletegame - delete an existing game</span><br></pre></td></tr></table></figure>
-<h1 id="获取我的-id">获取我的 id</h1>
-<p>每个 tg 用户都有一串唯一标识，即为 user_id，可以私聊 <a
-href="https://t.me/kmuav2bot"><span class="citation"
-data-cites="kmua">@kmua</span></a> 发送 /id 来获取它</p>
-<p>跟着<a
-href="https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot">Your-first-Bot</a>这个来就好了，理解的话可以参考<a
-href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
-bot吧|Telegram bot教程</a>。</p>
-<p>感觉整体比较好理解，接下来就是赋予其灵魂了～</p>
-<hr />
-<p>参考文章：</p>
-<p><a
-href="https://docs.python-telegram-bot.org/en/v20.8/">python-telegram-bot.org</a></p>
-<p><a
-href="https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions---Your-first-Bot">Your-first-Bot</a></p>
-<p><a
-href="https://krau.top/posts/tg-bot-dev-note-kmua">使用Python写一个Telegram
-bot吧|Telegram bot教程</a></p>
-]]></content>
-      <tags>
-        <tag>Telegram bot</tag>
-        <tag>ingress</tag>
-        <tag>Homogeneous</tag>
       </tags>
   </entry>
   <entry>
