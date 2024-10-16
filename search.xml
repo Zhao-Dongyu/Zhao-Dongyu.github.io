@@ -1,562 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
-    <url>/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</url>
-    <content><![CDATA[<p>本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
-kernel的反量化。</p>
+    <title>Hello World</title>
+    <url>/2018/09/10/0_hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
+first post. Check <a href="https://hexo.io/docs/">documentation</a> for
+more info. If you get any problems when using Hexo, you can find the
+answer in <a
+href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
+you can ask me on <a
+href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
 <span id="more"></span>
-<h1 id="背景">背景</h1>
-<p>在 ZZK大佬的文章 <a
-href="https://zhuanlan.zhihu.com/p/675427125">可能是讲的最清楚的WeightonlyGEMM博客</a>
-中学到很多知识</p>
-<hr />
-<p>最近在学AWQ的量化，<a
-href="https://arxiv.org/pdf/2306.00978">AWQ论文</a></p>
-<p>其中我比较关注GPU的部分，其中数据排布这块很有意思：</p>
-<p><img src="/images/101/1.jpeg" width="60%"></p>
-<p>于是到<a href="https://arxiv.org/pdf/2211.10017">Who Says Elephants
-Can’t Run</a> 这篇论文看了一下，<strong>WeightOnly GEMM</strong>
-技术就是在这里提出的，其中权重反量化是这么操作的：</p>
-<p><img src="/images/101/2.jpeg" width="60%"></p>
-<p>这个论文提出了一种 `IntToFloat
-的巧妙的方式，可以大大提速反量化速度。</p>
-<p><img src="/images/101/3.jpeg" width="60%"></p>
-<p>背景介绍结束，更详细的讲解可以直接看ZZK大佬的文章，接下来解释
-<code>dequantize_s4_to_fp16x2</code> 代码。</p>
-<h1 id="代码">代码</h1>
-<p>首先放出完整代码（80行）： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  uint4 result;</span><br><span class="line"></span><br><span class="line">  <span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line">  <span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// First, we extract the i4s and construct an intermediate fp16 number.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Note that the entire sequence only requires 1 shift instruction. This is</span></span><br><span class="line">  <span class="comment">// thanks to the register packing format and the fact that we force our</span></span><br><span class="line">  <span class="comment">// integers to be unsigned, and account for this in the fp16 subtractions. In</span></span><br><span class="line">  <span class="comment">// addition, I exploit the fact that sub and fma have the same throughput in</span></span><br><span class="line">  <span class="comment">// order to convert elt_23 and elt_67 to fp16 without having to shift them to</span></span><br><span class="line">  <span class="comment">// the bottom bits before hand.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Shift right by 8 to now consider elt_45 and elt_67. Issue first to hide RAW</span></span><br><span class="line">  <span class="comment">// dependency if we issue immediately before required.</span></span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br><span class="line">  <span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_45 (top_i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_67 (top_i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// I use inline PTX below because I am not sure if the compiler will emit</span></span><br><span class="line">  <span class="comment">// float2half instructions if I use the half2 ctor. In this case, I chose</span></span><br><span class="line">  <span class="comment">// performance reliability over code readability.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// This is the half2 &#123;1032, 1032&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t FP16_TOP_MAGIC_NUM = 0x64086408;</span></span><br><span class="line">  <span class="comment">// Haotian: subtract &#123;1024, 1024&#125; instead, we do not need to map to [-8, 7]</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> FP16_TOP_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;1 / 16, 1 / 16&#125; represented as an integer.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> ONE_SIXTEENTH = <span class="number">0x2c002c00</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;-72, -72&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t NEG_72 = 0xd480d480;</span></span><br><span class="line">  <span class="comment">// Haotian: Let&#x27;s use &#123;-64, -64&#125;.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> NEG_64 = <span class="number">0xd400d400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Finally, we construct the output numbers.</span></span><br><span class="line">  <span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_45</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">2</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_67</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">3</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h1 id="代码解析">代码解析</h1>
-<p>接下来逐句分析： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span></span><br></pre></td></tr></table></figure></p>
-<p>这行代码定义了一个名为 <code>dequantize_s4_to_fp16x2</code>
-的函数，这个函数是一个 CUDA 设备函数
-(<strong>device</strong>)，它的输入是一个常量引用 <code>uint32_t</code>
-类型的 <code>source</code>，返回值是 <code>uint4</code> 类型。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br></pre></td></tr></table></figure>
-<p>这段预处理指令检查 CUDA 架构版本是否小于
-750。如果是，则触发断言错误，表明该代码不适用于 CUDA 750
-以下的架构。否则，继续执行后面的代码。 比如这个函数里面用到了
-<code>lop3.b32</code> 函数，可以在 <a
-href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>
-查到</p>
-<pre><code>Requires sm_50 or higher.
-Qualifier .BoolOp requires sm_70 or higher.</code></pre>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">uint4 result;</span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line"><span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br></pre></td></tr></table></figure>
-<p>这里定义了一个 <code>uint4</code> 类型的变量
-<code>result</code>。</p>
-<p>接着将 <code>result</code> 的地址转换为 <code>uint32_t*</code>
-类型的指针 <code>h</code>，以便后续的位操作。</p>
-<p>然后将 <code>source</code> 重新解释为 <code>uint32_t</code>
-类型并赋值给 <code>i4s</code>。</p>
-<p>通过类型转换和指针操作，使得对这些整数的访问和操作更加便捷。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br></pre></td></tr></table></figure>
-<p>这里定义了一些用于位操作的常量：</p>
-<ul>
-<li><p><code>immLut</code> 是一个查找表的立即数。</p></li>
-<li><p><code>BOTTOM_MASK</code> 是用于提取较低位的掩码。</p></li>
-<li><p><code>TOP_MASK</code> 是用于提取较高位的掩码。</p></li>
-<li><p><code>I4s_TO_F16s_MAGIC_NUM</code>
-是用于整数转换为半精度浮点数的魔数。</p></li>
-</ul>
-<p><img src="/images/101/4.jpeg" width="95%"></p>
-<p>这几个数在内存中是这么表示的，后面用到的时候会仔细说，那时候会发现这几个数可真妙啊。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/101/5.jpeg" width="95%"></p>
-<p>这里是将 <code>i4s</code> 向右移位8位，以便处理 <code>elt_45</code>
-和 <code>elt_67</code>。暂时先不要管为什么这么做。
-到这里，预备工作都做好了，接下来开始重头戏。</p>
-<h2 id="处理e0-e1元素">处理e0 e1元素</h2>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
-<p>使用内联 PTX 指令 <code>lop3.b32</code> 执行逻辑操作，将
-<code>i4s</code> 的低位（<code>BOTTOM_MASK</code> 掩码）与
-<code>I4s_TO_F16s_MAGIC_NUM</code> 结合并存储在 <code>h[0]</code>
-中。</p>
-<p>首先看一下 <code>lop3.b32</code> 执行了什么操作，这个
-<code>lop3.b32</code> 是一种CUDA汇编指令，用于执行
-三元逻辑运算。它利用查找表（immLut）来简化逻辑操作。这个函数可以在<a
-href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>查到.</p>
-<pre><code>For a logical operation F(a, b, c) the value of immLut can be computed by applying the same operation to three predefined constant values as follows:
-
-ta = 0xF0;
-tb = 0xCC;
-tc = 0xAA;
-
-immLut = F(ta, tb, tc);</code></pre>
-<p>比如： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">If F = (a &amp; b &amp; c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; <span class="number">0xAA</span> = <span class="number">0x80</span></span><br><span class="line"></span><br><span class="line">If F = (a | b | c);</span><br><span class="line">immLut = <span class="number">0xF0</span> | <span class="number">0xCC</span> | <span class="number">0xAA</span> = <span class="number">0xFE</span></span><br><span class="line"></span><br><span class="line">If F = (a &amp; b &amp; ~c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; (~<span class="number">0xAA</span>) = <span class="number">0x40</span></span><br><span class="line"></span><br><span class="line">If F = ((a &amp; b | c) ^ a);</span><br><span class="line">immLut = (<span class="number">0xF0</span> &amp; <span class="number">0xCC</span> | <span class="number">0xAA</span>) ^ <span class="number">0xF0</span> = <span class="number">0x1A</span></span><br></pre></td></tr></table></figure></p>
-<p>现在我们可以看一下刚才定义的
-<code>immLut = (0xf0 &amp; 0xcc) | 0xaa;</code> 那我们得到的操作就是
-<code>(a &amp; b) | c</code>，也就是<code>( i4s &amp; BOTTOM_MASK) | I4s_TO_F16s_MAGIC_NUM</code>.</p>
-<p>这里先插一句，这个<code>immLut</code>设置的实在是太妙了！首先，abc这三个数可以形成一个
-3 bit 的编码，可以表示 8 种状态，</p>
-<p><img src="/images/101/6.jpeg" width="80%"></p>
-<p>然后无论abc进行什么样的三元逻辑操作，得到的结果都是唯一的，这也就形成了immLut的表。实在是妙啊。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
-<p>然后结合具体数值看一下是怎么操作的：</p>
-<p><img src="/images/101/7.jpeg" width="95%"></p>
-<p>这一步操作是提取元素0和元素1的，这里设置元素0是<code>0000</code>，即
-0，元素1是<code>0001</code>，即 1。</p>
-<p><code>i4s</code>与<code>BOTTOM_MASK</code>进行位与操作后，实际上就是把<code>e0</code>和<code>e1</code>筛选了出来，和<code>I4s_TO_F16s_MAGIC_NUM</code>进行位或操作后，是给指数位进行了赋值。</p>
-<p>现在看这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
-，<code>0x64006400</code>，只看这个指数位部分是
-<code>11001</code>，对应数字 25，fp16指数位的偏移量为
-<code>2**4−1=15</code>, 那么偏移后指数为 <code>25 - 15 = 10</code>。</p>
-<p>以e1为例，</p>
-<p>尾数位是<code>0.0000000001</code>，加上1，那就是<code>1.0000000001</code>。</p>
-<p>指数位是10，所以结果是<code>1.00000001*2^10 = 10000000001</code>。也就是小数点向后移动10位。</p>
-<p>这个结果的十进制是 1025。</p>
-<p>这时候就可以理解这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
-为什么这么设置了——原来的数值类型是<code>int4</code>，肯定是整数，那么问题的关键就是要把尾数放大到一定程度，使新的数值是整数。那么，显而易见，要把小数点向右移动10位（因为尾数位有10位），也就反推出了<code>magic number</code>的具体数值，妙啊。</p>
-<p>显然，此时的结果并不正确，因为加了1并且右移了10位，也就是加了1024，所以我们要把结果减去1024才可以，所以还需要进行这一步操作：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br></pre></td></tr></table></figure>
-<p>其中，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code></p>
-<p>这句代码实现了减1024这个操作，于是最终得到fp16格式的<code>e1=1</code>，
-<code>e0=0</code>，数据无误。</p>
-<p>需要注意的是，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code>这个数代表的其实是fp16格式的
-1024。</p>
-<p>我最开始在这里感到疑惑，心想为什么要减这么一个数，这也不是1024啊，直到后来意识到现在是在做fp16的减法，那么当然也要是fp16的格式。</p>
-<p>ok，到现在为止，最难的部分就理解完了。接下来看一下别的情况：</p>
-<h2 id="处理e2-e3元素">处理e2 e3元素</h2>
-<p><img src="/images/101/8.jpeg" width="95%"></p>
-<p>对于e2、e3而言，这时候就不能用 <code>BOTTOM_MASK</code>
-来进行位与操作了，应该改为 <code>TOP_MASK</code></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/101/9.jpeg" width="95%"></p>
-<p>如果减去1024，呢么得到<code>e3=48</code>，<code>e2=32</code>，这和刚才不太一样，事情变得不太简单。</p>
-<p>问题在哪？以e3为例，这时候小数点右移10位意味着把e3乘了<code>2^4=16</code>，所以当前的结果是<code>1024 + X * 16</code>。</p>
-<p>所以针对e2、e3的下一步操作稍有不同：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br></pre></td></tr></table></figure>
-<p>其中，<code>ONE_SIXTEENTH = 0x2c002c00; NEG_64 = 0xd400d400;</code></p>
-<p>这是做了什么操作？可以理解为</p>
-<p><code>(1024 + X * 16) * (1/16) - 64 = X</code></p>
-<p>ok，到现在为止，e0e1e2e3都搞定了，最后看一下e4e5，</p>
-<h2 id="处理e4-e5元素">处理e4 e5元素</h2>
-<p><img src="/images/101/10.jpeg" width="95%"></p>
-<p>e4 e5元素怎么提取呢？可以先认真思考一下。</p>
-<p>我最开始的想法是，针对e4
-e5的位置，再写一个mask进行位与操作不就好了，然后和前面做一样的操作。</p>
-<p>但是这样是不可行的，以e5为例，这时候e5在16位的高8位，与fp16的指数位有冲突。</p>
-<p>那么，处理方式就很简单了，文章最开始的时候提到过这个操作：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/101/11.jpeg" width="95%"></p>
-<p>这里是将 i4s 向右移位8位，以便处理 <code>elt_45</code> 和
-<code>elt_67</code>。</p>
-<p>这样一来，就可以按照e0 e1的方式处理e4 e5了。</p>
-<p>ok，到现在为止，e0 e1 e2 e3 e4 e5都搞定了，有了前面的基础，e6
-e7理解起来就很简单，这里不做过多赘述。</p>
-<p>整个代码实现到这里也就讲完了。</p>
-<hr />
-<h2 id="写在最后">写在最后</h2>
-<p>最后，补充几点</p>
-<ul>
-<li><p>对于e2e3而言，为什么不像e5e6那样，向右移动8位，然后做e0e1相同的操作？</p>
-<p>这样的操作从逻辑上确实更好理解，也避免了后面的乘1/16的操作，看上去似乎更简单。</p>
-<p>但是要明白一点，e5e6那样，向右移动8位，是不得不这么做。</p>
-<p>为了性能，e2e3没必要额外增加一个移位操作。所以关键点只剩一个：<code>fma.rn.f16x2</code>指令和<code>sub.f16x2</code>指令的区别，如果
-移位+sub指令 快于
-<code>fma.rn</code>指令，那就是赚的。代码中的注释标明了这一点：</p>
-<pre><code>  In addition, I exploit the fact that sub and fma have the same throughput in order to convert elt_23 and elt_67 to fp16 without having to shift them to the bottom bits before hand.</code></pre>
-<p>sub（减法）和
-fma（乘法累加）具有相同的吞吐量，这意味着它们的性能相当。</p></li>
-<li><p>为什么要做<code>interleave</code>？</p>
-<p>本文缘起就是因为研究这个权重排布</p>
-<p><img src="/images/101/12.jpeg" width="60%"></p>
-<p>前文中一直没有提这件事——为什么权重是<code>interleave</code>排布？</p>
-<p><img src="/images/101/13.png" width="95%"></p>
-<p>按照zzk大佬的观点，对于<code>Int8</code>来说，本来就是不需要<code>Interleave</code>的，但是<code>Int4</code>快速转换不能使用PRMT指令，需要通过一些trick，进而需要这个交错权重的格式</p>
-<p>也就是说，<code>int8</code>快速反量化中，使用了<code>PRMT</code>指令，这个指令的操作粒度是字节<code>byte</code>；而int4是<code>sub-byte</code>，不足一个字节；因此，原来在<code>INT8</code>快速反量化的那一套无法直接用在<code>int4</code>上。</p>
-<p>所以针对<code>int4</code>，使用指令<code>LOP3</code>来替代<code>PRMT</code>，从而完成了<code>int4</code>快速反量化到<code>fp16</code>的核心逻辑。通过交错权重，可以减少<code>shift</code>指令，提高性能。关于这一点，我认为<a
-href="https://zhuanlan.zhihu.com/p/657073857?utm_medium=social&amp;utm_oi=56635854684160&amp;utm_psn=1692002696943525888&amp;utm_source=wechat_session&amp;s_r=0">[LLM推理优化]🔥WINT8/4-(03):
-LOP3指令详解及INT4转FP16/BF16分析</a> 讲解的比较详细。</p></li>
-</ul>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="run-server">Run server</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a
+href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
-      <tags>
-        <tag>LLM</tag>
-        <tag>AWQ</tag>
-        <tag>dequantize</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Optimize sgemm on RISC-V platform</title>
-    <url>/2024/02/26/103_sgemm_riscv_en/</url>
-    <content><![CDATA[<p>This project records the process of optimizing SGEMM
-(single-precision floating point General Matrix Multiplication) on the
-riscv platform.</p>
-<p><img src=/images/sgemm/data/result_all.png width=70% /></p>
-<span id="more"></span>
-<p>This project records the process of optimizing SGEMM
-(single-precision floating point General Matrix Multiplication) on the
-riscv platform.</p>
-<p>General Matrix Multiplication (GEMM) is one of the core computing
-units in deep learning frameworks, widely used for implementing
-operators such as Convolution, Full Connection, and Matmul.</p>
-<p>I conducted experiments and explorations on the <strong>Allwinner
-Nezha D1</strong> development board. <code>Versions 0 through 5</code>
-were implemented using the C language, while
-<code>versions 6 through 9</code> partially utilized assembly language,
-involving the <code>RISC-V V</code> extension instructions.</p>
-<p>Note: Unlike some other GEMM optimization projects, this project uses
-<strong>row-major order</strong> matrices exclusively. Because I prefer
-<strong>row-major order</strong>!</p>
-<h1 id="prerequisite-knowledge">Prerequisite Knowledge</h1>
-<p><img src=/images/sgemm/pics/riscv.gif width=50% /></p>
-<p><a href="https://riscv.org/">RISC-V</a> is an open standard
-Instruction Set Architecture (ISA) enabling a new era of processor
-innovation through open collaboration.</p>
-<hr />
-<p><img src=/images/sgemm/pics/GEMM.png width=70% /></p>
-<p><a
-href="https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms#Level_3">GEMM</a>
-General matrix multiply, one of the Basic Linear Algebra
-Subprograms.</p>
-<hr />
-<p><a href="https://en.wikipedia.org/wiki/FLOPS">FLOPS</a> stands for
-Floating-point Operations Per Second, also known as peak speed per
-second. It refers to the number of floating-point operations executed
-per second. One <strong>gigaflop (GFLOPS)</strong> equals ten to the
-power of nine (10^9) floating-point operations per second.</p>
-<p>The computational complexity of matrix multiplication is calculated
-as <code>2 * M * N * K</code>. The ratio of computational complexity to
-time taken gives the GFLOPS of the current GEMM version. - Multiplying
-by 2 is because each operation involves one multiplication and one
-addition.</p>
-<h1 id="prepare">Prepare</h1>
-<p>The related code is located in <code>./prepare/</code>.</p>
-<h2 id="test-cross-compilation">Test Cross-Compilation</h2>
-<p>I use the <strong>Allwinner Nezha D1</strong> development board, and
-downloaded the cross-compilation link from <a
-href="https://xuantie.t-head.cn/community/download?id=4090445921563774976">here</a>.</p>
-<p>For detailed instructions, please refer to the <a
-href="https://github.com/Zhao-Dongyu/sgemm_riscv/blob/main/prepare/README.md">readme</a>.</p>
-<h2 id="memory-bandwidth-test">Memory Bandwidth Test</h2>
-<p>I conducted memory bandwidth tests on the development board using the
-following projects:</p>
-<ul>
-<li><a
-href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/2.memcpy_bandwidth_test">2.memcpy_bandwidth_test</a></li>
-<li><a
-href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/3.flw_bandwidth_test">3.flw_bandwidth_test</a></li>
-<li><a
-href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/4.vlw_bandwidth_test">4.vlw_bandwidth_test</a></li>
-</ul>
-<p><img src=/images/sgemm/prepare/imgs/memory_bandwidth_test.png width=70% /></p>
-<h2 id="roofline-model">Roofline Model</h2>
-<p><a href="https://en.wikipedia.org/wiki/Roofline_model">Roofline</a>
-proposes a method for quantitative analysis using "Operational
-Intensity" and provides a formula for the theoretical performance limit
-achievable on computational platforms.</p>
-<p>According to <a href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL
-Public Course | RISC-V Technical Analysis</a>:</p>
-<ul>
-<li>The computing power of D1 can reach <code>4 GFlops</code> (<span
-class="citation" data-cites="1GHz">@1GHz</span>).</li>
-<li>Memory: <code>2.727 GB/s</code> (DDR3 792 MHz).
-<ul>
-<li>Although I measured the highest as <code>2.592 GB/s</code>, there
-may be some problems somewhere?</li>
-<li>Let's trust Sensetime for now, temporarily accept its value.</li>
-</ul></li>
-</ul>
-<p><img src=/images/sgemm/pics/roofline.png width=70% /></p>
-<h1 id="sgemm-optimization">SGEMM Optimization</h1>
-<p>Related code is located in <code>./sgemm/</code>.</p>
-<h2 id="usage">Usage</h2>
-<p>Take <code>step0</code> as an example, you need to edit the Makefile
-first to configure your cross-compilation chain.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> sgemm/step0/</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">adb push test_bl_sgemm_step0.x ./.</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">adb shell <span class="string">&#x27;./test_bl_sgemm_step0.x&#x27;</span></span></span><br></pre></td></tr></table></figure>
-<h2 id="version-0-naive-version">Version 0: Naive Version</h2>
-<p>This version seems to be <strong>the most intuitive</strong> to me,
-after all, this is how I learned, understood, and computed matrix
-multiplication: &gt; Multiply one row of A by one column of B to get one
-element of C.</p>
-<p><img src=/images/sgemm/data/result_0.png width=70% /></p>
-<p><img src=/images/sgemm/pics/step0.gif width=70% /></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i ++ ) &#123;              <span class="comment">// Start 2-th loop</span></span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j ++ ) &#123;          <span class="comment">// Start 1-nd loop</span></span><br><span class="line">        <span class="keyword">for</span> ( p = <span class="number">0</span>; p &lt; k; p ++ ) &#123;      <span class="comment">// Start 0-st loop</span></span><br><span class="line">            C( i, j ) += A( i, p ) * B( p, j );</span><br><span class="line">        &#125;                                 <span class="comment">// End   0-th loop</span></span><br><span class="line">    &#125;                                     <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                         <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
-<p>I think <code>version 0</code> very well explains the formula <span
-class="math inline">\(C_{mn} = \sum_{k=1}^{K} A_{mk}B_{kn}\)</span>.</p>
-<p>However, this version has obvious shortcomings: on a platform with a
-theoretical computing power of <code>4 GFLOPS</code>, it only achieves a
-maximum computational performance of <code>0.03 GFLOPS</code>. This is
-because <strong>the access to matrix B has a very low cache hit rate,
-i.e., "poor spatial locality"</strong>. Throughout the calculation, it
-is equivalent to accessing matrix B many, many times.</p>
-<p>It is advisable to access the elements of multi-dimensional arrays in
-sequential order. This can improve the spatial locality of memory access
-and make it more friendly to the cache.</p>
-<p>Furthermore, it can be observed that with the increase in size, the
-performance fluctuates significantly. Analysis of the data shows that
-when m=n=k is 128 164 192 228 256 288 320 352 384, the performance is
-poor. These numbers differ by 32, and 32 * 4 (sizeof(float)) = 128
-B.</p>
-<p>It is speculated that the performance fluctuation is related to
-cacheline and hardware prefetching -- cacheline = 64B, after cache miss,
-hardware prefetching, i.e., HWPrefetcher, reads one more cacheline.</p>
-<h2 id="version-1-loop-interchange-version">Version 1: Loop Interchange
-Version</h2>
-<p>Reusing data in the cache is the most basic and efficient use of
-cache. For nested loops, <code>loop interchange</code>,
-<code>loop reversal</code>, <code>loop fusion</code>,
-<code>loop distribution</code>, <code>loop tiling</code>,
-<code>loop unrolling and jam</code>, etc., can be used to improve
-program performance.</p>
-<p>Selecting an appropriate loop transformation method can both maintain
-the semantics of the program and improve its performance.</p>
-<p><img src=/images/sgemm/data/result_1.png width=70% /></p>
-<p><img src=/images/sgemm/pics/step1.gif width=70% /></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i ++ ) &#123;              <span class="comment">// Start 2-th loop</span></span><br><span class="line">    <span class="keyword">for</span> ( p = <span class="number">0</span>; p &lt; k; p ++ ) &#123;          <span class="comment">// Start 1-st loop</span></span><br><span class="line">        <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j ++ ) &#123;      <span class="comment">// Start 0-nd loop</span></span><br><span class="line">            C( i, j ) += A( i, p ) * B( p, j );</span><br><span class="line">        &#125;                                 <span class="comment">// End   0-th loop</span></span><br><span class="line">    &#125;                                     <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                         <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
-<p>Compared with <code>version 0</code>, <code>version 1</code> has
-better spatial locality for the operation on matrix B, and the
-performance has been greatly improved (especially for larger sizes,
-while for m = n = k &lt;= 68, the efficiency of version 0 is
-higher).</p>
-<p>Adjusting the order of m, n, and k does not affect the result (i.e.,
-maintaining the semantics of the program), but it can affect the
-performance. Testing the performance of different loop orders (using the
-Allwinner Nezha D1 platform, with m=n=k=512 as an example)</p>
-<table>
-<thead>
-<tr class="header">
-<th>Loop Order</th>
-<th>GFLOPS</th>
-<th>Analysis</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>MNK</td>
-<td>0.012</td>
-<td>High cache miss for accessing B</td>
-</tr>
-<tr class="even">
-<td>MKN</td>
-<td>0.180</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>NMK</td>
-<td>0.012</td>
-<td>High cache miss for accessing B</td>
-</tr>
-<tr class="even">
-<td>NKM</td>
-<td>0.009</td>
-<td>High cache miss for accessing A</td>
-</tr>
-<tr class="odd">
-<td>KMN</td>
-<td>0.165</td>
-<td></td>
-</tr>
-<tr class="even">
-<td>KNM</td>
-<td>0.009</td>
-<td>High cache miss for accessing A</td>
-</tr>
-</tbody>
-</table>
-<p>However, the hardware utilization of <code>version 1</code> is still
-very low, and further optimizations are needed.</p>
-<h2 id="version-2-blocking-version">Version 2: Blocking Version</h2>
-<p><img src=/images/sgemm/data/result_2.png width=70% /></p>
-<p><img src=/images/sgemm/pics/step2.gif width=70% /></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;          <span class="comment">// Start 2-nd loop</span></span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;      <span class="comment">// Start 1-st loop</span></span><br><span class="line">        AddDot_4x4_opt( k, &amp;A( i, <span class="number">0</span> ), lda, &amp;B( <span class="number">0</span>, j ), ldb, &amp;C( i, j ), ldc );</span><br><span class="line">    &#125;                                          <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                              <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
-<p><img src=/images/sgemm/pics/gemm_block.png width=70% /></p>
-<p>To avoid unnecessary cache swapping, blocking processing is
-performed. <a href="https://zhuanlan.zhihu.com/p/342923482">Discussing
-Why Blocking Matrix Optimization Works</a> is a good read, I recommend
-learning from it.</p>
-<p>After performing block operations in <code>version 2</code>, the
-performance is still not satisfactory. This is because, although this
-version superficially implements blocking logic, there are still some
-small tricks in the calculation within the block that have not been
-applied.</p>
-<h2 id="version-3-blocked-optimization-version">Version 3: Blocked
-Optimization Version</h2>
-<p><img src=/images/sgemm/data/result_3.png width=70% /></p>
-<p><img src=/images/sgemm/pics/step3.gif width=70% /></p>
-<p><code>AddDot_4x4_opt</code> has been added.</p>
-<p>Several tricks are mentioned in<a
-href="https://github.com/flame/blislab/blob/master/tutorial.pdf">BLISlab-tutorial</a>:</p>
-<ul>
-<li>2.4.2 Loop unrolling
-<ul>
-<li>Updating loop index i and the pointer cp every time through the
-inner loop creates considerable overhead. For this reason, a compiler
-will perform loop unrolling.</li>
-</ul></li>
-<li>2.4.3 Register variables
-<ul>
-<li>Notice that computation can only happen if data is stored in
-registers. A compiler will automatically transform code so that the
-intermediate steps that place certain data in registers is
-inserted.</li>
-</ul></li>
-</ul>
-<p>After using these tricks, this version has significantly improved
-performance!</p>
-<p>However, for larger matrix sizes, the performance of this version is
-still relatively low. Upon investigation, for example, after accessing
-B[0,0], B[0,1], B[0,2], B[0,3], when accessing B[1,0], when the size is
-large, there must be a <code>cache miss</code>. Therefore, it would be
-great if the data could be rearranged in advance.</p>
-<h2 id="version-4-b-prepack-version">Version 4: B prepack Version</h2>
-<p><img src=/images/sgemm/data/result_4.png width=70% /></p>
-<p><img src=/images/sgemm/pics/step4.gif width=70% /></p>
-<p>I assume matrix B is <strong>parameter</strong>, so we can perform
-the <code>pack</code> operation in advance. Version 4
-<code>prepack</code> matrix B, leading to further performance
-improvement!</p>
-<p>The reason for the performance improvement is evident: there is a
-significant reduction in <code>cache misses</code> when accessing matrix
-B. This is the first time I deeply realized the importance of
-<code>prepacking neural network weights</code> before model
-inference.</p>
-<p>It can be seen that when the size is relatively large, the
-performance still declines. This should be due to a high number of cache
-misses when accessing matrix A. Should we pack A?</p>
-<p>I assume matrix A is <strong>input</strong>, so packing A cannot be
-done in advance and must be included in the overall timing. Is it
-necessary?</p>
-<h2 id="version-5-a-pack-b-prepack-version">Version 5: A pack &amp; B
-prepack Version</h2>
-<p><img src=/images/sgemm/data/result_5.png width=70% /></p>
-<p><img src=/images/sgemm/pics/step5.gif width=70% /></p>
-<p>Based on Version 4, Version 5 performs packing on matrix A.</p>
-<p>Here, since matrix A is assumed to be an input, packing A needs to be
-performed during computation, and this time consumption needs to be
-included in the timing.</p>
-<p>The results are still pleasing, especially with large matrix sizes,
-achieving further performance improvements.</p>
-<p>I initially approached this experiment with a trial-and-error
-mindset, considering the additional read of A and writing of packA. It
-seems the main challenge ahead lies in combating cache misses.</p>
-<p>The current optimization direction has reached its limit. It's worth
-trying to do some <code>preload</code> during the calculation
-process.</p>
-<p>Next, we'll move to assembly, work on vector calculations, and
-implement <code>preload</code> in assembly.</p>
-<h2 id="version-6-assembly-version">Version 6: Assembly Version</h2>
-<p><img src=/images/sgemm/data/result_6.png width=70% /></p>
-<p>Brief explanation: A is not packed, but B is prepacked with 16
-numbers.</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;       <span class="comment">// Start 2-nd loop</span></span><br><span class="line">    <span class="type">int</span> mb = DGEMM_MR;</span><br><span class="line">    <span class="keyword">if</span>((m - i) &lt; DGEMM_MR) mb = m - i; </span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;   <span class="comment">// Start 1-st loop</span></span><br><span class="line">        <span class="type">int</span> nb = DGEMM_NR;</span><br><span class="line">        <span class="keyword">if</span>((n - j) &lt; DGEMM_NR) nb = n - j; </span><br><span class="line">        RvvSgemm4x16(   nb,                 <span class="comment">// nr &lt;= 16, a0</span></span><br><span class="line">                        mb,                 <span class="comment">// mr &lt;= 4,  a1</span></span><br><span class="line">                        k,                  <span class="comment">// astride = k*sizeof(float), a2</span></span><br><span class="line">                        &amp;A[i * k],          <span class="comment">// mr * k,   a3</span></span><br><span class="line">                        &amp;packB[j * k],      <span class="comment">// k * 16,   a4</span></span><br><span class="line">                        &amp;C( i, j ),         <span class="comment">// mr * nr,  a5</span></span><br><span class="line">                        n * <span class="keyword">sizeof</span>(<span class="type">float</span>),  <span class="comment">// Len(N) * sizeof(float), a6</span></span><br><span class="line">                        bias</span><br><span class="line">                    );</span><br><span class="line">    &#125;                                       <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                           <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
-<p>Regarding the use of rvv instructions, I believe <code>vsetvli</code>
-is essential, and <code>vfmacc.vf</code> is the mainstay.</p>
-<p>I have learned a lot from <a
-href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL Course | RISC-V
-Technical Analysis</a>. They are truly professional! I recommend
-learning theoretical guidance and knowledge points from them, paying
-tribute to OpenPPL!</p>
-<p>As for assembly operators, there are many details in assembly, and I
-strongly complain: <strong>writing assembly is really annoying!
-Especially the debugging process, it's torturous.</strong> The last time
-I wrote assembly was during my undergraduate classes. Picking it up
-again brings some novelty and excitement, and being able to control the
-execution of operators at a very fine granularity gives a great sense of
-accomplishment.</p>
-<p>Regarding how the assembly files are implemented specifically, I
-believe the fastest way is to look at the assembly code. I won't explain
-it further here.</p>
-<p>It should be noted that this version's performance is very poor. Why
-is that? It's another issue of <strong>loop order</strong>.</p>
-<h2 id="version-7-assembly-version-with-loop-order-swapped">Version 7:
-Assembly Version with Loop Order Swapped</h2>
-<p><img src=/images/sgemm/data/result_7.png width=70% /></p>
-<p>Brief explanation: A is not packed, but B is prepacked with 16
-numbers.</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;       <span class="comment">// Start 2-st loop</span></span><br><span class="line">    <span class="type">int</span> nb = DGEMM_NR;</span><br><span class="line">    <span class="keyword">if</span>((n - j) &lt; DGEMM_NR) nb = n - j; </span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;   <span class="comment">// Start 1-nd loop</span></span><br><span class="line">        <span class="type">int</span> mb = DGEMM_MR;</span><br><span class="line">        <span class="keyword">if</span>((m - i) &lt; DGEMM_MR) mb = m - i; </span><br><span class="line">        RvvSgemm4x16(   nb,                 <span class="comment">// nr &lt;= 16, a0</span></span><br><span class="line">                        mb,                 <span class="comment">// mr &lt;= 4,  a1</span></span><br><span class="line">                        k,                  <span class="comment">// astride = k*sizeof(float), a2</span></span><br><span class="line">                        &amp;A[i * k],          <span class="comment">// mr * k,   a3</span></span><br><span class="line">                        &amp;packB[j * k],      <span class="comment">// k * 16,   a4</span></span><br><span class="line">                        &amp;C( i, j ),         <span class="comment">// mr * nr,  a5</span></span><br><span class="line">                        n * <span class="keyword">sizeof</span>(<span class="type">float</span>),  <span class="comment">// Len(N) * sizeof(float), a6</span></span><br><span class="line">                        bias</span><br><span class="line">                    );</span><br><span class="line">    &#125;                                       <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                           <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
-<p>Reversing the order of loops, starting with the n-direction followed
-by the m-direction, significantly improves performance.</p>
-<p>However, the performance of large-sized matrices is still not very
-good. The root cause remains in <code>memory access</code>. The
-computation of large-sized matrices in the <code>roofline model</code>
-is considered <code>compute-bound</code>, where ideally the
-<code>compute time</code> and <code>memory access time</code> should
-overlap as much as possible. Currently, a significant amount of time is
-spent on memory access (mostly due to <code>cache miss</code>!).</p>
-<h2 id="version-8-assembly-version-with-preload">Version 8: Assembly
-Version with Preload</h2>
-<p><img src=/images/sgemm/data/result_8.png width=70% /></p>
-<p>Brief Explanation: Matrix A is not <code>packed</code>, while Matrix
-B undergoes <code>prepackaging</code> of 16 elements and includes a
-<code>preload</code> operation.</p>
-<p>The performance is explosive! It reaches a maximum of
-<code>2.212 GFLOPS</code>.</p>
-<p>Core operations:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vfmacc.vf v16,  ft0, v0</span><br><span class="line">vlw.v v4, (bp0)         # b0&#x27;-&gt;v4</span><br><span class="line">flw fs4, 384(bp0)       # pre-load B</span><br><span class="line">addi bp0,bp0,64</span><br><span class="line">vfmacc.vf v20,  ft1, v0</span><br></pre></td></tr></table></figure>
-<p>Inserting some <code>load</code> operations between
-<code>vfmacc.vf</code> instructions preloads the data that will be used
-later into the <code>cache</code>, significantly reducing
-<code>cache miss</code>.</p>
-<p>Initially, I was puzzled—how can the <code>compute time</code> and
-<code>memory access time</code> overlap when the code seems to execute
-sequentially? It wasn't until later that I understood the essence here,
-which lies in the principle of <code>cacheline</code>. Indeed,
-foundational knowledge is crucial!</p>
-<h2 id="version-9-assembly-version-with-a-packed">Version 9: Assembly
-Version with A Packed</h2>
-<p><img src=/images/sgemm/data/result_9.png width=70% /></p>
-<p>Based on previous experience, an attempt was made to
-<code>pack</code> Matrix A, but surprisingly, the results were not very
-good. A brief analysis suggests that the preload for Matrix A in this
-version of the assembly code might not be optimized.</p>
-<p>In the previous version, although A wasn't packed, there was preload
-for A's 4 rows, which also addressed the pain point of cache miss for
-Matrix A.</p>
-<h1 id="conclusion">Conclusion</h1>
-<p>To continue optimizing this operator, there is still much to be done,
-such as rearranging pipelines in assembly.</p>
-<p>As mentioned in the OpenPPL Course | RISC-V Technical Analysis, using
-<code>vf</code> instructions can achieve 80% of the theoretical peak,
-which is 4*80%, <code>3.2 GFLOPs</code>. I currently have only
-<code>2.121 GFLOPs</code>, indicating there's still a lot of room for
-optimization theoretically.</p>
-<p>Furthermore, the RVV currently uses version 0.7.1, and it seems
-there's still much work to be done in RVV instruction optimization, such
-as the serious efficiency problem encountered with <code>vlw</code>.</p>
-<p>In conclusion, working on these tasks has allowed me to learn a lot
-from many experts, and I'm very grateful. I also hope this article can
-help more people.</p>
-<h1 id="acknowledgement">Acknowledgement</h1>
-<ul>
-<li><p><a href="https://github.com/flame/blislab">BLISlab: A Sandbox for
-Optimizing GEMM</a></p>
-<p>This project introduced me to how to optimize GEMM</p></li>
-<li><p><a
-href="https://github.com/surez-ok/blislab_riscv">riscv平台优化矩阵乘(基于blislab优化实践)</a></p>
-<p>I conduct experiments and exploration based on this project</p></li>
-<li><p>Thanks to Mr. Ding for your guidance.</p></li>
-</ul>
-<h1 id="references">References</h1>
-<p><a href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL 公开课 |
-RISC-V 技术解析</a></p>
-<p><a href="http://riscvbook.com/">RISC-V-Reader</a></p>
-<p><a
-href="https://github.com/riscv/riscv-v-spec/releases">riscv-v-spec-0.7.1</a></p>
-<p><a
-href="https://www.cs.utexas.edu/users/pingali/CS378/2008sp/papers/gotoPaper.pdf">Anatomy
-of High-Performance Matrix Multiplication</a></p>
-<p><a
-href="https://developer.huawei.com/consumer/cn/forum/topic/0201105374686101528">编译器优化丨Cache优化</a></p>
-<p><a
-href="https://www.leiphone.com/category/yanxishe/Puevv3ZWxn0heoEv.html">OpenBLAS项目与矩阵乘法优化
-| AI 研习社</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
-Model与深度学习模型的性能分析</a></p>
-<p><a
-href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为什么有用</a></p>
-<h1 id="thanks-for-your-support">Thanks for your support!</h1>
-<p><a
-href="https://buymeacoffee.com/zhaodongyu"><strong>Buymeacoffee</strong></a>
-<a href="https://paypal.me/ZhaoDongyu"><strong>Paypal</strong></a></p>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>RISCV</tag>
-        <tag>GEMM</tag>
-        <tag>HPC</tag>
-      </tags>
   </entry>
   <entry>
     <title>Battlegrounds</title>
@@ -2444,6 +1915,181 @@ left!)<br>Finish in 1st place as Zephrys the Great
       </tags>
   </entry>
   <entry>
+    <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
+    <url>/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</url>
+    <content><![CDATA[<p>本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
+kernel的反量化。</p>
+<span id="more"></span>
+<h1 id="背景">背景</h1>
+<p>在 ZZK大佬的文章 <a
+href="https://zhuanlan.zhihu.com/p/675427125">可能是讲的最清楚的WeightonlyGEMM博客</a>
+中学到很多知识</p>
+<hr />
+<p>最近在学AWQ的量化，<a
+href="https://arxiv.org/pdf/2306.00978">AWQ论文</a></p>
+<p>其中我比较关注GPU的部分，其中数据排布这块很有意思：</p>
+<p><img src="/images/101/1.jpeg" width="60%"></p>
+<p>于是到<a href="https://arxiv.org/pdf/2211.10017">Who Says Elephants
+Can’t Run</a> 这篇论文看了一下，<strong>WeightOnly GEMM</strong>
+技术就是在这里提出的，其中权重反量化是这么操作的：</p>
+<p><img src="/images/101/2.jpeg" width="60%"></p>
+<p>这个论文提出了一种 `IntToFloat
+的巧妙的方式，可以大大提速反量化速度。</p>
+<p><img src="/images/101/3.jpeg" width="60%"></p>
+<p>背景介绍结束，更详细的讲解可以直接看ZZK大佬的文章，接下来解释
+<code>dequantize_s4_to_fp16x2</code> 代码。</p>
+<h1 id="代码">代码</h1>
+<p>首先放出完整代码（80行）： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  uint4 result;</span><br><span class="line"></span><br><span class="line">  <span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line">  <span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// First, we extract the i4s and construct an intermediate fp16 number.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Note that the entire sequence only requires 1 shift instruction. This is</span></span><br><span class="line">  <span class="comment">// thanks to the register packing format and the fact that we force our</span></span><br><span class="line">  <span class="comment">// integers to be unsigned, and account for this in the fp16 subtractions. In</span></span><br><span class="line">  <span class="comment">// addition, I exploit the fact that sub and fma have the same throughput in</span></span><br><span class="line">  <span class="comment">// order to convert elt_23 and elt_67 to fp16 without having to shift them to</span></span><br><span class="line">  <span class="comment">// the bottom bits before hand.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Shift right by 8 to now consider elt_45 and elt_67. Issue first to hide RAW</span></span><br><span class="line">  <span class="comment">// dependency if we issue immediately before required.</span></span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br><span class="line">  <span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_45 (top_i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_67 (top_i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// I use inline PTX below because I am not sure if the compiler will emit</span></span><br><span class="line">  <span class="comment">// float2half instructions if I use the half2 ctor. In this case, I chose</span></span><br><span class="line">  <span class="comment">// performance reliability over code readability.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// This is the half2 &#123;1032, 1032&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t FP16_TOP_MAGIC_NUM = 0x64086408;</span></span><br><span class="line">  <span class="comment">// Haotian: subtract &#123;1024, 1024&#125; instead, we do not need to map to [-8, 7]</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> FP16_TOP_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;1 / 16, 1 / 16&#125; represented as an integer.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> ONE_SIXTEENTH = <span class="number">0x2c002c00</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;-72, -72&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t NEG_72 = 0xd480d480;</span></span><br><span class="line">  <span class="comment">// Haotian: Let&#x27;s use &#123;-64, -64&#125;.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> NEG_64 = <span class="number">0xd400d400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Finally, we construct the output numbers.</span></span><br><span class="line">  <span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_45</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">2</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_67</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">3</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="代码解析">代码解析</h1>
+<p>接下来逐句分析： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span></span><br></pre></td></tr></table></figure></p>
+<p>这行代码定义了一个名为 <code>dequantize_s4_to_fp16x2</code>
+的函数，这个函数是一个 CUDA 设备函数
+(<strong>device</strong>)，它的输入是一个常量引用 <code>uint32_t</code>
+类型的 <code>source</code>，返回值是 <code>uint4</code> 类型。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br></pre></td></tr></table></figure>
+<p>这段预处理指令检查 CUDA 架构版本是否小于
+750。如果是，则触发断言错误，表明该代码不适用于 CUDA 750
+以下的架构。否则，继续执行后面的代码。 比如这个函数里面用到了
+<code>lop3.b32</code> 函数，可以在 <a
+href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>
+查到</p>
+<pre><code>Requires sm_50 or higher.
+Qualifier .BoolOp requires sm_70 or higher.</code></pre>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">uint4 result;</span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line"><span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br></pre></td></tr></table></figure>
+<p>这里定义了一个 <code>uint4</code> 类型的变量
+<code>result</code>。</p>
+<p>接着将 <code>result</code> 的地址转换为 <code>uint32_t*</code>
+类型的指针 <code>h</code>，以便后续的位操作。</p>
+<p>然后将 <code>source</code> 重新解释为 <code>uint32_t</code>
+类型并赋值给 <code>i4s</code>。</p>
+<p>通过类型转换和指针操作，使得对这些整数的访问和操作更加便捷。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br></pre></td></tr></table></figure>
+<p>这里定义了一些用于位操作的常量：</p>
+<ul>
+<li><p><code>immLut</code> 是一个查找表的立即数。</p></li>
+<li><p><code>BOTTOM_MASK</code> 是用于提取较低位的掩码。</p></li>
+<li><p><code>TOP_MASK</code> 是用于提取较高位的掩码。</p></li>
+<li><p><code>I4s_TO_F16s_MAGIC_NUM</code>
+是用于整数转换为半精度浮点数的魔数。</p></li>
+</ul>
+<p><img src="/images/101/4.jpeg" width="95%"></p>
+<p>这几个数在内存中是这么表示的，后面用到的时候会仔细说，那时候会发现这几个数可真妙啊。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/5.jpeg" width="95%"></p>
+<p>这里是将 <code>i4s</code> 向右移位8位，以便处理 <code>elt_45</code>
+和 <code>elt_67</code>。暂时先不要管为什么这么做。
+到这里，预备工作都做好了，接下来开始重头戏。</p>
+<h2 id="处理e0-e1元素">处理e0 e1元素</h2>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p>使用内联 PTX 指令 <code>lop3.b32</code> 执行逻辑操作，将
+<code>i4s</code> 的低位（<code>BOTTOM_MASK</code> 掩码）与
+<code>I4s_TO_F16s_MAGIC_NUM</code> 结合并存储在 <code>h[0]</code>
+中。</p>
+<p>首先看一下 <code>lop3.b32</code> 执行了什么操作，这个
+<code>lop3.b32</code> 是一种CUDA汇编指令，用于执行
+三元逻辑运算。它利用查找表（immLut）来简化逻辑操作。这个函数可以在<a
+href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>查到.</p>
+<pre><code>For a logical operation F(a, b, c) the value of immLut can be computed by applying the same operation to three predefined constant values as follows:
+
+ta = 0xF0;
+tb = 0xCC;
+tc = 0xAA;
+
+immLut = F(ta, tb, tc);</code></pre>
+<p>比如： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">If F = (a &amp; b &amp; c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; <span class="number">0xAA</span> = <span class="number">0x80</span></span><br><span class="line"></span><br><span class="line">If F = (a | b | c);</span><br><span class="line">immLut = <span class="number">0xF0</span> | <span class="number">0xCC</span> | <span class="number">0xAA</span> = <span class="number">0xFE</span></span><br><span class="line"></span><br><span class="line">If F = (a &amp; b &amp; ~c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; (~<span class="number">0xAA</span>) = <span class="number">0x40</span></span><br><span class="line"></span><br><span class="line">If F = ((a &amp; b | c) ^ a);</span><br><span class="line">immLut = (<span class="number">0xF0</span> &amp; <span class="number">0xCC</span> | <span class="number">0xAA</span>) ^ <span class="number">0xF0</span> = <span class="number">0x1A</span></span><br></pre></td></tr></table></figure></p>
+<p>现在我们可以看一下刚才定义的
+<code>immLut = (0xf0 &amp; 0xcc) | 0xaa;</code> 那我们得到的操作就是
+<code>(a &amp; b) | c</code>，也就是<code>( i4s &amp; BOTTOM_MASK) | I4s_TO_F16s_MAGIC_NUM</code>.</p>
+<p>这里先插一句，这个<code>immLut</code>设置的实在是太妙了！首先，abc这三个数可以形成一个
+3 bit 的编码，可以表示 8 种状态，</p>
+<p><img src="/images/101/6.jpeg" width="80%"></p>
+<p>然后无论abc进行什么样的三元逻辑操作，得到的结果都是唯一的，这也就形成了immLut的表。实在是妙啊。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p>然后结合具体数值看一下是怎么操作的：</p>
+<p><img src="/images/101/7.jpeg" width="95%"></p>
+<p>这一步操作是提取元素0和元素1的，这里设置元素0是<code>0000</code>，即
+0，元素1是<code>0001</code>，即 1。</p>
+<p><code>i4s</code>与<code>BOTTOM_MASK</code>进行位与操作后，实际上就是把<code>e0</code>和<code>e1</code>筛选了出来，和<code>I4s_TO_F16s_MAGIC_NUM</code>进行位或操作后，是给指数位进行了赋值。</p>
+<p>现在看这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
+，<code>0x64006400</code>，只看这个指数位部分是
+<code>11001</code>，对应数字 25，fp16指数位的偏移量为
+<code>2**4−1=15</code>, 那么偏移后指数为 <code>25 - 15 = 10</code>。</p>
+<p>以e1为例，</p>
+<p>尾数位是<code>0.0000000001</code>，加上1，那就是<code>1.0000000001</code>。</p>
+<p>指数位是10，所以结果是<code>1.00000001*2^10 = 10000000001</code>。也就是小数点向后移动10位。</p>
+<p>这个结果的十进制是 1025。</p>
+<p>这时候就可以理解这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
+为什么这么设置了——原来的数值类型是<code>int4</code>，肯定是整数，那么问题的关键就是要把尾数放大到一定程度，使新的数值是整数。那么，显而易见，要把小数点向右移动10位（因为尾数位有10位），也就反推出了<code>magic number</code>的具体数值，妙啊。</p>
+<p>显然，此时的结果并不正确，因为加了1并且右移了10位，也就是加了1024，所以我们要把结果减去1024才可以，所以还需要进行这一步操作：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code></p>
+<p>这句代码实现了减1024这个操作，于是最终得到fp16格式的<code>e1=1</code>，
+<code>e0=0</code>，数据无误。</p>
+<p>需要注意的是，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code>这个数代表的其实是fp16格式的
+1024。</p>
+<p>我最开始在这里感到疑惑，心想为什么要减这么一个数，这也不是1024啊，直到后来意识到现在是在做fp16的减法，那么当然也要是fp16的格式。</p>
+<p>ok，到现在为止，最难的部分就理解完了。接下来看一下别的情况：</p>
+<h2 id="处理e2-e3元素">处理e2 e3元素</h2>
+<p><img src="/images/101/8.jpeg" width="95%"></p>
+<p>对于e2、e3而言，这时候就不能用 <code>BOTTOM_MASK</code>
+来进行位与操作了，应该改为 <code>TOP_MASK</code></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/9.jpeg" width="95%"></p>
+<p>如果减去1024，呢么得到<code>e3=48</code>，<code>e2=32</code>，这和刚才不太一样，事情变得不太简单。</p>
+<p>问题在哪？以e3为例，这时候小数点右移10位意味着把e3乘了<code>2^4=16</code>，所以当前的结果是<code>1024 + X * 16</code>。</p>
+<p>所以针对e2、e3的下一步操作稍有不同：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>ONE_SIXTEENTH = 0x2c002c00; NEG_64 = 0xd400d400;</code></p>
+<p>这是做了什么操作？可以理解为</p>
+<p><code>(1024 + X * 16) * (1/16) - 64 = X</code></p>
+<p>ok，到现在为止，e0e1e2e3都搞定了，最后看一下e4e5，</p>
+<h2 id="处理e4-e5元素">处理e4 e5元素</h2>
+<p><img src="/images/101/10.jpeg" width="95%"></p>
+<p>e4 e5元素怎么提取呢？可以先认真思考一下。</p>
+<p>我最开始的想法是，针对e4
+e5的位置，再写一个mask进行位与操作不就好了，然后和前面做一样的操作。</p>
+<p>但是这样是不可行的，以e5为例，这时候e5在16位的高8位，与fp16的指数位有冲突。</p>
+<p>那么，处理方式就很简单了，文章最开始的时候提到过这个操作：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/11.jpeg" width="95%"></p>
+<p>这里是将 i4s 向右移位8位，以便处理 <code>elt_45</code> 和
+<code>elt_67</code>。</p>
+<p>这样一来，就可以按照e0 e1的方式处理e4 e5了。</p>
+<p>ok，到现在为止，e0 e1 e2 e3 e4 e5都搞定了，有了前面的基础，e6
+e7理解起来就很简单，这里不做过多赘述。</p>
+<p>整个代码实现到这里也就讲完了。</p>
+<hr />
+<h2 id="写在最后">写在最后</h2>
+<p>最后，补充几点</p>
+<ul>
+<li><p>对于e2e3而言，为什么不像e5e6那样，向右移动8位，然后做e0e1相同的操作？</p>
+<p>这样的操作从逻辑上确实更好理解，也避免了后面的乘1/16的操作，看上去似乎更简单。</p>
+<p>但是要明白一点，e5e6那样，向右移动8位，是不得不这么做。</p>
+<p>为了性能，e2e3没必要额外增加一个移位操作。所以关键点只剩一个：<code>fma.rn.f16x2</code>指令和<code>sub.f16x2</code>指令的区别，如果
+移位+sub指令 快于
+<code>fma.rn</code>指令，那就是赚的。代码中的注释标明了这一点：</p>
+<pre><code>  In addition, I exploit the fact that sub and fma have the same throughput in order to convert elt_23 and elt_67 to fp16 without having to shift them to the bottom bits before hand.</code></pre>
+<p>sub（减法）和
+fma（乘法累加）具有相同的吞吐量，这意味着它们的性能相当。</p></li>
+<li><p>为什么要做<code>interleave</code>？</p>
+<p>本文缘起就是因为研究这个权重排布</p>
+<p><img src="/images/101/12.jpeg" width="60%"></p>
+<p>前文中一直没有提这件事——为什么权重是<code>interleave</code>排布？</p>
+<p><img src="/images/101/13.png" width="95%"></p>
+<p>按照zzk大佬的观点，对于<code>Int8</code>来说，本来就是不需要<code>Interleave</code>的，但是<code>Int4</code>快速转换不能使用PRMT指令，需要通过一些trick，进而需要这个交错权重的格式</p>
+<p>也就是说，<code>int8</code>快速反量化中，使用了<code>PRMT</code>指令，这个指令的操作粒度是字节<code>byte</code>；而int4是<code>sub-byte</code>，不足一个字节；因此，原来在<code>INT8</code>快速反量化的那一套无法直接用在<code>int4</code>上。</p>
+<p>所以针对<code>int4</code>，使用指令<code>LOP3</code>来替代<code>PRMT</code>，从而完成了<code>int4</code>快速反量化到<code>fp16</code>的核心逻辑。通过交错权重，可以减少<code>shift</code>指令，提高性能。关于这一点，我认为<a
+href="https://zhuanlan.zhihu.com/p/657073857?utm_medium=social&amp;utm_oi=56635854684160&amp;utm_psn=1692002696943525888&amp;utm_source=wechat_session&amp;s_r=0">[LLM推理优化]🔥WINT8/4-(03):
+LOP3指令详解及INT4转FP16/BF16分析</a> 讲解的比较详细。</p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>LLM</tag>
+        <tag>AWQ</tag>
+        <tag>dequantize</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>在riscv平台优化SGEMM</title>
     <url>/2024/02/26/102_sgemm_riscv_cn/</url>
     <content><![CDATA[<p>本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。</p>
@@ -2722,33 +2368,418 @@ href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为�
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2018/09/10/0_hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very
-first post. Check <a href="https://hexo.io/docs/">documentation</a> for
-more info. If you get any problems when using Hexo, you can find the
-answer in <a
-href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or
-you can ask me on <a
-href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+    <title>Optimize sgemm on RISC-V platform</title>
+    <url>/2024/02/26/103_sgemm_riscv_en/</url>
+    <content><![CDATA[<p>This project records the process of optimizing SGEMM
+(single-precision floating point General Matrix Multiplication) on the
+riscv platform.</p>
+<p><img src=/images/sgemm/data/result_all.png width=70% /></p>
 <span id="more"></span>
-<h2 id="quick-start">Quick Start</h2>
-<h3 id="create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="run-server">Run server</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a
-href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<p>This project records the process of optimizing SGEMM
+(single-precision floating point General Matrix Multiplication) on the
+riscv platform.</p>
+<p>General Matrix Multiplication (GEMM) is one of the core computing
+units in deep learning frameworks, widely used for implementing
+operators such as Convolution, Full Connection, and Matmul.</p>
+<p>I conducted experiments and explorations on the <strong>Allwinner
+Nezha D1</strong> development board. <code>Versions 0 through 5</code>
+were implemented using the C language, while
+<code>versions 6 through 9</code> partially utilized assembly language,
+involving the <code>RISC-V V</code> extension instructions.</p>
+<p>Note: Unlike some other GEMM optimization projects, this project uses
+<strong>row-major order</strong> matrices exclusively. Because I prefer
+<strong>row-major order</strong>!</p>
+<h1 id="prerequisite-knowledge">Prerequisite Knowledge</h1>
+<p><img src=/images/sgemm/pics/riscv.gif width=50% /></p>
+<p><a href="https://riscv.org/">RISC-V</a> is an open standard
+Instruction Set Architecture (ISA) enabling a new era of processor
+innovation through open collaboration.</p>
+<hr />
+<p><img src=/images/sgemm/pics/GEMM.png width=70% /></p>
+<p><a
+href="https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms#Level_3">GEMM</a>
+General matrix multiply, one of the Basic Linear Algebra
+Subprograms.</p>
+<hr />
+<p><a href="https://en.wikipedia.org/wiki/FLOPS">FLOPS</a> stands for
+Floating-point Operations Per Second, also known as peak speed per
+second. It refers to the number of floating-point operations executed
+per second. One <strong>gigaflop (GFLOPS)</strong> equals ten to the
+power of nine (10^9) floating-point operations per second.</p>
+<p>The computational complexity of matrix multiplication is calculated
+as <code>2 * M * N * K</code>. The ratio of computational complexity to
+time taken gives the GFLOPS of the current GEMM version. - Multiplying
+by 2 is because each operation involves one multiplication and one
+addition.</p>
+<h1 id="prepare">Prepare</h1>
+<p>The related code is located in <code>./prepare/</code>.</p>
+<h2 id="test-cross-compilation">Test Cross-Compilation</h2>
+<p>I use the <strong>Allwinner Nezha D1</strong> development board, and
+downloaded the cross-compilation link from <a
+href="https://xuantie.t-head.cn/community/download?id=4090445921563774976">here</a>.</p>
+<p>For detailed instructions, please refer to the <a
+href="https://github.com/Zhao-Dongyu/sgemm_riscv/blob/main/prepare/README.md">readme</a>.</p>
+<h2 id="memory-bandwidth-test">Memory Bandwidth Test</h2>
+<p>I conducted memory bandwidth tests on the development board using the
+following projects:</p>
+<ul>
+<li><a
+href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/2.memcpy_bandwidth_test">2.memcpy_bandwidth_test</a></li>
+<li><a
+href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/3.flw_bandwidth_test">3.flw_bandwidth_test</a></li>
+<li><a
+href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/4.vlw_bandwidth_test">4.vlw_bandwidth_test</a></li>
+</ul>
+<p><img src=/images/sgemm/prepare/imgs/memory_bandwidth_test.png width=70% /></p>
+<h2 id="roofline-model">Roofline Model</h2>
+<p><a href="https://en.wikipedia.org/wiki/Roofline_model">Roofline</a>
+proposes a method for quantitative analysis using "Operational
+Intensity" and provides a formula for the theoretical performance limit
+achievable on computational platforms.</p>
+<p>According to <a href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL
+Public Course | RISC-V Technical Analysis</a>:</p>
+<ul>
+<li>The computing power of D1 can reach <code>4 GFlops</code> (<span
+class="citation" data-cites="1GHz">@1GHz</span>).</li>
+<li>Memory: <code>2.727 GB/s</code> (DDR3 792 MHz).
+<ul>
+<li>Although I measured the highest as <code>2.592 GB/s</code>, there
+may be some problems somewhere?</li>
+<li>Let's trust Sensetime for now, temporarily accept its value.</li>
+</ul></li>
+</ul>
+<p><img src=/images/sgemm/pics/roofline.png width=70% /></p>
+<h1 id="sgemm-optimization">SGEMM Optimization</h1>
+<p>Related code is located in <code>./sgemm/</code>.</p>
+<h2 id="usage">Usage</h2>
+<p>Take <code>step0</code> as an example, you need to edit the Makefile
+first to configure your cross-compilation chain.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> sgemm/step0/</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">adb push test_bl_sgemm_step0.x ./.</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">adb shell <span class="string">&#x27;./test_bl_sgemm_step0.x&#x27;</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="version-0-naive-version">Version 0: Naive Version</h2>
+<p>This version seems to be <strong>the most intuitive</strong> to me,
+after all, this is how I learned, understood, and computed matrix
+multiplication: &gt; Multiply one row of A by one column of B to get one
+element of C.</p>
+<p><img src=/images/sgemm/data/result_0.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step0.gif width=70% /></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i ++ ) &#123;              <span class="comment">// Start 2-th loop</span></span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j ++ ) &#123;          <span class="comment">// Start 1-nd loop</span></span><br><span class="line">        <span class="keyword">for</span> ( p = <span class="number">0</span>; p &lt; k; p ++ ) &#123;      <span class="comment">// Start 0-st loop</span></span><br><span class="line">            C( i, j ) += A( i, p ) * B( p, j );</span><br><span class="line">        &#125;                                 <span class="comment">// End   0-th loop</span></span><br><span class="line">    &#125;                                     <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                         <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>I think <code>version 0</code> very well explains the formula <span
+class="math inline">\(C_{mn} = \sum_{k=1}^{K} A_{mk}B_{kn}\)</span>.</p>
+<p>However, this version has obvious shortcomings: on a platform with a
+theoretical computing power of <code>4 GFLOPS</code>, it only achieves a
+maximum computational performance of <code>0.03 GFLOPS</code>. This is
+because <strong>the access to matrix B has a very low cache hit rate,
+i.e., "poor spatial locality"</strong>. Throughout the calculation, it
+is equivalent to accessing matrix B many, many times.</p>
+<p>It is advisable to access the elements of multi-dimensional arrays in
+sequential order. This can improve the spatial locality of memory access
+and make it more friendly to the cache.</p>
+<p>Furthermore, it can be observed that with the increase in size, the
+performance fluctuates significantly. Analysis of the data shows that
+when m=n=k is 128 164 192 228 256 288 320 352 384, the performance is
+poor. These numbers differ by 32, and 32 * 4 (sizeof(float)) = 128
+B.</p>
+<p>It is speculated that the performance fluctuation is related to
+cacheline and hardware prefetching -- cacheline = 64B, after cache miss,
+hardware prefetching, i.e., HWPrefetcher, reads one more cacheline.</p>
+<h2 id="version-1-loop-interchange-version">Version 1: Loop Interchange
+Version</h2>
+<p>Reusing data in the cache is the most basic and efficient use of
+cache. For nested loops, <code>loop interchange</code>,
+<code>loop reversal</code>, <code>loop fusion</code>,
+<code>loop distribution</code>, <code>loop tiling</code>,
+<code>loop unrolling and jam</code>, etc., can be used to improve
+program performance.</p>
+<p>Selecting an appropriate loop transformation method can both maintain
+the semantics of the program and improve its performance.</p>
+<p><img src=/images/sgemm/data/result_1.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step1.gif width=70% /></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i ++ ) &#123;              <span class="comment">// Start 2-th loop</span></span><br><span class="line">    <span class="keyword">for</span> ( p = <span class="number">0</span>; p &lt; k; p ++ ) &#123;          <span class="comment">// Start 1-st loop</span></span><br><span class="line">        <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j ++ ) &#123;      <span class="comment">// Start 0-nd loop</span></span><br><span class="line">            C( i, j ) += A( i, p ) * B( p, j );</span><br><span class="line">        &#125;                                 <span class="comment">// End   0-th loop</span></span><br><span class="line">    &#125;                                     <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                         <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>Compared with <code>version 0</code>, <code>version 1</code> has
+better spatial locality for the operation on matrix B, and the
+performance has been greatly improved (especially for larger sizes,
+while for m = n = k &lt;= 68, the efficiency of version 0 is
+higher).</p>
+<p>Adjusting the order of m, n, and k does not affect the result (i.e.,
+maintaining the semantics of the program), but it can affect the
+performance. Testing the performance of different loop orders (using the
+Allwinner Nezha D1 platform, with m=n=k=512 as an example)</p>
+<table>
+<thead>
+<tr class="header">
+<th>Loop Order</th>
+<th>GFLOPS</th>
+<th>Analysis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MNK</td>
+<td>0.012</td>
+<td>High cache miss for accessing B</td>
+</tr>
+<tr class="even">
+<td>MKN</td>
+<td>0.180</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>NMK</td>
+<td>0.012</td>
+<td>High cache miss for accessing B</td>
+</tr>
+<tr class="even">
+<td>NKM</td>
+<td>0.009</td>
+<td>High cache miss for accessing A</td>
+</tr>
+<tr class="odd">
+<td>KMN</td>
+<td>0.165</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>KNM</td>
+<td>0.009</td>
+<td>High cache miss for accessing A</td>
+</tr>
+</tbody>
+</table>
+<p>However, the hardware utilization of <code>version 1</code> is still
+very low, and further optimizations are needed.</p>
+<h2 id="version-2-blocking-version">Version 2: Blocking Version</h2>
+<p><img src=/images/sgemm/data/result_2.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step2.gif width=70% /></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;          <span class="comment">// Start 2-nd loop</span></span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;      <span class="comment">// Start 1-st loop</span></span><br><span class="line">        AddDot_4x4_opt( k, &amp;A( i, <span class="number">0</span> ), lda, &amp;B( <span class="number">0</span>, j ), ldb, &amp;C( i, j ), ldc );</span><br><span class="line">    &#125;                                          <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                              <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p><img src=/images/sgemm/pics/gemm_block.png width=70% /></p>
+<p>To avoid unnecessary cache swapping, blocking processing is
+performed. <a href="https://zhuanlan.zhihu.com/p/342923482">Discussing
+Why Blocking Matrix Optimization Works</a> is a good read, I recommend
+learning from it.</p>
+<p>After performing block operations in <code>version 2</code>, the
+performance is still not satisfactory. This is because, although this
+version superficially implements blocking logic, there are still some
+small tricks in the calculation within the block that have not been
+applied.</p>
+<h2 id="version-3-blocked-optimization-version">Version 3: Blocked
+Optimization Version</h2>
+<p><img src=/images/sgemm/data/result_3.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step3.gif width=70% /></p>
+<p><code>AddDot_4x4_opt</code> has been added.</p>
+<p>Several tricks are mentioned in<a
+href="https://github.com/flame/blislab/blob/master/tutorial.pdf">BLISlab-tutorial</a>:</p>
+<ul>
+<li>2.4.2 Loop unrolling
+<ul>
+<li>Updating loop index i and the pointer cp every time through the
+inner loop creates considerable overhead. For this reason, a compiler
+will perform loop unrolling.</li>
+</ul></li>
+<li>2.4.3 Register variables
+<ul>
+<li>Notice that computation can only happen if data is stored in
+registers. A compiler will automatically transform code so that the
+intermediate steps that place certain data in registers is
+inserted.</li>
+</ul></li>
+</ul>
+<p>After using these tricks, this version has significantly improved
+performance!</p>
+<p>However, for larger matrix sizes, the performance of this version is
+still relatively low. Upon investigation, for example, after accessing
+B[0,0], B[0,1], B[0,2], B[0,3], when accessing B[1,0], when the size is
+large, there must be a <code>cache miss</code>. Therefore, it would be
+great if the data could be rearranged in advance.</p>
+<h2 id="version-4-b-prepack-version">Version 4: B prepack Version</h2>
+<p><img src=/images/sgemm/data/result_4.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step4.gif width=70% /></p>
+<p>I assume matrix B is <strong>parameter</strong>, so we can perform
+the <code>pack</code> operation in advance. Version 4
+<code>prepack</code> matrix B, leading to further performance
+improvement!</p>
+<p>The reason for the performance improvement is evident: there is a
+significant reduction in <code>cache misses</code> when accessing matrix
+B. This is the first time I deeply realized the importance of
+<code>prepacking neural network weights</code> before model
+inference.</p>
+<p>It can be seen that when the size is relatively large, the
+performance still declines. This should be due to a high number of cache
+misses when accessing matrix A. Should we pack A?</p>
+<p>I assume matrix A is <strong>input</strong>, so packing A cannot be
+done in advance and must be included in the overall timing. Is it
+necessary?</p>
+<h2 id="version-5-a-pack-b-prepack-version">Version 5: A pack &amp; B
+prepack Version</h2>
+<p><img src=/images/sgemm/data/result_5.png width=70% /></p>
+<p><img src=/images/sgemm/pics/step5.gif width=70% /></p>
+<p>Based on Version 4, Version 5 performs packing on matrix A.</p>
+<p>Here, since matrix A is assumed to be an input, packing A needs to be
+performed during computation, and this time consumption needs to be
+included in the timing.</p>
+<p>The results are still pleasing, especially with large matrix sizes,
+achieving further performance improvements.</p>
+<p>I initially approached this experiment with a trial-and-error
+mindset, considering the additional read of A and writing of packA. It
+seems the main challenge ahead lies in combating cache misses.</p>
+<p>The current optimization direction has reached its limit. It's worth
+trying to do some <code>preload</code> during the calculation
+process.</p>
+<p>Next, we'll move to assembly, work on vector calculations, and
+implement <code>preload</code> in assembly.</p>
+<h2 id="version-6-assembly-version">Version 6: Assembly Version</h2>
+<p><img src=/images/sgemm/data/result_6.png width=70% /></p>
+<p>Brief explanation: A is not packed, but B is prepacked with 16
+numbers.</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;       <span class="comment">// Start 2-nd loop</span></span><br><span class="line">    <span class="type">int</span> mb = DGEMM_MR;</span><br><span class="line">    <span class="keyword">if</span>((m - i) &lt; DGEMM_MR) mb = m - i; </span><br><span class="line">    <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;   <span class="comment">// Start 1-st loop</span></span><br><span class="line">        <span class="type">int</span> nb = DGEMM_NR;</span><br><span class="line">        <span class="keyword">if</span>((n - j) &lt; DGEMM_NR) nb = n - j; </span><br><span class="line">        RvvSgemm4x16(   nb,                 <span class="comment">// nr &lt;= 16, a0</span></span><br><span class="line">                        mb,                 <span class="comment">// mr &lt;= 4,  a1</span></span><br><span class="line">                        k,                  <span class="comment">// astride = k*sizeof(float), a2</span></span><br><span class="line">                        &amp;A[i * k],          <span class="comment">// mr * k,   a3</span></span><br><span class="line">                        &amp;packB[j * k],      <span class="comment">// k * 16,   a4</span></span><br><span class="line">                        &amp;C( i, j ),         <span class="comment">// mr * nr,  a5</span></span><br><span class="line">                        n * <span class="keyword">sizeof</span>(<span class="type">float</span>),  <span class="comment">// Len(N) * sizeof(float), a6</span></span><br><span class="line">                        bias</span><br><span class="line">                    );</span><br><span class="line">    &#125;                                       <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                           <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>Regarding the use of rvv instructions, I believe <code>vsetvli</code>
+is essential, and <code>vfmacc.vf</code> is the mainstay.</p>
+<p>I have learned a lot from <a
+href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL Course | RISC-V
+Technical Analysis</a>. They are truly professional! I recommend
+learning theoretical guidance and knowledge points from them, paying
+tribute to OpenPPL!</p>
+<p>As for assembly operators, there are many details in assembly, and I
+strongly complain: <strong>writing assembly is really annoying!
+Especially the debugging process, it's torturous.</strong> The last time
+I wrote assembly was during my undergraduate classes. Picking it up
+again brings some novelty and excitement, and being able to control the
+execution of operators at a very fine granularity gives a great sense of
+accomplishment.</p>
+<p>Regarding how the assembly files are implemented specifically, I
+believe the fastest way is to look at the assembly code. I won't explain
+it further here.</p>
+<p>It should be noted that this version's performance is very poor. Why
+is that? It's another issue of <strong>loop order</strong>.</p>
+<h2 id="version-7-assembly-version-with-loop-order-swapped">Version 7:
+Assembly Version with Loop Order Swapped</h2>
+<p><img src=/images/sgemm/data/result_7.png width=70% /></p>
+<p>Brief explanation: A is not packed, but B is prepacked with 16
+numbers.</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt; n; j += DGEMM_NR ) &#123;       <span class="comment">// Start 2-st loop</span></span><br><span class="line">    <span class="type">int</span> nb = DGEMM_NR;</span><br><span class="line">    <span class="keyword">if</span>((n - j) &lt; DGEMM_NR) nb = n - j; </span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; m; i += DGEMM_MR ) &#123;   <span class="comment">// Start 1-nd loop</span></span><br><span class="line">        <span class="type">int</span> mb = DGEMM_MR;</span><br><span class="line">        <span class="keyword">if</span>((m - i) &lt; DGEMM_MR) mb = m - i; </span><br><span class="line">        RvvSgemm4x16(   nb,                 <span class="comment">// nr &lt;= 16, a0</span></span><br><span class="line">                        mb,                 <span class="comment">// mr &lt;= 4,  a1</span></span><br><span class="line">                        k,                  <span class="comment">// astride = k*sizeof(float), a2</span></span><br><span class="line">                        &amp;A[i * k],          <span class="comment">// mr * k,   a3</span></span><br><span class="line">                        &amp;packB[j * k],      <span class="comment">// k * 16,   a4</span></span><br><span class="line">                        &amp;C( i, j ),         <span class="comment">// mr * nr,  a5</span></span><br><span class="line">                        n * <span class="keyword">sizeof</span>(<span class="type">float</span>),  <span class="comment">// Len(N) * sizeof(float), a6</span></span><br><span class="line">                        bias</span><br><span class="line">                    );</span><br><span class="line">    &#125;                                       <span class="comment">// End   1-st loop</span></span><br><span class="line">&#125;                                           <span class="comment">// End   2-nd loop</span></span><br></pre></td></tr></table></figure>
+<p>Reversing the order of loops, starting with the n-direction followed
+by the m-direction, significantly improves performance.</p>
+<p>However, the performance of large-sized matrices is still not very
+good. The root cause remains in <code>memory access</code>. The
+computation of large-sized matrices in the <code>roofline model</code>
+is considered <code>compute-bound</code>, where ideally the
+<code>compute time</code> and <code>memory access time</code> should
+overlap as much as possible. Currently, a significant amount of time is
+spent on memory access (mostly due to <code>cache miss</code>!).</p>
+<h2 id="version-8-assembly-version-with-preload">Version 8: Assembly
+Version with Preload</h2>
+<p><img src=/images/sgemm/data/result_8.png width=70% /></p>
+<p>Brief Explanation: Matrix A is not <code>packed</code>, while Matrix
+B undergoes <code>prepackaging</code> of 16 elements and includes a
+<code>preload</code> operation.</p>
+<p>The performance is explosive! It reaches a maximum of
+<code>2.212 GFLOPS</code>.</p>
+<p>Core operations:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vfmacc.vf v16,  ft0, v0</span><br><span class="line">vlw.v v4, (bp0)         # b0&#x27;-&gt;v4</span><br><span class="line">flw fs4, 384(bp0)       # pre-load B</span><br><span class="line">addi bp0,bp0,64</span><br><span class="line">vfmacc.vf v20,  ft1, v0</span><br></pre></td></tr></table></figure>
+<p>Inserting some <code>load</code> operations between
+<code>vfmacc.vf</code> instructions preloads the data that will be used
+later into the <code>cache</code>, significantly reducing
+<code>cache miss</code>.</p>
+<p>Initially, I was puzzled—how can the <code>compute time</code> and
+<code>memory access time</code> overlap when the code seems to execute
+sequentially? It wasn't until later that I understood the essence here,
+which lies in the principle of <code>cacheline</code>. Indeed,
+foundational knowledge is crucial!</p>
+<h2 id="version-9-assembly-version-with-a-packed">Version 9: Assembly
+Version with A Packed</h2>
+<p><img src=/images/sgemm/data/result_9.png width=70% /></p>
+<p>Based on previous experience, an attempt was made to
+<code>pack</code> Matrix A, but surprisingly, the results were not very
+good. A brief analysis suggests that the preload for Matrix A in this
+version of the assembly code might not be optimized.</p>
+<p>In the previous version, although A wasn't packed, there was preload
+for A's 4 rows, which also addressed the pain point of cache miss for
+Matrix A.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>To continue optimizing this operator, there is still much to be done,
+such as rearranging pipelines in assembly.</p>
+<p>As mentioned in the OpenPPL Course | RISC-V Technical Analysis, using
+<code>vf</code> instructions can achieve 80% of the theoretical peak,
+which is 4*80%, <code>3.2 GFLOPs</code>. I currently have only
+<code>2.121 GFLOPs</code>, indicating there's still a lot of room for
+optimization theoretically.</p>
+<p>Furthermore, the RVV currently uses version 0.7.1, and it seems
+there's still much work to be done in RVV instruction optimization, such
+as the serious efficiency problem encountered with <code>vlw</code>.</p>
+<p>In conclusion, working on these tasks has allowed me to learn a lot
+from many experts, and I'm very grateful. I also hope this article can
+help more people.</p>
+<h1 id="acknowledgement">Acknowledgement</h1>
+<ul>
+<li><p><a href="https://github.com/flame/blislab">BLISlab: A Sandbox for
+Optimizing GEMM</a></p>
+<p>This project introduced me to how to optimize GEMM</p></li>
+<li><p><a
+href="https://github.com/surez-ok/blislab_riscv">riscv平台优化矩阵乘(基于blislab优化实践)</a></p>
+<p>I conduct experiments and exploration based on this project</p></li>
+<li><p>Thanks to Mr. Ding for your guidance.</p></li>
+</ul>
+<h1 id="references">References</h1>
+<p><a href="https://zhuanlan.zhihu.com/p/474684731">OpenPPL 公开课 |
+RISC-V 技术解析</a></p>
+<p><a href="http://riscvbook.com/">RISC-V-Reader</a></p>
+<p><a
+href="https://github.com/riscv/riscv-v-spec/releases">riscv-v-spec-0.7.1</a></p>
+<p><a
+href="https://www.cs.utexas.edu/users/pingali/CS378/2008sp/papers/gotoPaper.pdf">Anatomy
+of High-Performance Matrix Multiplication</a></p>
+<p><a
+href="https://developer.huawei.com/consumer/cn/forum/topic/0201105374686101528">编译器优化丨Cache优化</a></p>
+<p><a
+href="https://www.leiphone.com/category/yanxishe/Puevv3ZWxn0heoEv.html">OpenBLAS项目与矩阵乘法优化
+| AI 研习社</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
+Model与深度学习模型的性能分析</a></p>
+<p><a
+href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为什么有用</a></p>
+<h1 id="thanks-for-your-support">Thanks for your support!</h1>
+<p><a
+href="https://buymeacoffee.com/zhaodongyu"><strong>Buymeacoffee</strong></a>
+<a href="https://paypal.me/ZhaoDongyu"><strong>Paypal</strong></a></p>
 ]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>RISCV</tag>
+        <tag>GEMM</tag>
+        <tag>HPC</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LaTeX学习</title>
+    <url>/2023/05/30/69_LaTeX/</url>
+    <content><![CDATA[<p>今天看的论文的排版真的太好看了！开始学习<code>LaTeX</code>，整个过程记录一下。</p>
+<span id="more"></span>
+<p><code>mactex</code>下载地址：<a
+href="https://www.tug.org/mactex/">https://www.tug.org/mactex/</a></p>
+<pre><code>MacTeX.pkg.
+The Size is 5.2G - 15 March 2023
+The MD5 sum is 64416e6da409609c48970e23906e7642
+The SHA512 sum is 0ff569be6af3e658b4a60e2b89bf10c41b9bae38bdaee60021c69aea238d2436886c0883954ab0a64394d9a6e080958b2fc82f91ac5c4dfe9e1de32df46efd49</code></pre>
+<p><a
+href="https://www.tug.org/mactex/READ_ME_FIRST.pdf">READ_ME_FIRST</a>给了我很大帮助。</p>
+<ul>
+<li>2023.05.31</li>
+</ul>
+<p>看了<a href="https://www.doc88.com/p-9773781953864.html">LaTeX Notes
+v1.20</a>，<a
+href="https://www.dralpha.com/">作者</a>很有意思，也给我打开了<code>LaTeX</code>大门。</p>
+<p>新的版本位于<a
+href="https://github.com/huangxg/lnotes">https://github.com/huangxg/lnotes</a>,<a
+href="https://github.com/huangxg/lnotes/blob/master/lnotes2.pdf">PDF文档</a>。</p>
+<p>在<a
+href="https://zhuanlan.zhihu.com/p/521649367">知乎</a>看到一篇很好的文章</p>
+<p>【更新中】</p>
+]]></content>
+      <tags>
+        <tag>LaTeX</tag>
+        <tag>study</tag>
+      </tags>
   </entry>
   <entry>
     <title>万物皆可RSS</title>
@@ -2833,37 +2864,6 @@ href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p
 ]]></content>
       <tags>
         <tag>RSS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LaTeX学习</title>
-    <url>/2023/05/30/69_LaTeX/</url>
-    <content><![CDATA[<p>今天看的论文的排版真的太好看了！开始学习<code>LaTeX</code>，整个过程记录一下。</p>
-<span id="more"></span>
-<p><code>mactex</code>下载地址：<a
-href="https://www.tug.org/mactex/">https://www.tug.org/mactex/</a></p>
-<pre><code>MacTeX.pkg.
-The Size is 5.2G - 15 March 2023
-The MD5 sum is 64416e6da409609c48970e23906e7642
-The SHA512 sum is 0ff569be6af3e658b4a60e2b89bf10c41b9bae38bdaee60021c69aea238d2436886c0883954ab0a64394d9a6e080958b2fc82f91ac5c4dfe9e1de32df46efd49</code></pre>
-<p><a
-href="https://www.tug.org/mactex/READ_ME_FIRST.pdf">READ_ME_FIRST</a>给了我很大帮助。</p>
-<ul>
-<li>2023.05.31</li>
-</ul>
-<p>看了<a href="https://www.doc88.com/p-9773781953864.html">LaTeX Notes
-v1.20</a>，<a
-href="https://www.dralpha.com/">作者</a>很有意思，也给我打开了<code>LaTeX</code>大门。</p>
-<p>新的版本位于<a
-href="https://github.com/huangxg/lnotes">https://github.com/huangxg/lnotes</a>,<a
-href="https://github.com/huangxg/lnotes/blob/master/lnotes2.pdf">PDF文档</a>。</p>
-<p>在<a
-href="https://zhuanlan.zhihu.com/p/521649367">知乎</a>看到一篇很好的文章</p>
-<p>【更新中】</p>
-]]></content>
-      <tags>
-        <tag>LaTeX</tag>
-        <tag>study</tag>
       </tags>
   </entry>
   <entry>
@@ -2981,6 +2981,46 @@ LFS的使用</a></p>
       </tags>
   </entry>
   <entry>
+    <title>flatc</title>
+    <url>/2023/06/28/71_flatc/</url>
+    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
+<span id="more"></span>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
+<p>./flatc -t schema.fbs -- test.tflite</p>
+<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
+~/Downloads/encoder.tflite</p>
+<p>参考资料：</p>
+<p><a
+href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>Roofline model学习</title>
+    <url>/2023/06/05/77_Roofline/</url>
+    <content><![CDATA[<blockquote>
+<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
+</blockquote>
+<p>学习Roofline，有一种理论指导实践的感觉。</p>
+<span id="more"></span>
+<p>阅读论文：<a
+href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
+An Insightful Visual Performance Model for Floating-Point Programs and
+Multicore Architectures</a></p>
+<p>博客：<a
+href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
+<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
+Model与深度学习模型的性能分析</a></p>
+<p>我的总结：</p>
+<p>【更新中】</p>
+]]></content>
+      <tags>
+        <tag>study</tag>
+        <tag>Roofline</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Final Cut study notes</title>
     <url>/2023/07/08/75_Final-cut-study-notes/</url>
     <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
@@ -3054,46 +3094,6 @@ Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数�
       </tags>
   </entry>
   <entry>
-    <title>flatc</title>
-    <url>/2023/06/28/71_flatc/</url>
-    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
-<span id="more"></span>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
-<p>./flatc -t schema.fbs -- test.tflite</p>
-<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
-~/Downloads/encoder.tflite</p>
-<p>参考资料：</p>
-<p><a
-href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>Roofline model学习</title>
-    <url>/2023/06/05/77_Roofline/</url>
-    <content><![CDATA[<blockquote>
-<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
-</blockquote>
-<p>学习Roofline，有一种理论指导实践的感觉。</p>
-<span id="more"></span>
-<p>阅读论文：<a
-href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
-An Insightful Visual Performance Model for Floating-Point Programs and
-Multicore Architectures</a></p>
-<p>博客：<a
-href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
-<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
-Model与深度学习模型的性能分析</a></p>
-<p>我的总结：</p>
-<p>【更新中】</p>
-]]></content>
-      <tags>
-        <tag>study</tag>
-        <tag>Roofline</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>gdb</title>
     <url>/2023/06/19/79_gdb/</url>
     <content><![CDATA[<p>今天遇到段错误，旁观大佬一番操作定位解决。</p>
@@ -3129,39 +3129,6 @@ Model与深度学习模型的性能分析</a></p>
       <tags>
         <tag>study</tag>
         <tag>gdb</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>FasterTransformer</title>
-    <url>/2023/07/06/83_FasterTransformer/</url>
-    <content><![CDATA[<p>记录一下部署大模型的经历</p>
-<p>【更新中】</p>
-<span id="more"></span>
-<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
-<p>查看<code>docs/bert_guide.md</code></p>
-<p>https://github.com/NVIDIA/nvidia-docker</p>
-<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
-的安装和使用</a> 好文！</p>
-<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
-<pre><code>遇到问题
-`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
-
-解决方式：
-
-docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
-<p>事实上，后来我跟着<a
-href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
-<p>查看<code>nvidia-smi</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
-]]></content>
-      <tags>
-        <tag>LLM</tag>
-        <tag>notes</tag>
-        <tag>tech</tag>
       </tags>
   </entry>
   <entry>
@@ -3306,8 +3273,8 @@ href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读
 ]]></content>
       <tags>
         <tag>LLM</tag>
-        <tag>tech</tag>
         <tag>ChatGPT</tag>
+        <tag>tech</tag>
       </tags>
   </entry>
   <entry>
@@ -3384,43 +3351,6 @@ href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc
       <tags>
         <tag>notes</tag>
         <tag>ubuntu</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Crawler</title>
-    <url>/2020/05/19/89_Crawler/</url>
-    <content><![CDATA[<p>背景：国内表情识别的数据集太少了 &amp;
-表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。</p>
-<p>于是，在百度上爬了一批数据下来补充到数据集里面。</p>
-<p>[爬虫有风险，操作需谨慎]</p>
-<span id="more"></span>
-<h1 id="写在前面的话">写在前面的话</h1>
-<p>一共两个文件</p>
-<ul>
-<li><p>crawler.py</p>
-<p>主程序：实现爬虫功能，爬取的关键词在keywords.txt里面</p></li>
-<li><p>keywords.txt</p>
-<p>关键词：比如爬开心的图，就可以设置 happy 高兴 高兴表情 高兴的人
-高兴脸 开心 开心脸 开心的人 开心表情 欢愉 愉悦 愉悦表情 欢愉表情
-幸福表情 幸福的脸 幸福的人 愉悦表情 欢欣表情 欢喜表情 喜悦</p>
-<p><strong>每个关键词用换行分隔</strong></p></li>
-</ul>
-<p>运行python文件后，需要等待一会（正在获取图片的<code>url</code>），然后就显示下载log了。</p>
-<p>结果会保存到<code>image</code>文件夹内，后续需要进一步批处理文件以及进行人脸提取、对齐、清洗等工作。</p>
-<p>清洗数据集还是相当繁琐的，建议不要浪费时间在数据清洗上，自己想办法找途径处理。</p>
-<pre><code>[爬虫有风险，操作需谨慎]
-
-希望你能把这个代码用在正途，造福社会:)
-
-希望你能开源数据集，减少社会整体的成本:)</code></pre>
-<h1 id="python代码">python代码</h1>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>tech</tag>
-        <tag>crawler</tag>
       </tags>
   </entry>
   <entry>
@@ -3577,6 +3507,76 @@ with RISC-V Vectors and LLVM</a></p>
       </tags>
   </entry>
   <entry>
+    <title>FasterTransformer</title>
+    <url>/2023/07/06/83_FasterTransformer/</url>
+    <content><![CDATA[<p>记录一下部署大模型的经历</p>
+<p>【更新中】</p>
+<span id="more"></span>
+<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
+<p>查看<code>docs/bert_guide.md</code></p>
+<p>https://github.com/NVIDIA/nvidia-docker</p>
+<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
+的安装和使用</a> 好文！</p>
+<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
+<pre><code>遇到问题
+`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
+
+解决方式：
+
+docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
+<p>事实上，后来我跟着<a
+href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+<p>查看<code>nvidia-smi</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
+]]></content>
+      <tags>
+        <tag>LLM</tag>
+        <tag>notes</tag>
+        <tag>tech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Crawler</title>
+    <url>/2020/05/19/89_Crawler/</url>
+    <content><![CDATA[<p>背景：国内表情识别的数据集太少了 &amp;
+表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。</p>
+<p>于是，在百度上爬了一批数据下来补充到数据集里面。</p>
+<p>[爬虫有风险，操作需谨慎]</p>
+<span id="more"></span>
+<h1 id="写在前面的话">写在前面的话</h1>
+<p>一共两个文件</p>
+<ul>
+<li><p>crawler.py</p>
+<p>主程序：实现爬虫功能，爬取的关键词在keywords.txt里面</p></li>
+<li><p>keywords.txt</p>
+<p>关键词：比如爬开心的图，就可以设置 happy 高兴 高兴表情 高兴的人
+高兴脸 开心 开心脸 开心的人 开心表情 欢愉 愉悦 愉悦表情 欢愉表情
+幸福表情 幸福的脸 幸福的人 愉悦表情 欢欣表情 欢喜表情 喜悦</p>
+<p><strong>每个关键词用换行分隔</strong></p></li>
+</ul>
+<p>运行python文件后，需要等待一会（正在获取图片的<code>url</code>），然后就显示下载log了。</p>
+<p>结果会保存到<code>image</code>文件夹内，后续需要进一步批处理文件以及进行人脸提取、对齐、清洗等工作。</p>
+<p>清洗数据集还是相当繁琐的，建议不要浪费时间在数据清洗上，自己想办法找途径处理。</p>
+<pre><code>[爬虫有风险，操作需谨慎]
+
+希望你能把这个代码用在正途，造福社会:)
+
+希望你能开源数据集，减少社会整体的成本:)</code></pre>
+<h1 id="python代码">python代码</h1>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>crawler</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>tflite-micro</title>
     <url>/2023/10/27/91_tflite-micro/</url>
     <content><![CDATA[<p>最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。</p>
@@ -3652,31 +3652,6 @@ Micro的GitHub仓库中，你可以使用以下步骤来编译静态库：</p>
         <tag>tech</tag>
         <tag>tflite-micro</tag>
         <tag>TinyML</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>内存对齐的实现</title>
-    <url>/2022/12/13/95_memory-align/</url>
-    <content><![CDATA[<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
-<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
-<p>花了一点点时间搞懂了内存对齐的实现与细节——</p>
-<span id="more"></span>
-<h2 id="什么是内存对齐">0.什么是内存对齐？</h2>
-<p>计算机中内存空间是按照<code>byte</code>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问<code>特定类型变量</code>的时候通常在<code>特定的内存地址</code>访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。</p>
-<p>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。</p>
-<h2 id="为什么要内存对齐">1.为什么要内存对齐？</h2>
-<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
-<p><strong>比如有些架构的CPU在访问一个没有进行对齐的变量的时候会发生错误,那么在这种架构下编程必须保证字节对齐.</strong></p>
-<p>其他平台可能没有这种情况，但是最常见的是如果不按照适合其平台要求对数据存放进行对齐，会在存取效率上带来损失。</p>
-<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
-<p>参考链接：https://juejin.cn/post/6870162226032934926</p>
-<h2 id="我的分析实践">2.我的分析实践</h2>
-<p><img src="/images/memory_align/MemoryAlign1.png" width="90%"></p>
-<p><img src="/images/memory_align/MemoryAlign2.png" width="90%"></p>
-]]></content>
-      <tags>
-        <tag>tech</tag>
-        <tag>memory align</tag>
       </tags>
   </entry>
   <entry>
@@ -3843,6 +3818,31 @@ href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动�
       <tags>
         <tag>ADAS</tag>
         <tag>tech， research</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>内存对齐的实现</title>
+    <url>/2022/12/13/95_memory-align/</url>
+    <content><![CDATA[<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
+<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
+<p>花了一点点时间搞懂了内存对齐的实现与细节——</p>
+<span id="more"></span>
+<h2 id="什么是内存对齐">0.什么是内存对齐？</h2>
+<p>计算机中内存空间是按照<code>byte</code>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问<code>特定类型变量</code>的时候通常在<code>特定的内存地址</code>访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。</p>
+<p>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。</p>
+<h2 id="为什么要内存对齐">1.为什么要内存对齐？</h2>
+<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
+<p><strong>比如有些架构的CPU在访问一个没有进行对齐的变量的时候会发生错误,那么在这种架构下编程必须保证字节对齐.</strong></p>
+<p>其他平台可能没有这种情况，但是最常见的是如果不按照适合其平台要求对数据存放进行对齐，会在存取效率上带来损失。</p>
+<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
+<p>参考链接：https://juejin.cn/post/6870162226032934926</p>
+<h2 id="我的分析实践">2.我的分析实践</h2>
+<p><img src="/images/memory_align/MemoryAlign1.png" width="90%"></p>
+<p><img src="/images/memory_align/MemoryAlign2.png" width="90%"></p>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>memory align</tag>
       </tags>
   </entry>
   <entry>

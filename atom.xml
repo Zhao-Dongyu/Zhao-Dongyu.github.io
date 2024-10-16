@@ -39,17 +39,14 @@ kernel的反量化。&lt;/p&gt;</summary>
   </entry>
   
   <entry>
-    <title>Optimize sgemm on RISC-V platform</title>
-    <link href="http://example.com/2024/02/26/103_sgemm_riscv_en/"/>
-    <id>http://example.com/2024/02/26/103_sgemm_riscv_en/</id>
+    <title>在riscv平台优化SGEMM</title>
+    <link href="http://example.com/2024/02/26/102_sgemm_riscv_cn/"/>
+    <id>http://example.com/2024/02/26/102_sgemm_riscv_cn/</id>
     <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2024-10-14T06:11:14.904Z</updated>
+    <updated>2024-10-14T06:08:55.544Z</updated>
     
     
-    <summary type="html">&lt;p&gt;This project records the process of optimizing SGEMM
-(single-precision floating point General Matrix Multiplication) on the
-riscv platform.&lt;/p&gt;
-&lt;p&gt;&lt;img src=/images/sgemm/data/result_all.png width=70% /&gt;&lt;/p&gt;</summary>
+    <summary type="html">&lt;p&gt;本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。&lt;/p&gt;</summary>
     
     
     
@@ -65,14 +62,17 @@ riscv platform.&lt;/p&gt;
   </entry>
   
   <entry>
-    <title>在riscv平台优化SGEMM</title>
-    <link href="http://example.com/2024/02/26/102_sgemm_riscv_cn/"/>
-    <id>http://example.com/2024/02/26/102_sgemm_riscv_cn/</id>
+    <title>Optimize sgemm on RISC-V platform</title>
+    <link href="http://example.com/2024/02/26/103_sgemm_riscv_en/"/>
+    <id>http://example.com/2024/02/26/103_sgemm_riscv_en/</id>
     <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2024-10-14T06:08:55.544Z</updated>
+    <updated>2024-10-14T06:11:14.904Z</updated>
     
     
-    <summary type="html">&lt;p&gt;本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。&lt;/p&gt;</summary>
+    <summary type="html">&lt;p&gt;This project records the process of optimizing SGEMM
+(single-precision floating point General Matrix Multiplication) on the
+riscv platform.&lt;/p&gt;
+&lt;p&gt;&lt;img src=/images/sgemm/data/result_all.png width=70% /&gt;&lt;/p&gt;</summary>
     
     
     
@@ -389,9 +389,9 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
     <category term="ChatGPT" scheme="http://example.com/tags/ChatGPT/"/>
+    
+    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
