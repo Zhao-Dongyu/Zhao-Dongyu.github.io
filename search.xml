@@ -83,13 +83,13 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in 1st place in Duos
 </td>
 <td>
-180/250
+181/250
 </td>
 <td>
 Finish in top 2 in Duos
 </td>
 <td>
-261/1000
+267/300
 </td>
 </tr>
 <tr>
@@ -1915,181 +1915,6 @@ left!)<br>Finish in 1st place as Zephrys the Great
       </tags>
   </entry>
   <entry>
-    <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
-    <url>/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</url>
-    <content><![CDATA[<p>本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
-kernel的反量化。</p>
-<span id="more"></span>
-<h1 id="背景">背景</h1>
-<p>在 ZZK大佬的文章 <a
-href="https://zhuanlan.zhihu.com/p/675427125">可能是讲的最清楚的WeightonlyGEMM博客</a>
-中学到很多知识</p>
-<hr />
-<p>最近在学AWQ的量化，<a
-href="https://arxiv.org/pdf/2306.00978">AWQ论文</a></p>
-<p>其中我比较关注GPU的部分，其中数据排布这块很有意思：</p>
-<p><img src="/images/101/1.jpeg" width="60%"></p>
-<p>于是到<a href="https://arxiv.org/pdf/2211.10017">Who Says Elephants
-Can’t Run</a> 这篇论文看了一下，<strong>WeightOnly GEMM</strong>
-技术就是在这里提出的，其中权重反量化是这么操作的：</p>
-<p><img src="/images/101/2.jpeg" width="60%"></p>
-<p>这个论文提出了一种 `IntToFloat
-的巧妙的方式，可以大大提速反量化速度。</p>
-<p><img src="/images/101/3.jpeg" width="60%"></p>
-<p>背景介绍结束，更详细的讲解可以直接看ZZK大佬的文章，接下来解释
-<code>dequantize_s4_to_fp16x2</code> 代码。</p>
-<h1 id="代码">代码</h1>
-<p>首先放出完整代码（80行）： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  uint4 result;</span><br><span class="line"></span><br><span class="line">  <span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line">  <span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// First, we extract the i4s and construct an intermediate fp16 number.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Note that the entire sequence only requires 1 shift instruction. This is</span></span><br><span class="line">  <span class="comment">// thanks to the register packing format and the fact that we force our</span></span><br><span class="line">  <span class="comment">// integers to be unsigned, and account for this in the fp16 subtractions. In</span></span><br><span class="line">  <span class="comment">// addition, I exploit the fact that sub and fma have the same throughput in</span></span><br><span class="line">  <span class="comment">// order to convert elt_23 and elt_67 to fp16 without having to shift them to</span></span><br><span class="line">  <span class="comment">// the bottom bits before hand.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Shift right by 8 to now consider elt_45 and elt_67. Issue first to hide RAW</span></span><br><span class="line">  <span class="comment">// dependency if we issue immediately before required.</span></span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br><span class="line">  <span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_45 (top_i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_67 (top_i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// I use inline PTX below because I am not sure if the compiler will emit</span></span><br><span class="line">  <span class="comment">// float2half instructions if I use the half2 ctor. In this case, I chose</span></span><br><span class="line">  <span class="comment">// performance reliability over code readability.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// This is the half2 &#123;1032, 1032&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t FP16_TOP_MAGIC_NUM = 0x64086408;</span></span><br><span class="line">  <span class="comment">// Haotian: subtract &#123;1024, 1024&#125; instead, we do not need to map to [-8, 7]</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> FP16_TOP_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;1 / 16, 1 / 16&#125; represented as an integer.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> ONE_SIXTEENTH = <span class="number">0x2c002c00</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;-72, -72&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t NEG_72 = 0xd480d480;</span></span><br><span class="line">  <span class="comment">// Haotian: Let&#x27;s use &#123;-64, -64&#125;.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> NEG_64 = <span class="number">0xd400d400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Finally, we construct the output numbers.</span></span><br><span class="line">  <span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_45</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">2</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_67</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">3</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<h1 id="代码解析">代码解析</h1>
-<p>接下来逐句分析： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span></span><br></pre></td></tr></table></figure></p>
-<p>这行代码定义了一个名为 <code>dequantize_s4_to_fp16x2</code>
-的函数，这个函数是一个 CUDA 设备函数
-(<strong>device</strong>)，它的输入是一个常量引用 <code>uint32_t</code>
-类型的 <code>source</code>，返回值是 <code>uint4</code> 类型。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br></pre></td></tr></table></figure>
-<p>这段预处理指令检查 CUDA 架构版本是否小于
-750。如果是，则触发断言错误，表明该代码不适用于 CUDA 750
-以下的架构。否则，继续执行后面的代码。 比如这个函数里面用到了
-<code>lop3.b32</code> 函数，可以在 <a
-href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>
-查到</p>
-<pre><code>Requires sm_50 or higher.
-Qualifier .BoolOp requires sm_70 or higher.</code></pre>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">uint4 result;</span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line"><span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br></pre></td></tr></table></figure>
-<p>这里定义了一个 <code>uint4</code> 类型的变量
-<code>result</code>。</p>
-<p>接着将 <code>result</code> 的地址转换为 <code>uint32_t*</code>
-类型的指针 <code>h</code>，以便后续的位操作。</p>
-<p>然后将 <code>source</code> 重新解释为 <code>uint32_t</code>
-类型并赋值给 <code>i4s</code>。</p>
-<p>通过类型转换和指针操作，使得对这些整数的访问和操作更加便捷。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br></pre></td></tr></table></figure>
-<p>这里定义了一些用于位操作的常量：</p>
-<ul>
-<li><p><code>immLut</code> 是一个查找表的立即数。</p></li>
-<li><p><code>BOTTOM_MASK</code> 是用于提取较低位的掩码。</p></li>
-<li><p><code>TOP_MASK</code> 是用于提取较高位的掩码。</p></li>
-<li><p><code>I4s_TO_F16s_MAGIC_NUM</code>
-是用于整数转换为半精度浮点数的魔数。</p></li>
-</ul>
-<p><img src="/images/101/4.jpeg" width="95%"></p>
-<p>这几个数在内存中是这么表示的，后面用到的时候会仔细说，那时候会发现这几个数可真妙啊。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/101/5.jpeg" width="95%"></p>
-<p>这里是将 <code>i4s</code> 向右移位8位，以便处理 <code>elt_45</code>
-和 <code>elt_67</code>。暂时先不要管为什么这么做。
-到这里，预备工作都做好了，接下来开始重头戏。</p>
-<h2 id="处理e0-e1元素">处理e0 e1元素</h2>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
-<p>使用内联 PTX 指令 <code>lop3.b32</code> 执行逻辑操作，将
-<code>i4s</code> 的低位（<code>BOTTOM_MASK</code> 掩码）与
-<code>I4s_TO_F16s_MAGIC_NUM</code> 结合并存储在 <code>h[0]</code>
-中。</p>
-<p>首先看一下 <code>lop3.b32</code> 执行了什么操作，这个
-<code>lop3.b32</code> 是一种CUDA汇编指令，用于执行
-三元逻辑运算。它利用查找表（immLut）来简化逻辑操作。这个函数可以在<a
-href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>查到.</p>
-<pre><code>For a logical operation F(a, b, c) the value of immLut can be computed by applying the same operation to three predefined constant values as follows:
-
-ta = 0xF0;
-tb = 0xCC;
-tc = 0xAA;
-
-immLut = F(ta, tb, tc);</code></pre>
-<p>比如： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">If F = (a &amp; b &amp; c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; <span class="number">0xAA</span> = <span class="number">0x80</span></span><br><span class="line"></span><br><span class="line">If F = (a | b | c);</span><br><span class="line">immLut = <span class="number">0xF0</span> | <span class="number">0xCC</span> | <span class="number">0xAA</span> = <span class="number">0xFE</span></span><br><span class="line"></span><br><span class="line">If F = (a &amp; b &amp; ~c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; (~<span class="number">0xAA</span>) = <span class="number">0x40</span></span><br><span class="line"></span><br><span class="line">If F = ((a &amp; b | c) ^ a);</span><br><span class="line">immLut = (<span class="number">0xF0</span> &amp; <span class="number">0xCC</span> | <span class="number">0xAA</span>) ^ <span class="number">0xF0</span> = <span class="number">0x1A</span></span><br></pre></td></tr></table></figure></p>
-<p>现在我们可以看一下刚才定义的
-<code>immLut = (0xf0 &amp; 0xcc) | 0xaa;</code> 那我们得到的操作就是
-<code>(a &amp; b) | c</code>，也就是<code>( i4s &amp; BOTTOM_MASK) | I4s_TO_F16s_MAGIC_NUM</code>.</p>
-<p>这里先插一句，这个<code>immLut</code>设置的实在是太妙了！首先，abc这三个数可以形成一个
-3 bit 的编码，可以表示 8 种状态，</p>
-<p><img src="/images/101/6.jpeg" width="80%"></p>
-<p>然后无论abc进行什么样的三元逻辑操作，得到的结果都是唯一的，这也就形成了immLut的表。实在是妙啊。</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
-<p>然后结合具体数值看一下是怎么操作的：</p>
-<p><img src="/images/101/7.jpeg" width="95%"></p>
-<p>这一步操作是提取元素0和元素1的，这里设置元素0是<code>0000</code>，即
-0，元素1是<code>0001</code>，即 1。</p>
-<p><code>i4s</code>与<code>BOTTOM_MASK</code>进行位与操作后，实际上就是把<code>e0</code>和<code>e1</code>筛选了出来，和<code>I4s_TO_F16s_MAGIC_NUM</code>进行位或操作后，是给指数位进行了赋值。</p>
-<p>现在看这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
-，<code>0x64006400</code>，只看这个指数位部分是
-<code>11001</code>，对应数字 25，fp16指数位的偏移量为
-<code>2**4−1=15</code>, 那么偏移后指数为 <code>25 - 15 = 10</code>。</p>
-<p>以e1为例，</p>
-<p>尾数位是<code>0.0000000001</code>，加上1，那就是<code>1.0000000001</code>。</p>
-<p>指数位是10，所以结果是<code>1.00000001*2^10 = 10000000001</code>。也就是小数点向后移动10位。</p>
-<p>这个结果的十进制是 1025。</p>
-<p>这时候就可以理解这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
-为什么这么设置了——原来的数值类型是<code>int4</code>，肯定是整数，那么问题的关键就是要把尾数放大到一定程度，使新的数值是整数。那么，显而易见，要把小数点向右移动10位（因为尾数位有10位），也就反推出了<code>magic number</code>的具体数值，妙啊。</p>
-<p>显然，此时的结果并不正确，因为加了1并且右移了10位，也就是加了1024，所以我们要把结果减去1024才可以，所以还需要进行这一步操作：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br></pre></td></tr></table></figure>
-<p>其中，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code></p>
-<p>这句代码实现了减1024这个操作，于是最终得到fp16格式的<code>e1=1</code>，
-<code>e0=0</code>，数据无误。</p>
-<p>需要注意的是，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code>这个数代表的其实是fp16格式的
-1024。</p>
-<p>我最开始在这里感到疑惑，心想为什么要减这么一个数，这也不是1024啊，直到后来意识到现在是在做fp16的减法，那么当然也要是fp16的格式。</p>
-<p>ok，到现在为止，最难的部分就理解完了。接下来看一下别的情况：</p>
-<h2 id="处理e2-e3元素">处理e2 e3元素</h2>
-<p><img src="/images/101/8.jpeg" width="95%"></p>
-<p>对于e2、e3而言，这时候就不能用 <code>BOTTOM_MASK</code>
-来进行位与操作了，应该改为 <code>TOP_MASK</code></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/101/9.jpeg" width="95%"></p>
-<p>如果减去1024，呢么得到<code>e3=48</code>，<code>e2=32</code>，这和刚才不太一样，事情变得不太简单。</p>
-<p>问题在哪？以e3为例，这时候小数点右移10位意味着把e3乘了<code>2^4=16</code>，所以当前的结果是<code>1024 + X * 16</code>。</p>
-<p>所以针对e2、e3的下一步操作稍有不同：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br></pre></td></tr></table></figure>
-<p>其中，<code>ONE_SIXTEENTH = 0x2c002c00; NEG_64 = 0xd400d400;</code></p>
-<p>这是做了什么操作？可以理解为</p>
-<p><code>(1024 + X * 16) * (1/16) - 64 = X</code></p>
-<p>ok，到现在为止，e0e1e2e3都搞定了，最后看一下e4e5，</p>
-<h2 id="处理e4-e5元素">处理e4 e5元素</h2>
-<p><img src="/images/101/10.jpeg" width="95%"></p>
-<p>e4 e5元素怎么提取呢？可以先认真思考一下。</p>
-<p>我最开始的想法是，针对e4
-e5的位置，再写一个mask进行位与操作不就好了，然后和前面做一样的操作。</p>
-<p>但是这样是不可行的，以e5为例，这时候e5在16位的高8位，与fp16的指数位有冲突。</p>
-<p>那么，处理方式就很简单了，文章最开始的时候提到过这个操作：</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p><img src="/images/101/11.jpeg" width="95%"></p>
-<p>这里是将 i4s 向右移位8位，以便处理 <code>elt_45</code> 和
-<code>elt_67</code>。</p>
-<p>这样一来，就可以按照e0 e1的方式处理e4 e5了。</p>
-<p>ok，到现在为止，e0 e1 e2 e3 e4 e5都搞定了，有了前面的基础，e6
-e7理解起来就很简单，这里不做过多赘述。</p>
-<p>整个代码实现到这里也就讲完了。</p>
-<hr />
-<h2 id="写在最后">写在最后</h2>
-<p>最后，补充几点</p>
-<ul>
-<li><p>对于e2e3而言，为什么不像e5e6那样，向右移动8位，然后做e0e1相同的操作？</p>
-<p>这样的操作从逻辑上确实更好理解，也避免了后面的乘1/16的操作，看上去似乎更简单。</p>
-<p>但是要明白一点，e5e6那样，向右移动8位，是不得不这么做。</p>
-<p>为了性能，e2e3没必要额外增加一个移位操作。所以关键点只剩一个：<code>fma.rn.f16x2</code>指令和<code>sub.f16x2</code>指令的区别，如果
-移位+sub指令 快于
-<code>fma.rn</code>指令，那就是赚的。代码中的注释标明了这一点：</p>
-<pre><code>  In addition, I exploit the fact that sub and fma have the same throughput in order to convert elt_23 and elt_67 to fp16 without having to shift them to the bottom bits before hand.</code></pre>
-<p>sub（减法）和
-fma（乘法累加）具有相同的吞吐量，这意味着它们的性能相当。</p></li>
-<li><p>为什么要做<code>interleave</code>？</p>
-<p>本文缘起就是因为研究这个权重排布</p>
-<p><img src="/images/101/12.jpeg" width="60%"></p>
-<p>前文中一直没有提这件事——为什么权重是<code>interleave</code>排布？</p>
-<p><img src="/images/101/13.png" width="95%"></p>
-<p>按照zzk大佬的观点，对于<code>Int8</code>来说，本来就是不需要<code>Interleave</code>的，但是<code>Int4</code>快速转换不能使用PRMT指令，需要通过一些trick，进而需要这个交错权重的格式</p>
-<p>也就是说，<code>int8</code>快速反量化中，使用了<code>PRMT</code>指令，这个指令的操作粒度是字节<code>byte</code>；而int4是<code>sub-byte</code>，不足一个字节；因此，原来在<code>INT8</code>快速反量化的那一套无法直接用在<code>int4</code>上。</p>
-<p>所以针对<code>int4</code>，使用指令<code>LOP3</code>来替代<code>PRMT</code>，从而完成了<code>int4</code>快速反量化到<code>fp16</code>的核心逻辑。通过交错权重，可以减少<code>shift</code>指令，提高性能。关于这一点，我认为<a
-href="https://zhuanlan.zhihu.com/p/657073857?utm_medium=social&amp;utm_oi=56635854684160&amp;utm_psn=1692002696943525888&amp;utm_source=wechat_session&amp;s_r=0">[LLM推理优化]🔥WINT8/4-(03):
-LOP3指令详解及INT4转FP16/BF16分析</a> 讲解的比较详细。</p></li>
-</ul>
-]]></content>
-      <tags>
-        <tag>LLM</tag>
-        <tag>AWQ</tag>
-        <tag>dequantize</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>在riscv平台优化SGEMM</title>
     <url>/2024/02/26/102_sgemm_riscv_cn/</url>
     <content><![CDATA[<p>本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。</p>
@@ -2365,107 +2190,6 @@ href="https://zhuanlan.zhihu.com/p/342923482">浅谈分块矩阵优化方法为�
         <tag>RISCV</tag>
         <tag>GEMM</tag>
         <tag>HPC</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>flatc</title>
-    <url>/2023/06/28/71_flatc/</url>
-    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
-<span id="more"></span>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
-<p>./flatc -t schema.fbs -- test.tflite</p>
-<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
-~/Downloads/encoder.tflite</p>
-<p>参考资料：</p>
-<p><a
-href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>万物皆可RSS</title>
-    <url>/2023/06/29/67_RSS/</url>
-    <content><![CDATA[<p>万物皆可RSS！</p>
-<span id="more"></span>
-<p><a href="https://sspai.com/post/60781">指路文章</a></p>
-<p><a
-href="https://www.bilibili.com/video/BV1oU4y1s7o8/?spm_id_from=333.337.search-card.all.click&amp;vd_source=a706cf2a9a33f4c298a6ef4764cea661">入坑视频教程</a></p>
-<p><a
-href="https://www.runningcheese.com/rss-subscriptions">入坑文章指南</a></p>
-<blockquote>
-<p>RSS，英文全称Really Simple
-Syndication，中文译作简易信息聚合（也叫聚合内容），是一种基于XML标准，在互联网上被广泛采用的内容包装盒投递协议。它能够描述和同步网站内容，而RSS订阅这种形式则可以更快地获取最新信息。</p>
-</blockquote>
-<ul>
-<li><p>碎片化阅读</p>
-<blockquote>
-<p>碎片化阅读是指一种通过手机、电子书、计算机等进行的不完整的、断断续续的阅读模式。</p>
-</blockquote></li>
-<li><p>信息茧房 &gt;
-信息茧房概念是由哈佛大学法学院教授、奥巴马总统的法律顾问凯斯·桑斯坦在其2006年出版的著作《信息乌托邦——众人如何生产知识》中提出的。通过对互联网的考察，桑斯坦指出，在信息传播中，因公众自身的信息需求并非全方位的，公众只注意自己选择的东西和使自己愉悦的通讯领域，久而久之，会将自身桎梏于像蚕茧一般的“茧房”中。</p></li>
-</ul>
-<p>众所周知，我们身处一个信息爆炸的网络大数据时代，再加上数据埋点、人群画像等精准营销手段，往往会产生这样的一个结果：<strong>我们经常会被迫接收到来自服务商提供的，经由大数据算法检验认为的“所谓匹配我们”的信息。</strong></p>
-<p>而这些“精准匹配的个性化”信息会不断缩小我们的认知范围，久而久之，渐渐我们会失去对信息的敏感，处于一种“<strong>别人推荐什么，你就看什么</strong>”的状态中。这是很可怕的！！</p>
-<p>我们每个人都是独立的个体，应当是“自由”的。这份自由中自然包含着“思想自由”：个人拥有或思考独立于他人之外的观点、事实、思想之自由。</p>
-<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
-<h1 id="rsshub-feedly-reeder搭配">RSSHub + Feedly + Reeder搭配</h1>
-<p>RSSHub是一个开源、简单易用、易于扩展的 RSS
-生成器，可以给任何奇奇怪怪的内容生成 RSS
-订阅源。目前借助于开源社区的力量快速发展中，已经适配数百家网站的上千项内容。</p>
-<ul>
-<li>RSSHub可以为几乎所有网站提供RSS订阅源，比如知乎、虎扑、博客、微信公众号、B站、起点等媒体站点。甚至即使该站点不提供RSS订阅服务，我们也可以基于它来制作一个RSS订阅源，可谓非常强大</li>
-</ul>
-<p>Feedly是一个RSS聚合器应用程序，支持各种网页浏览器和运行iOS或Android的移动设备，也是一个基于云端的服务。其从各种在线资源聚合用户自定的新闻订阅源，并可与他人分享。</p>
-<ul>
-<li>选择Feedly则是因为其提供了文件夹分类功能，且也拥有数量不菲的订阅源，在对RSS订阅源的管理上十分方便，同时恰好也在Reeder支持的第三方订阅服务列表中。</li>
-</ul>
-<p>Reeder是一款评价极高的iOS端RSS阅读应用。其支持与Feedbin、Feedly、Inoreader等RSS第三方服务云端同步，甚至也支持与FreshRSS、Reader、Fever等自建RSS服务同步数据。</p>
-<ul>
-<li>使用Reeder则仅仅是因为它是iOS上广受好评的RSS阅读端APP，而我购买后体验的效果也很满意。</li>
-</ul>
-<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
-<p>我绕了一大圈，看各种资料，最终的选择也恰巧是如此。</p>
-<h1 id="我的一些操作">我的一些操作：</h1>
-<h2 id="mac安装reeder4">1、mac安装Reeder4</h2>
-<p>程序体积比我想象的要小</p>
-<p>新建了个账户，icloud的feeds。</p>
-<p>订阅了一下自己的博客，阅读体验还可以。</p>
-<h2 id="iphone安装reeder5">2、iphone安装Reeder5</h2>
-<p>重新注册了个美区账号，<a
-href="https://mp.weixin.qq.com/s/s9fMsBzVu4nXBbBuYym9mA">步骤</a></p>
-<p>使用礼品卡的方式下载了Reeder5</p>
-<p>新建了个账户，icloud的feeds，和电脑的订阅同步上了～</p>
-<h2 id="浏览器安装rss插件">3、浏览器安装<a
-href="https://greasyfork.org/zh-CN/scripts/373252-rss-show-site-all-rss">RSS+插件</a></h2>
-<p>安装后，在网页的右下角会有一个“蓝色圆点”，显示当前网页有多少个可用
-RSS 源，如果没有，则不会显示。</p>
-<p>有了它，我们就再也不需要到处找 RSS 订阅源。</p>
-<p>只需要和平时上网一样，遇到喜欢的 RSS 源，一键添加即可。</p>
-<h2 id="注册feedly">4、注册feedly</h2>
-<p>https://feedly.com/</p>
-<p>但是，<a href="https://www.v2ex.com/t/797931">Reeder 4 无法添加
-feedly</a></p>
-<p>决定买Reeder5，既然拥有国外信用卡是早晚的事，那就早点做吧。</p>
-<h2 id="注册币安">5、注册币安</h2>
-<p><a href="https://www.binance.com/zh-CN">币安</a></p>
-<p><a
-href="https://www.youtube.com/watch?v=sWm0RgSapp8">币安使用方式</a></p>
-<p>欧易似乎更好用，但我还是先入为主了。</p>
-<h2 id="注册onekey-visa卡">6、注册onekey visa卡</h2>
-<p>在<a
-href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p>
-<p><a href="https://www.youtube.com/watch?v=nIfFC7hFZ90">教程</a></p>
-<p>我是用币安向onekey提现USDT实现激活的，期间扣除了1USDT的手续费。以及onekey有1$的开卡费和一点手续费。</p>
-<h2 id="添加feedly账户">7、添加feedly账户</h2>
-<p>下载Reeder5之后，就可以绑定Feedly账户了。</p>
-<hr />
-<p>目前我是<code>RSS+插件</code>的重度使用者</p>
-<hr />
-<h1 id="rss真香"><strong>RSS真香！</strong></h1>
-]]></content>
-      <tags>
-        <tag>RSS</tag>
       </tags>
   </entry>
   <entry>
@@ -2852,6 +2576,107 @@ href="https://buymeacoffee.com/zhaodongyu"><strong>Buymeacoffee</strong></a>
       </tags>
   </entry>
   <entry>
+    <title>万物皆可RSS</title>
+    <url>/2023/06/29/67_RSS/</url>
+    <content><![CDATA[<p>万物皆可RSS！</p>
+<span id="more"></span>
+<p><a href="https://sspai.com/post/60781">指路文章</a></p>
+<p><a
+href="https://www.bilibili.com/video/BV1oU4y1s7o8/?spm_id_from=333.337.search-card.all.click&amp;vd_source=a706cf2a9a33f4c298a6ef4764cea661">入坑视频教程</a></p>
+<p><a
+href="https://www.runningcheese.com/rss-subscriptions">入坑文章指南</a></p>
+<blockquote>
+<p>RSS，英文全称Really Simple
+Syndication，中文译作简易信息聚合（也叫聚合内容），是一种基于XML标准，在互联网上被广泛采用的内容包装盒投递协议。它能够描述和同步网站内容，而RSS订阅这种形式则可以更快地获取最新信息。</p>
+</blockquote>
+<ul>
+<li><p>碎片化阅读</p>
+<blockquote>
+<p>碎片化阅读是指一种通过手机、电子书、计算机等进行的不完整的、断断续续的阅读模式。</p>
+</blockquote></li>
+<li><p>信息茧房 &gt;
+信息茧房概念是由哈佛大学法学院教授、奥巴马总统的法律顾问凯斯·桑斯坦在其2006年出版的著作《信息乌托邦——众人如何生产知识》中提出的。通过对互联网的考察，桑斯坦指出，在信息传播中，因公众自身的信息需求并非全方位的，公众只注意自己选择的东西和使自己愉悦的通讯领域，久而久之，会将自身桎梏于像蚕茧一般的“茧房”中。</p></li>
+</ul>
+<p>众所周知，我们身处一个信息爆炸的网络大数据时代，再加上数据埋点、人群画像等精准营销手段，往往会产生这样的一个结果：<strong>我们经常会被迫接收到来自服务商提供的，经由大数据算法检验认为的“所谓匹配我们”的信息。</strong></p>
+<p>而这些“精准匹配的个性化”信息会不断缩小我们的认知范围，久而久之，渐渐我们会失去对信息的敏感，处于一种“<strong>别人推荐什么，你就看什么</strong>”的状态中。这是很可怕的！！</p>
+<p>我们每个人都是独立的个体，应当是“自由”的。这份自由中自然包含着“思想自由”：个人拥有或思考独立于他人之外的观点、事实、思想之自由。</p>
+<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
+<h1 id="rsshub-feedly-reeder搭配">RSSHub + Feedly + Reeder搭配</h1>
+<p>RSSHub是一个开源、简单易用、易于扩展的 RSS
+生成器，可以给任何奇奇怪怪的内容生成 RSS
+订阅源。目前借助于开源社区的力量快速发展中，已经适配数百家网站的上千项内容。</p>
+<ul>
+<li>RSSHub可以为几乎所有网站提供RSS订阅源，比如知乎、虎扑、博客、微信公众号、B站、起点等媒体站点。甚至即使该站点不提供RSS订阅服务，我们也可以基于它来制作一个RSS订阅源，可谓非常强大</li>
+</ul>
+<p>Feedly是一个RSS聚合器应用程序，支持各种网页浏览器和运行iOS或Android的移动设备，也是一个基于云端的服务。其从各种在线资源聚合用户自定的新闻订阅源，并可与他人分享。</p>
+<ul>
+<li>选择Feedly则是因为其提供了文件夹分类功能，且也拥有数量不菲的订阅源，在对RSS订阅源的管理上十分方便，同时恰好也在Reeder支持的第三方订阅服务列表中。</li>
+</ul>
+<p>Reeder是一款评价极高的iOS端RSS阅读应用。其支持与Feedbin、Feedly、Inoreader等RSS第三方服务云端同步，甚至也支持与FreshRSS、Reader、Fever等自建RSS服务同步数据。</p>
+<ul>
+<li>使用Reeder则仅仅是因为它是iOS上广受好评的RSS阅读端APP，而我购买后体验的效果也很满意。</li>
+</ul>
+<p>--摘自<a href="https://sspai.com/post/60781">指路文章</a></p>
+<p>我绕了一大圈，看各种资料，最终的选择也恰巧是如此。</p>
+<h1 id="我的一些操作">我的一些操作：</h1>
+<h2 id="mac安装reeder4">1、mac安装Reeder4</h2>
+<p>程序体积比我想象的要小</p>
+<p>新建了个账户，icloud的feeds。</p>
+<p>订阅了一下自己的博客，阅读体验还可以。</p>
+<h2 id="iphone安装reeder5">2、iphone安装Reeder5</h2>
+<p>重新注册了个美区账号，<a
+href="https://mp.weixin.qq.com/s/s9fMsBzVu4nXBbBuYym9mA">步骤</a></p>
+<p>使用礼品卡的方式下载了Reeder5</p>
+<p>新建了个账户，icloud的feeds，和电脑的订阅同步上了～</p>
+<h2 id="浏览器安装rss插件">3、浏览器安装<a
+href="https://greasyfork.org/zh-CN/scripts/373252-rss-show-site-all-rss">RSS+插件</a></h2>
+<p>安装后，在网页的右下角会有一个“蓝色圆点”，显示当前网页有多少个可用
+RSS 源，如果没有，则不会显示。</p>
+<p>有了它，我们就再也不需要到处找 RSS 订阅源。</p>
+<p>只需要和平时上网一样，遇到喜欢的 RSS 源，一键添加即可。</p>
+<h2 id="注册feedly">4、注册feedly</h2>
+<p>https://feedly.com/</p>
+<p>但是，<a href="https://www.v2ex.com/t/797931">Reeder 4 无法添加
+feedly</a></p>
+<p>决定买Reeder5，既然拥有国外信用卡是早晚的事，那就早点做吧。</p>
+<h2 id="注册币安">5、注册币安</h2>
+<p><a href="https://www.binance.com/zh-CN">币安</a></p>
+<p><a
+href="https://www.youtube.com/watch?v=sWm0RgSapp8">币安使用方式</a></p>
+<p>欧易似乎更好用，但我还是先入为主了。</p>
+<h2 id="注册onekey-visa卡">6、注册onekey visa卡</h2>
+<p>在<a
+href="https://card.onekey.so/?i=S1RXT8">这里</a>注册美国虚拟信用卡</p>
+<p><a href="https://www.youtube.com/watch?v=nIfFC7hFZ90">教程</a></p>
+<p>我是用币安向onekey提现USDT实现激活的，期间扣除了1USDT的手续费。以及onekey有1$的开卡费和一点手续费。</p>
+<h2 id="添加feedly账户">7、添加feedly账户</h2>
+<p>下载Reeder5之后，就可以绑定Feedly账户了。</p>
+<hr />
+<p>目前我是<code>RSS+插件</code>的重度使用者</p>
+<hr />
+<h1 id="rss真香"><strong>RSS真香！</strong></h1>
+]]></content>
+      <tags>
+        <tag>RSS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>flatc</title>
+    <url>/2023/06/28/71_flatc/</url>
+    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
+<span id="more"></span>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
+<p>./flatc -t schema.fbs -- test.tflite</p>
+<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
+~/Downloads/encoder.tflite</p>
+<p>参考资料：</p>
+<p><a
+href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>LaTeX学习</title>
     <url>/2023/05/30/69_LaTeX/</url>
     <content><![CDATA[<p>今天看的论文的排版真的太好看了！开始学习<code>LaTeX</code>，整个过程记录一下。</p>
@@ -2880,103 +2705,6 @@ href="https://zhuanlan.zhihu.com/p/521649367">知乎</a>看到一篇很好的文
       <tags>
         <tag>LaTeX</tag>
         <tag>study</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Final Cut study notes</title>
-    <url>/2023/07/08/75_Final-cut-study-notes/</url>
-    <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
-<span id="more"></span>
-<h1 id="配置">配置</h1>
-<hr />
-<h1 id="插件">插件</h1>
-<h2 id="motion-vfx"><a href="https://www.motionvfx.com/">MOTION
-VFX</a></h2>
-<p>一个插件集合的网站，巨好用！</p>
-<h3 id="mcamrig摄像机运动"><a
-href="https://www.motionvfx.com/store,mcamrig,p2219.html?category=63&amp;irgwc=1&amp;irgwc=1">mCamRig</a>摄像机运动</h3>
-<ul>
-<li>对出教程的UP主特别有用</li>
-<li>可以快速制作缩放、旋转，添加镜头模糊、镜头运动效果</li>
-<li>用法：
-<ul>
-<li>字幕里找到插件，拉到对应的片段上</li>
-</ul></li>
-</ul>
-<h3 id="mvertical手机视频背景虚化"><a
-href="https://www.motionvfx.com/store,mvertical,p2176.html?irgwc=1">mVertical</a>手机视频背景虚化</h3>
-<ul>
-<li>横版视频插入竖版视频时，填充两边的黑色</li>
-<li>实现背景重叠的背景虚化</li>
-<li>小技巧
-<ul>
-<li>选择片段，按一下X，就自动选择这个片段长度</li>
-<li>在字幕里找到mVertical，按Q，就可以整段附着到这个片段</li>
-</ul></li>
-</ul>
-<h2 id="commandpost最强辅助"><a
-href="https://commandpost.io">Commandpost</a>最强辅助</h2>
-<h1 id="清理缓存">清理缓存</h1>
-<p>资源库 右键 显示包内容</p>
-<h1 id="高效技巧">高效技巧</h1>
-<p>添加视频时，进行了部分选择，标记 -&gt; 清除所选范围（快捷键：Option +
-X 取消选择）</p>
-<p>添加字幕：按enter会换行，按commond+enter退出编辑状态</p>
-<p>把当前片段拉长（某一帧拉长） - 编辑 -&gt; 添加静帧 - 快捷键：shift +
-H，片段是完整的没有被切割</p>
-<p>固定音乐位置 - 第一帧最前面加一个空隙 Edit -&gt; Insert Generator
--&gt; Gap(option+W) - 选择Gap，control+D，输入1（1帧时长） -
-把音乐放最前面 - 删除的时候，Option + commond + Delete</p>
-<p>调整变速，不影响整体时长 - 右键， Lift from storyline - Overwrite to
-Primary Storyline</p>
-<p>添加的时候只要要画面，不要声音</p>
-<p>Final cut pro 1. 资源管理 - 关系： 资源库 -&gt; 事件 -&gt; 项目 -
-导入素材 - 按住 command， 手动点击素材，批量选择</p>
-<p>2.添加 素材到时间线，基本操作 - 1. 片段选择 - 选择入点： I - 选择出点
-： O - 添加到时间线： E - 取消选择 - Option + X - 2. 预览素材 -
-顺序播放： L - 加速： 连续按2,3次L - 暂停 ：K - 倒序播放 ：J -
-3.添加字幕 - 添加到选定时间点： Q - 4. 在2个素材之间快速插入： W - 5.
-进阶学习 - 个人收藏 - 关键词 - 3.剪辑 - 1. 切割工具 - B - 2. 延长 缩短
-选择的视频 - 逗号 和 句号 - 3. 切割并选中 - command + B - 4.
-范围选择工具 - 按住R不松 - 5. 删除 播放头开始 到 选中位置 - Option + [ -
-6. 删除 选中位置 到 素材结束位置 - Option + ] - 7. 删除 主时间线视频，
-同时不删除连接的视频 ， 且保留 B-roll - Option + command + delete - 8.
-速度条<br />
-- command + R - 9. 速度条 分段 - shift + B - 10. 完整 显示时间线 - shift
-+ Z - 11. 吸附 开关 - N - 12. 打上标记 - M - 13. 预览 开关 - S - 14.
-音频 - 音量调节 - Control + or Control - - 15. 字幕 - 添加字幕 到 浏览头
-右边 - Q - 添加字幕 到 浏览头 左边 - shift + Q - 直接添加 基本字幕 -
-control + T - 16. 转场 - 添加默认转场 - command + T - 17. 添加 静止帧 -
-Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数）
-- 19. 从故事情节中 提取 - 不影响 时间线 option + command + 向上</p>
-]]></content>
-      <tags>
-        <tag>finalcut</tag>
-        <tag>notes</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Roofline model学习</title>
-    <url>/2023/06/05/77_Roofline/</url>
-    <content><![CDATA[<blockquote>
-<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
-</blockquote>
-<p>学习Roofline，有一种理论指导实践的感觉。</p>
-<span id="more"></span>
-<p>阅读论文：<a
-href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
-An Insightful Visual Performance Model for Floating-Point Programs and
-Multicore Architectures</a></p>
-<p>博客：<a
-href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
-<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
-Model与深度学习模型的性能分析</a></p>
-<p>我的总结：</p>
-<p>【更新中】</p>
-]]></content>
-      <tags>
-        <tag>study</tag>
-        <tag>Roofline</tag>
       </tags>
   </entry>
   <entry>
@@ -3094,220 +2822,76 @@ LFS的使用</a></p>
       </tags>
   </entry>
   <entry>
-    <title>gdb</title>
-    <url>/2023/06/19/79_gdb/</url>
-    <content><![CDATA[<p>今天遇到段错误，旁观大佬一番操作定位解决。</p>
-<p>大大提高开发效率的关键几步，值得记录一下。</p>
+    <title>Final Cut study notes</title>
+    <url>/2023/07/08/75_Final-cut-study-notes/</url>
+    <content><![CDATA[<p>学习Final Cut Pro的笔记，提高生产力。</p>
 <span id="more"></span>
-<p><code>gdb --args 运行命令</code></p>
-<p><code>r</code></p>
-<p><code>bt</code></p>
-<p><code>p</code></p>
-<h2 id="gdb调试传参args">gdb调试传参args</h2>
-<p>假设我们的可执行程序是worker,gdb时需要传递参数arg1和arg2，有3种方式：</p>
+<h1 id="配置">配置</h1>
+<hr />
+<h1 id="插件">插件</h1>
+<h2 id="motion-vfx"><a href="https://www.motionvfx.com/">MOTION
+VFX</a></h2>
+<p>一个插件集合的网站，巨好用！</p>
+<h3 id="mcamrig摄像机运动"><a
+href="https://www.motionvfx.com/store,mcamrig,p2219.html?category=63&amp;irgwc=1&amp;irgwc=1">mCamRig</a>摄像机运动</h3>
 <ul>
-<li><p>方式1</p>
-<p><code>gdb --args worker arg1 arg2</code></p></li>
-<li><p>方式2: 进入gdb界面，然后设置参数</p>
-<p><code>gdb worker</code></p>
-<p><code>set args arg1 arg2</code></p>
-<p><code>show args</code></p></li>
-<li><p>方式3: 在run指令后面直接跟参数</p>
-<p><code>gdb worker</code></p>
-<p><code>r arg1 arg2</code></p></li>
-</ul>
-<h2 id="命令">命令</h2>
-<p>run/<code>r</code> 运行</p>
-<p>continue/c 继续运行</p>
-<p>next/n 单步运行</p>
-<p>quit/ctrl+d 退出GDB</p>
-<p>print/<code>p</code> var 打印变量的值</p>
-<p>print/p &amp;var 打印变量地址</p>
-<p>printf/p *addr 打印地址的值</p>
-<p><code>bt</code> 查看函数back trace</p>
-]]></content>
-      <tags>
-        <tag>study</tag>
-        <tag>gdb</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>FasterTransformer</title>
-    <url>/2023/07/06/83_FasterTransformer/</url>
-    <content><![CDATA[<p>记录一下部署大模型的经历</p>
-<p>【更新中】</p>
-<span id="more"></span>
-<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
-<p>查看<code>docs/bert_guide.md</code></p>
-<p>https://github.com/NVIDIA/nvidia-docker</p>
-<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
-的安装和使用</a> 好文！</p>
-<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
-<pre><code>遇到问题
-`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
-
-解决方式：
-
-docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
-<p>事实上，后来我跟着<a
-href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
-<p>查看<code>nvidia-smi</code></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
-]]></content>
-      <tags>
-        <tag>LLM</tag>
-        <tag>notes</tag>
-        <tag>tech</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>踏上ChatGPT旅程</title>
-    <url>/2023/05/26/85_ChatGPT/</url>
-    <content><![CDATA[<p>开始使用并学习ChatGPT以及相关的<code>LLM(Large Language Model)</code>，不然就被时代淘汰了～</p>
-<span id="more"></span>
-<h1 id="写在前面">0.写在前面</h1>
-<p>从去年11月底ChatGPT发布，到后来爆火，改变互联网，这半年时间我对ChatGPT还是比较冷漠的。</p>
-<p>期间我也体验了一下，以及体验了<code>cursor</code>（一个使用chatgpt-4的ai辅助编程工具），但自始至终还是充满了不信任感。所以也一直没注册账号，没想进一步探索。</p>
-<p>直到今天，我改变了对它看法，或者说我改变了看它的角度。</p>
-<p>以前潜意识里是觉得ChatGPT是智囊、军师、管家之类的身份，觉得人的主观能动性受到限制，所以会抵制。</p>
-<p>现在我想把它当工具，来便利我的工作和生活，便没有了心理阻碍。</p>
-<p>于是，ChatGPT旅程，出发～</p>
-<h1 id="注册chatgpt">1. 注册ChatGPT</h1>
-<p>我参考了这篇文章<a
-href="https://www.xnbeast.com/create-openai-chatgpt-account/">ChatGPT注册教程攻略：解决手机无法接收验证码问题（亲测有效）</a>
-，在<a
-href="https://sms-activate.org/">sms-activate</a>购买了临时国外手机号——</p>
+<li>对出教程的UP主特别有用</li>
+<li>可以快速制作缩放、旋转，添加镜头模糊、镜头运动效果</li>
+<li>用法：
 <ul>
-<li><p>买了个英国的手机号，结果</p>
-<p><code>Your account was flagged for potential abuse. If you feel this is an error, please contact us at help.openai.com</code></p></li>
-<li><p>换了个美国的也不行</p></li>
-<li><p>最后换了个印度尼西亚的手机号，顺利注册，但是进入ChatGPT又显示</p>
-<p><code>Sorry, you have been blocked</code></p></li>
-</ul>
-<p>出师不利啊……突然想起来我买的VPN的维护者说过，这个vpn不搞chatGPT那破玩意儿。于是在tg上找了个<code>@chatgptzs_bot</code>，暂时先用着，也挺好用的。</p>
-<p>但是还不甘心，之后我用<code>自由鲸</code>的欧洲节点，开启全局模式，能正常使用ChatGPT了。不过目前不是付费用户，所以没有联网功能和插件功能。</p>
-<h1 id="chatgpt使用技巧">2. ChatGPT使用技巧</h1>
-<p>昨晚在B站看到一个视频挺好的——</p>
-<p><a
-href="https://b23.tv/XCclvE1">学完这个视频，简历加一条：熟练掌握ChatGPT解决复杂问题｜ChatGPT使用教程-哔哩哔哩</a></p>
-<p>说实话，我也是有一部分被这个视频驱动来搞ChatGPT的。</p>
-<h2 id="乔哈里johari沟通视窗">乔哈里(Johari)沟通视窗</h2>
-<table>
-<thead>
-<tr class="header">
-<th></th>
-<th>你知道</th>
-<th>你不知道</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>GPT知道</td>
-<td>公开区</td>
-<td>盲区</td>
-</tr>
-<tr class="even">
-<td>GPT不知道</td>
-<td>隐私区</td>
-<td>未知区</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li><p>盲区｜问法1:
-<code>我想了解xxx，我应该向你问哪些问题？</code></p></li>
-<li><p>盲区｜问法2:<code>请给我列出xxx领域/行业相关的，最常用的50个概念，并做简单解释。如果有英文缩写，请给出完整的英文解释。</code></p></li>
-<li><p>盲区｜问法3:<code>请详细介绍一下xxx的主要生平事迹。</code>
-<code>请详细介绍一下xxx公司的发展历程。</code></p></li>
-<li><p>公开区｜检验认知:<code>对于xxx主题/技能，你认为哪些是我必须理解和掌握的核心要点？</code></p></li>
-<li><p>公开区｜检验认知:<code>我理解的xxx是这样的，你觉得我的理解对吗？</code></p></li>
-<li><p>公开区｜检验认知:<code>我对xxx有一些想法，你能帮我批判性地分析一下这些想法的优点和缺点吗？</code></p></li>
-<li><p>公开区｜检验认知:<code>我正在考虑xxx的决定，你能帮我分析一下可能的结果和影响吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我知道xxx的概念，我想知道更多关于xxx的信息。</code></p></li>
-<li><p>公开区｜扩充认知:<code>我在xxx问题上遇到困难，你能提供一些可能的解决方案或建议吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想要深入学习xxx，你能推荐一些进阶的学习资源或学习路径吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想要在xxx领域有所创新，你能提供一些启发或想法吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我想在xxx领域提升自己，你能根据最新的研究和趋势给我一些建议吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>我正在考虑学习xxx，你能给我一些关于这个领域未来发展的观点吗？</code></p></li>
-<li><p>公开区｜扩充认知:<code>（背景信息）我要做关于xxx的研究，我认为原因是，还有其他可能的原因吗？给出一些可能的研究假设。</code></p></li>
-<li><p>公开区｜扩充认知:<code>我是一个xx行业新手，马上要采访这个行业的资深大佬，我应该向他请教哪些有价值的问题？</code></p></li>
-<li><p>盲区｜问法1: <code>你怎么看待这种现象？</code></p></li>
-<li><p>盲区｜问法2: <code>可能的原因有哪些？</code></p></li>
-<li><p>盲区｜问法3: <code>这会对xxx产生什么样的影响？</code></p></li>
-<li><p>盲区｜问法4: <code>你觉得xxx应该怎么做？</code></p></li>
-<li><p>未知区｜问法1:
-<code>如果xxx，这对社会会产生什么影响？</code></p></li>
-<li><p>未知区｜反向提问:
-<code>为了测试我对xxx的了解程度，你会问我什么问题来检验我的水平，最少10个</code></p></li>
-<li><p>未知区｜反向提问:
-<code>我是xx领域的专家，你会问我哪些问题来检验我的专业水平？最少10个。</code></p></li>
-<li><p>未知区｜反向提问:
-<code>现在我们玩个“你问我答”的游戏，目的是为了测试我在xxxx方面的专业水平。你负责提问，我负责回答。你要根据我的答案进行反馈、评价、补充。如果我说不知道，你就直接输出正确答案，然后你继续提问。</code></p></li>
-<li><p>未知区｜反向提问:
-<code>我已经很精通xxx了，我想知道我是否还有需要学习的地方？</code></p></li>
-</ul>
-<p>1 知道自己要干什么，但是不知道ChatGPT能帮你什么。 -
-<code>我要做xxx，你能帮我做什么？</code></p>
-<p>2 知道要ChatGPT帮你做什么，但是你不知道给它输入什么具体的信息。 -
-<code>我想要你xxx，我应该给你输入什么信息？</code></p>
-<p>3 直接给ChatGPT指令。任务目标、背景信息、输出要求都非常清晰。 -
-<code>请推荐（书名、电视剧、电影、网站、博主、专家、学习资源） 等等。请翻译.请总结.请润色。</code></p>
-<h1 id="llm学习">3. LLM学习</h1>
-<p>我：给我推荐一些学习大规模语言模型的资料吧</p>
-<blockquote>
-<p>当然！以下是一些学习大规模语言模型的资料推荐： 1.
-论文和研究文章：深入了解大规模语言模型的原理和技术，可以阅读相关的论文和研究文章，例如《Transformers:
-Attention Is All You Need》、《BERT: Pre-training of Deep Bidirectional
-Transformers for Language Understanding》和《GPT (Generative Pre-trained
-Transformer)》。 2.
-博客文章和教程：有许多博客文章和教程可供学习，这些文章会解释大规模语言模型的概念、实现和应用。可以查找像Towards
-Data Science、Medium和OpenAI Blog等平台上的相关文章。 3. GitHub
-上的代码库：学习大规模语言模型的实现和代码细节，可以查看GitHub上的开源代码库，如Hugging
-Face的transformers库、OpenAI的GPT代码库等。 4.
-视频教程和在线课程：有一些在线课程和视频教程专门介绍大规模语言模型。例如，Coursera
-上的 "Natural Language Processing with Sequence Models" 和 YouTube 上的
-"The Transformer Explained" 等。 5.
-社区和论坛：加入与自然语言处理和大规模语言模型相关的社区和论坛，与其他人交流讨论，获取实践经验和最新动态。</p>
-<p>这些资源可以帮助你深入了解大规模语言模型的背后原理、应用和实现。希望对你的学习有所帮助！如需更具体的资源或问题，请随时告诉我。</p>
-</blockquote>
-<h2 id="学习视频">学习视频</h2>
-<p>Google Cloud Tech</p>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=zizonToFXDs">Introduction
-to Large Language Models</a></li>
-</ul>
-<p>ZOMI</p>
-<ul>
-<li><p><a
-href="https://www.youtube.com/watch?v=XujuQB9AxGA">ChatGPT狂飙原理剖析：GPT系列详解！【ChatGPT】系列第01篇</a></p></li>
-<li><p><a
-href="https://www.youtube.com/watch?v=qf2zcev7mHQ">ChatGPT狂飙：强化学习RLHF与PPO！【ChatGPT】系列第02篇</a></p></li>
-<li><p><a
-href="https://www.youtube.com/watch?v=Oy-8BqwXck8&amp;t=1s">ChatGPT狂飙：InstructGPT解析！【ChatGPT】原理第03篇</a></p></li>
-<li><p>【ChatGPT狂飙：InstructGPT解析！】思考：</p>
-<ul>
-<li>大模型通过计算的方式模拟人类的思考，类似于ChatGPT的RLHF技术是否会给世界带来新的技术产业革命？</li>
-<li>ChatGPT 使用了 Ray 作为细粒度的并行计算和昇构计算，管理分配
-RLIDL模型完成复杂训练任务，方便利用强化学习对环境和计算任务进行控制，这对A框架的分布式能力边界带来哪些新的冲击？</li>
-<li>ChatGPT
-非常重数据交互，存算一体技术会不会针对ChatGPT等应用的现专用芯片和新的架构?</li>
+<li>字幕里找到插件，拉到对应的片段上</li>
 </ul></li>
 </ul>
-<p><a
-href="https://imzhanghao.com/2023/02/24/chatgpt/">ChatGPT模型的三层理解</a></p>
-<p><a
-href="https://github.com/dalinvip/Awesome-ChatGPT">Awesome-ChatGPT</a></p>
-<p>2023.6.1 学习<a
-href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读</a></p>
+<h3 id="mvertical手机视频背景虚化"><a
+href="https://www.motionvfx.com/store,mvertical,p2176.html?irgwc=1">mVertical</a>手机视频背景虚化</h3>
+<ul>
+<li>横版视频插入竖版视频时，填充两边的黑色</li>
+<li>实现背景重叠的背景虚化</li>
+<li>小技巧
+<ul>
+<li>选择片段，按一下X，就自动选择这个片段长度</li>
+<li>在字幕里找到mVertical，按Q，就可以整段附着到这个片段</li>
+</ul></li>
+</ul>
+<h2 id="commandpost最强辅助"><a
+href="https://commandpost.io">Commandpost</a>最强辅助</h2>
+<h1 id="清理缓存">清理缓存</h1>
+<p>资源库 右键 显示包内容</p>
+<h1 id="高效技巧">高效技巧</h1>
+<p>添加视频时，进行了部分选择，标记 -&gt; 清除所选范围（快捷键：Option +
+X 取消选择）</p>
+<p>添加字幕：按enter会换行，按commond+enter退出编辑状态</p>
+<p>把当前片段拉长（某一帧拉长） - 编辑 -&gt; 添加静帧 - 快捷键：shift +
+H，片段是完整的没有被切割</p>
+<p>固定音乐位置 - 第一帧最前面加一个空隙 Edit -&gt; Insert Generator
+-&gt; Gap(option+W) - 选择Gap，control+D，输入1（1帧时长） -
+把音乐放最前面 - 删除的时候，Option + commond + Delete</p>
+<p>调整变速，不影响整体时长 - 右键， Lift from storyline - Overwrite to
+Primary Storyline</p>
+<p>添加的时候只要要画面，不要声音</p>
+<p>Final cut pro 1. 资源管理 - 关系： 资源库 -&gt; 事件 -&gt; 项目 -
+导入素材 - 按住 command， 手动点击素材，批量选择</p>
+<p>2.添加 素材到时间线，基本操作 - 1. 片段选择 - 选择入点： I - 选择出点
+： O - 添加到时间线： E - 取消选择 - Option + X - 2. 预览素材 -
+顺序播放： L - 加速： 连续按2,3次L - 暂停 ：K - 倒序播放 ：J -
+3.添加字幕 - 添加到选定时间点： Q - 4. 在2个素材之间快速插入： W - 5.
+进阶学习 - 个人收藏 - 关键词 - 3.剪辑 - 1. 切割工具 - B - 2. 延长 缩短
+选择的视频 - 逗号 和 句号 - 3. 切割并选中 - command + B - 4.
+范围选择工具 - 按住R不松 - 5. 删除 播放头开始 到 选中位置 - Option + [ -
+6. 删除 选中位置 到 素材结束位置 - Option + ] - 7. 删除 主时间线视频，
+同时不删除连接的视频 ， 且保留 B-roll - Option + command + delete - 8.
+速度条<br />
+- command + R - 9. 速度条 分段 - shift + B - 10. 完整 显示时间线 - shift
++ Z - 11. 吸附 开关 - N - 12. 打上标记 - M - 13. 预览 开关 - S - 14.
+音频 - 音量调节 - Control + or Control - - 15. 字幕 - 添加字幕 到 浏览头
+右边 - Q - 添加字幕 到 浏览头 左边 - shift + Q - 直接添加 基本字幕 -
+control + T - 16. 转场 - 添加默认转场 - command + T - 17. 添加 静止帧 -
+Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数）
+- 19. 从故事情节中 提取 - 不影响 时间线 option + command + 向上</p>
 ]]></content>
       <tags>
-        <tag>LLM</tag>
-        <tag>tech</tag>
-        <tag>ChatGPT</tag>
+        <tag>finalcut</tag>
+        <tag>notes</tag>
       </tags>
   </entry>
   <entry>
@@ -3459,8 +3043,240 @@ href="https://llvm.org/devmtg/2019-04/slides/TechTalk-Kruppe-Espasa-RISC-V_Vecto
 with RISC-V Vectors and LLVM</a></p>
 ]]></content>
       <tags>
-        <tag>tech</tag>
         <tag>risc-v</tag>
+        <tag>tech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Roofline model学习</title>
+    <url>/2023/06/05/77_Roofline/</url>
+    <content><![CDATA[<blockquote>
+<p>给定特定的计算平台，我们的算法实现是不是已经榨干硬件平台的最大能力，还有没有进一步改善的空间？这些问题寻寻觅觅答案，真像雾里看花，我们渴望有一双慧眼，帮我们穿透迷津。</p>
+</blockquote>
+<p>学习Roofline，有一种理论指导实践的感觉。</p>
+<span id="more"></span>
+<p>阅读论文：<a
+href="https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf">Roofline:
+An Insightful Visual Performance Model for Floating-Point Programs and
+Multicore Architectures</a></p>
+<p>博客：<a
+href="https://blog.csdn.net/21cnbao/article/details/116213606?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522168593229216800222880877%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=168593229216800222880877&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-116213606-null-null.142%5Ev88%5Einsert_down1,239%5Ev2%5Einsert_chatgpt&amp;utm_term=Roofline%3A%20An%20Insightful%20Visual%20Performance%20Model&amp;spm=1018.2226.3001.4187">Roofline模型初步</a></p>
+<p>知乎：<a href="https://zhuanlan.zhihu.com/p/34204282">Roofline
+Model与深度学习模型的性能分析</a></p>
+<p>我的总结：</p>
+<p>【更新中】</p>
+]]></content>
+      <tags>
+        <tag>study</tag>
+        <tag>Roofline</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
+    <url>/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</url>
+    <content><![CDATA[<p>本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
+kernel的反量化。</p>
+<span id="more"></span>
+<h1 id="背景">背景</h1>
+<p>在 ZZK大佬的文章 <a
+href="https://zhuanlan.zhihu.com/p/675427125">可能是讲的最清楚的WeightonlyGEMM博客</a>
+中学到很多知识</p>
+<hr />
+<p>最近在学AWQ的量化，<a
+href="https://arxiv.org/pdf/2306.00978">AWQ论文</a></p>
+<p>其中我比较关注GPU的部分，其中数据排布这块很有意思：</p>
+<p><img src="/images/101/1.jpeg" width="60%"></p>
+<p>于是到<a href="https://arxiv.org/pdf/2211.10017">Who Says Elephants
+Can’t Run</a> 这篇论文看了一下，<strong>WeightOnly GEMM</strong>
+技术就是在这里提出的，其中权重反量化是这么操作的：</p>
+<p><img src="/images/101/2.jpeg" width="60%"></p>
+<p>这个论文提出了一种 `IntToFloat
+的巧妙的方式，可以大大提速反量化速度。</p>
+<p><img src="/images/101/3.jpeg" width="60%"></p>
+<p>背景介绍结束，更详细的讲解可以直接看ZZK大佬的文章，接下来解释
+<code>dequantize_s4_to_fp16x2</code> 代码。</p>
+<h1 id="代码">代码</h1>
+<p>首先放出完整代码（80行）： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  uint4 result;</span><br><span class="line"></span><br><span class="line">  <span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line">  <span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// First, we extract the i4s and construct an intermediate fp16 number.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Note that the entire sequence only requires 1 shift instruction. This is</span></span><br><span class="line">  <span class="comment">// thanks to the register packing format and the fact that we force our</span></span><br><span class="line">  <span class="comment">// integers to be unsigned, and account for this in the fp16 subtractions. In</span></span><br><span class="line">  <span class="comment">// addition, I exploit the fact that sub and fma have the same throughput in</span></span><br><span class="line">  <span class="comment">// order to convert elt_23 and elt_67 to fp16 without having to shift them to</span></span><br><span class="line">  <span class="comment">// the bottom bits before hand.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Shift right by 8 to now consider elt_45 and elt_67. Issue first to hide RAW</span></span><br><span class="line">  <span class="comment">// dependency if we issue immediately before required.</span></span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br><span class="line">  <span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_45 (top_i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_67 (top_i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// I use inline PTX below because I am not sure if the compiler will emit</span></span><br><span class="line">  <span class="comment">// float2half instructions if I use the half2 ctor. In this case, I chose</span></span><br><span class="line">  <span class="comment">// performance reliability over code readability.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// This is the half2 &#123;1032, 1032&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t FP16_TOP_MAGIC_NUM = 0x64086408;</span></span><br><span class="line">  <span class="comment">// Haotian: subtract &#123;1024, 1024&#125; instead, we do not need to map to [-8, 7]</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> FP16_TOP_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;1 / 16, 1 / 16&#125; represented as an integer.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> ONE_SIXTEENTH = <span class="number">0x2c002c00</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;-72, -72&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t NEG_72 = 0xd480d480;</span></span><br><span class="line">  <span class="comment">// Haotian: Let&#x27;s use &#123;-64, -64&#125;.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> NEG_64 = <span class="number">0xd400d400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Finally, we construct the output numbers.</span></span><br><span class="line">  <span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_45</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">2</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_67</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">3</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="代码解析">代码解析</h1>
+<p>接下来逐句分析： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span></span><br></pre></td></tr></table></figure></p>
+<p>这行代码定义了一个名为 <code>dequantize_s4_to_fp16x2</code>
+的函数，这个函数是一个 CUDA 设备函数
+(<strong>device</strong>)，它的输入是一个常量引用 <code>uint32_t</code>
+类型的 <code>source</code>，返回值是 <code>uint4</code> 类型。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br></pre></td></tr></table></figure>
+<p>这段预处理指令检查 CUDA 架构版本是否小于
+750。如果是，则触发断言错误，表明该代码不适用于 CUDA 750
+以下的架构。否则，继续执行后面的代码。 比如这个函数里面用到了
+<code>lop3.b32</code> 函数，可以在 <a
+href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>
+查到</p>
+<pre><code>Requires sm_50 or higher.
+Qualifier .BoolOp requires sm_70 or higher.</code></pre>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">uint4 result;</span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line"><span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br></pre></td></tr></table></figure>
+<p>这里定义了一个 <code>uint4</code> 类型的变量
+<code>result</code>。</p>
+<p>接着将 <code>result</code> 的地址转换为 <code>uint32_t*</code>
+类型的指针 <code>h</code>，以便后续的位操作。</p>
+<p>然后将 <code>source</code> 重新解释为 <code>uint32_t</code>
+类型并赋值给 <code>i4s</code>。</p>
+<p>通过类型转换和指针操作，使得对这些整数的访问和操作更加便捷。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br></pre></td></tr></table></figure>
+<p>这里定义了一些用于位操作的常量：</p>
+<ul>
+<li><p><code>immLut</code> 是一个查找表的立即数。</p></li>
+<li><p><code>BOTTOM_MASK</code> 是用于提取较低位的掩码。</p></li>
+<li><p><code>TOP_MASK</code> 是用于提取较高位的掩码。</p></li>
+<li><p><code>I4s_TO_F16s_MAGIC_NUM</code>
+是用于整数转换为半精度浮点数的魔数。</p></li>
+</ul>
+<p><img src="/images/101/4.jpeg" width="95%"></p>
+<p>这几个数在内存中是这么表示的，后面用到的时候会仔细说，那时候会发现这几个数可真妙啊。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/5.jpeg" width="95%"></p>
+<p>这里是将 <code>i4s</code> 向右移位8位，以便处理 <code>elt_45</code>
+和 <code>elt_67</code>。暂时先不要管为什么这么做。
+到这里，预备工作都做好了，接下来开始重头戏。</p>
+<h2 id="处理e0-e1元素">处理e0 e1元素</h2>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p>使用内联 PTX 指令 <code>lop3.b32</code> 执行逻辑操作，将
+<code>i4s</code> 的低位（<code>BOTTOM_MASK</code> 掩码）与
+<code>I4s_TO_F16s_MAGIC_NUM</code> 结合并存储在 <code>h[0]</code>
+中。</p>
+<p>首先看一下 <code>lop3.b32</code> 执行了什么操作，这个
+<code>lop3.b32</code> 是一种CUDA汇编指令，用于执行
+三元逻辑运算。它利用查找表（immLut）来简化逻辑操作。这个函数可以在<a
+href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>查到.</p>
+<pre><code>For a logical operation F(a, b, c) the value of immLut can be computed by applying the same operation to three predefined constant values as follows:
+
+ta = 0xF0;
+tb = 0xCC;
+tc = 0xAA;
+
+immLut = F(ta, tb, tc);</code></pre>
+<p>比如： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">If F = (a &amp; b &amp; c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; <span class="number">0xAA</span> = <span class="number">0x80</span></span><br><span class="line"></span><br><span class="line">If F = (a | b | c);</span><br><span class="line">immLut = <span class="number">0xF0</span> | <span class="number">0xCC</span> | <span class="number">0xAA</span> = <span class="number">0xFE</span></span><br><span class="line"></span><br><span class="line">If F = (a &amp; b &amp; ~c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; (~<span class="number">0xAA</span>) = <span class="number">0x40</span></span><br><span class="line"></span><br><span class="line">If F = ((a &amp; b | c) ^ a);</span><br><span class="line">immLut = (<span class="number">0xF0</span> &amp; <span class="number">0xCC</span> | <span class="number">0xAA</span>) ^ <span class="number">0xF0</span> = <span class="number">0x1A</span></span><br></pre></td></tr></table></figure></p>
+<p>现在我们可以看一下刚才定义的
+<code>immLut = (0xf0 &amp; 0xcc) | 0xaa;</code> 那我们得到的操作就是
+<code>(a &amp; b) | c</code>，也就是<code>( i4s &amp; BOTTOM_MASK) | I4s_TO_F16s_MAGIC_NUM</code>.</p>
+<p>这里先插一句，这个<code>immLut</code>设置的实在是太妙了！首先，abc这三个数可以形成一个
+3 bit 的编码，可以表示 8 种状态，</p>
+<p><img src="/images/101/6.jpeg" width="80%"></p>
+<p>然后无论abc进行什么样的三元逻辑操作，得到的结果都是唯一的，这也就形成了immLut的表。实在是妙啊。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p>然后结合具体数值看一下是怎么操作的：</p>
+<p><img src="/images/101/7.jpeg" width="95%"></p>
+<p>这一步操作是提取元素0和元素1的，这里设置元素0是<code>0000</code>，即
+0，元素1是<code>0001</code>，即 1。</p>
+<p><code>i4s</code>与<code>BOTTOM_MASK</code>进行位与操作后，实际上就是把<code>e0</code>和<code>e1</code>筛选了出来，和<code>I4s_TO_F16s_MAGIC_NUM</code>进行位或操作后，是给指数位进行了赋值。</p>
+<p>现在看这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
+，<code>0x64006400</code>，只看这个指数位部分是
+<code>11001</code>，对应数字 25，fp16指数位的偏移量为
+<code>2**4−1=15</code>, 那么偏移后指数为 <code>25 - 15 = 10</code>。</p>
+<p>以e1为例，</p>
+<p>尾数位是<code>0.0000000001</code>，加上1，那就是<code>1.0000000001</code>。</p>
+<p>指数位是10，所以结果是<code>1.00000001*2^10 = 10000000001</code>。也就是小数点向后移动10位。</p>
+<p>这个结果的十进制是 1025。</p>
+<p>这时候就可以理解这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
+为什么这么设置了——原来的数值类型是<code>int4</code>，肯定是整数，那么问题的关键就是要把尾数放大到一定程度，使新的数值是整数。那么，显而易见，要把小数点向右移动10位（因为尾数位有10位），也就反推出了<code>magic number</code>的具体数值，妙啊。</p>
+<p>显然，此时的结果并不正确，因为加了1并且右移了10位，也就是加了1024，所以我们要把结果减去1024才可以，所以还需要进行这一步操作：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code></p>
+<p>这句代码实现了减1024这个操作，于是最终得到fp16格式的<code>e1=1</code>，
+<code>e0=0</code>，数据无误。</p>
+<p>需要注意的是，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code>这个数代表的其实是fp16格式的
+1024。</p>
+<p>我最开始在这里感到疑惑，心想为什么要减这么一个数，这也不是1024啊，直到后来意识到现在是在做fp16的减法，那么当然也要是fp16的格式。</p>
+<p>ok，到现在为止，最难的部分就理解完了。接下来看一下别的情况：</p>
+<h2 id="处理e2-e3元素">处理e2 e3元素</h2>
+<p><img src="/images/101/8.jpeg" width="95%"></p>
+<p>对于e2、e3而言，这时候就不能用 <code>BOTTOM_MASK</code>
+来进行位与操作了，应该改为 <code>TOP_MASK</code></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/9.jpeg" width="95%"></p>
+<p>如果减去1024，呢么得到<code>e3=48</code>，<code>e2=32</code>，这和刚才不太一样，事情变得不太简单。</p>
+<p>问题在哪？以e3为例，这时候小数点右移10位意味着把e3乘了<code>2^4=16</code>，所以当前的结果是<code>1024 + X * 16</code>。</p>
+<p>所以针对e2、e3的下一步操作稍有不同：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>ONE_SIXTEENTH = 0x2c002c00; NEG_64 = 0xd400d400;</code></p>
+<p>这是做了什么操作？可以理解为</p>
+<p><code>(1024 + X * 16) * (1/16) - 64 = X</code></p>
+<p>ok，到现在为止，e0e1e2e3都搞定了，最后看一下e4e5，</p>
+<h2 id="处理e4-e5元素">处理e4 e5元素</h2>
+<p><img src="/images/101/10.jpeg" width="95%"></p>
+<p>e4 e5元素怎么提取呢？可以先认真思考一下。</p>
+<p>我最开始的想法是，针对e4
+e5的位置，再写一个mask进行位与操作不就好了，然后和前面做一样的操作。</p>
+<p>但是这样是不可行的，以e5为例，这时候e5在16位的高8位，与fp16的指数位有冲突。</p>
+<p>那么，处理方式就很简单了，文章最开始的时候提到过这个操作：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/11.jpeg" width="95%"></p>
+<p>这里是将 i4s 向右移位8位，以便处理 <code>elt_45</code> 和
+<code>elt_67</code>。</p>
+<p>这样一来，就可以按照e0 e1的方式处理e4 e5了。</p>
+<p>ok，到现在为止，e0 e1 e2 e3 e4 e5都搞定了，有了前面的基础，e6
+e7理解起来就很简单，这里不做过多赘述。</p>
+<p>整个代码实现到这里也就讲完了。</p>
+<hr />
+<h2 id="写在最后">写在最后</h2>
+<p>最后，补充几点</p>
+<ul>
+<li><p>对于e2e3而言，为什么不像e5e6那样，向右移动8位，然后做e0e1相同的操作？</p>
+<p>这样的操作从逻辑上确实更好理解，也避免了后面的乘1/16的操作，看上去似乎更简单。</p>
+<p>但是要明白一点，e5e6那样，向右移动8位，是不得不这么做。</p>
+<p>为了性能，e2e3没必要额外增加一个移位操作。所以关键点只剩一个：<code>fma.rn.f16x2</code>指令和<code>sub.f16x2</code>指令的区别，如果
+移位+sub指令 快于
+<code>fma.rn</code>指令，那就是赚的。代码中的注释标明了这一点：</p>
+<pre><code>  In addition, I exploit the fact that sub and fma have the same throughput in order to convert elt_23 and elt_67 to fp16 without having to shift them to the bottom bits before hand.</code></pre>
+<p>sub（减法）和
+fma（乘法累加）具有相同的吞吐量，这意味着它们的性能相当。</p></li>
+<li><p>为什么要做<code>interleave</code>？</p>
+<p>本文缘起就是因为研究这个权重排布</p>
+<p><img src="/images/101/12.jpeg" width="60%"></p>
+<p>前文中一直没有提这件事——为什么权重是<code>interleave</code>排布？</p>
+<p><img src="/images/101/13.png" width="95%"></p>
+<p>按照zzk大佬的观点，对于<code>Int8</code>来说，本来就是不需要<code>Interleave</code>的，但是<code>Int4</code>快速转换不能使用PRMT指令，需要通过一些trick，进而需要这个交错权重的格式</p>
+<p>也就是说，<code>int8</code>快速反量化中，使用了<code>PRMT</code>指令，这个指令的操作粒度是字节<code>byte</code>；而int4是<code>sub-byte</code>，不足一个字节；因此，原来在<code>INT8</code>快速反量化的那一套无法直接用在<code>int4</code>上。</p>
+<p>所以针对<code>int4</code>，使用指令<code>LOP3</code>来替代<code>PRMT</code>，从而完成了<code>int4</code>快速反量化到<code>fp16</code>的核心逻辑。通过交错权重，可以减少<code>shift</code>指令，提高性能。关于这一点，我认为<a
+href="https://zhuanlan.zhihu.com/p/657073857?utm_medium=social&amp;utm_oi=56635854684160&amp;utm_psn=1692002696943525888&amp;utm_source=wechat_session&amp;s_r=0">[LLM推理优化]🔥WINT8/4-(03):
+LOP3指令详解及INT4转FP16/BF16分析</a> 讲解的比较详细。</p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>LLM</tag>
+        <tag>AWQ</tag>
+        <tag>dequantize</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>FasterTransformer</title>
+    <url>/2023/07/06/83_FasterTransformer/</url>
+    <content><![CDATA[<p>记录一下部署大模型的经历</p>
+<p>【更新中】</p>
+<span id="more"></span>
+<p><code>git clone https://github.com/NVIDIA/FasterTransformer.git</code></p>
+<p>查看<code>docs/bert_guide.md</code></p>
+<p>https://github.com/NVIDIA/nvidia-docker</p>
+<p><a href="https://fanjunyu.com/posts/bb9b6d25/">NVIDIA Docker
+的安装和使用</a> 好文！</p>
+<p>期间需要注意这个问题，于是我最后一句改成了<code>docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi</code></p>
+<pre><code>遇到问题
+`permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get &quot;http://%2Fvar%2Frun%2Fdocker.sock/v1.24/version&quot;: dial unix /var/run/docker.sock: connect: permission denied`
+
+解决方式：
+
+docker守护进程启动的时候，会默认赋予名字为docker的用户组读写Unix socket的权限，因此只要创建docker用户组，并将当前用户加入到docker用户组中，那么当前用户就有权限访问Unix socket了，进而也就可以执行docker相关命令</code></pre>
+<p>事实上，后来我跟着<a
+href="https://blog.csdn.net/biejieyu1016/article/details/120874915">这篇教程</a>做的</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sudo groupadd docker #添加docker用户组</span><br><span class="line">sudo gpasswd -a $USER docker  #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker #更新用户组</span><br><span class="line">docker images    #测试docker命令是否可以使用sudo正常使用</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker version</span><br><span class="line">Client: Docker Engine - Community</span><br><span class="line"> Version:           24.0.3</span><br><span class="line"> API version:       1.43</span><br><span class="line"> Go version:        go1.20.5</span><br><span class="line"> Git commit:        3713ee1</span><br><span class="line"> Built:             Wed Jul  5 20:44:55 2023</span><br><span class="line"> OS/Arch:           linux/amd64</span><br><span class="line"> Context:           default</span><br><span class="line"></span><br><span class="line">Server: Docker Engine - Community</span><br><span class="line"> Engine:</span><br><span class="line">  Version:          24.0.3</span><br><span class="line">  API version:      1.43 (minimum version 1.12)</span><br><span class="line">  Go version:       go1.20.5</span><br><span class="line">  Git commit:       1d9c861</span><br><span class="line">  Built:            Wed Jul  5 20:44:55 2023</span><br><span class="line">  OS/Arch:          linux/amd64</span><br><span class="line">  Experimental:     false</span><br><span class="line"> containerd:</span><br><span class="line">  Version:          1.6.21</span><br><span class="line">  GitCommit:        3dce8eb055cbb6872793272b4f20ed16117344f8</span><br><span class="line"> runc:</span><br><span class="line">  Version:          1.1.7</span><br><span class="line">  GitCommit:        v1.1.7-0-g860f061</span><br><span class="line"> docker-init:</span><br><span class="line">  Version:          0.19.0</span><br><span class="line">  GitCommit:        de40ad0</span><br></pre></td></tr></table></figure>
+<p>查看<code>nvidia-smi</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Fri Jul  7 14:04:28 2023       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.54.03              Driver Version: 535.54.03    CUDA Version: 12.2     |</span><br><span class="line">|-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  Quadro P620                    Off | 00000000:01:00.0  On |                  N/A |</span><br><span class="line">| 34%   41C    P8              N/A /  N/A |    191MiB /  2048MiB |      0%      Default |</span><br><span class="line">|                                         |                      |                  N/A |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|    0   N/A  N/A      1833      G   /usr/lib/xorg/Xorg                           72MiB |</span><br><span class="line">|    0   N/A  N/A      1949    C+G   ...libexec/gnome-remote-desktop-daemon       38MiB |</span><br><span class="line">|    0   N/A  N/A      1990      G   /usr/bin/gnome-shell                         73MiB |</span><br><span class="line">|    0   N/A  N/A      4784      G   gnome-control-center                          1MiB |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://hub.docker.com/r/nvidia/cuda/tags?page=1&amp;name=22.04">查找nvidia/cuda镜像</a></p>
+]]></content>
+      <tags>
+        <tag>notes</tag>
+        <tag>tech</tag>
+        <tag>LLM</tag>
       </tags>
   </entry>
   <entry>
@@ -3540,143 +3356,187 @@ href="https://cmake.org/download/">cmake官网</a>下载了<code>cmake-3.27.0-rc
       </tags>
   </entry>
   <entry>
-    <title>Crawler</title>
-    <url>/2020/05/19/89_Crawler/</url>
-    <content><![CDATA[<p>背景：国内表情识别的数据集太少了 &amp;
-表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。</p>
-<p>于是，在百度上爬了一批数据下来补充到数据集里面。</p>
-<p>[爬虫有风险，操作需谨慎]</p>
+    <title>踏上ChatGPT旅程</title>
+    <url>/2023/05/26/85_ChatGPT/</url>
+    <content><![CDATA[<p>开始使用并学习ChatGPT以及相关的<code>LLM(Large Language Model)</code>，不然就被时代淘汰了～</p>
 <span id="more"></span>
-<h1 id="写在前面的话">写在前面的话</h1>
-<p>一共两个文件</p>
+<h1 id="写在前面">0.写在前面</h1>
+<p>从去年11月底ChatGPT发布，到后来爆火，改变互联网，这半年时间我对ChatGPT还是比较冷漠的。</p>
+<p>期间我也体验了一下，以及体验了<code>cursor</code>（一个使用chatgpt-4的ai辅助编程工具），但自始至终还是充满了不信任感。所以也一直没注册账号，没想进一步探索。</p>
+<p>直到今天，我改变了对它看法，或者说我改变了看它的角度。</p>
+<p>以前潜意识里是觉得ChatGPT是智囊、军师、管家之类的身份，觉得人的主观能动性受到限制，所以会抵制。</p>
+<p>现在我想把它当工具，来便利我的工作和生活，便没有了心理阻碍。</p>
+<p>于是，ChatGPT旅程，出发～</p>
+<h1 id="注册chatgpt">1. 注册ChatGPT</h1>
+<p>我参考了这篇文章<a
+href="https://www.xnbeast.com/create-openai-chatgpt-account/">ChatGPT注册教程攻略：解决手机无法接收验证码问题（亲测有效）</a>
+，在<a
+href="https://sms-activate.org/">sms-activate</a>购买了临时国外手机号——</p>
 <ul>
-<li><p>crawler.py</p>
-<p>主程序：实现爬虫功能，爬取的关键词在keywords.txt里面</p></li>
-<li><p>keywords.txt</p>
-<p>关键词：比如爬开心的图，就可以设置 happy 高兴 高兴表情 高兴的人
-高兴脸 开心 开心脸 开心的人 开心表情 欢愉 愉悦 愉悦表情 欢愉表情
-幸福表情 幸福的脸 幸福的人 愉悦表情 欢欣表情 欢喜表情 喜悦</p>
-<p><strong>每个关键词用换行分隔</strong></p></li>
+<li><p>买了个英国的手机号，结果</p>
+<p><code>Your account was flagged for potential abuse. If you feel this is an error, please contact us at help.openai.com</code></p></li>
+<li><p>换了个美国的也不行</p></li>
+<li><p>最后换了个印度尼西亚的手机号，顺利注册，但是进入ChatGPT又显示</p>
+<p><code>Sorry, you have been blocked</code></p></li>
 </ul>
-<p>运行python文件后，需要等待一会（正在获取图片的<code>url</code>），然后就显示下载log了。</p>
-<p>结果会保存到<code>image</code>文件夹内，后续需要进一步批处理文件以及进行人脸提取、对齐、清洗等工作。</p>
-<p>清洗数据集还是相当繁琐的，建议不要浪费时间在数据清洗上，自己想办法找途径处理。</p>
-<pre><code>[爬虫有风险，操作需谨慎]
-
-希望你能把这个代码用在正途，造福社会:)
-
-希望你能开源数据集，减少社会整体的成本:)</code></pre>
-<h1 id="python代码">python代码</h1>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
+<p>出师不利啊……突然想起来我买的VPN的维护者说过，这个vpn不搞chatGPT那破玩意儿。于是在tg上找了个<code>@chatgptzs_bot</code>，暂时先用着，也挺好用的。</p>
+<p>但是还不甘心，之后我用<code>自由鲸</code>的欧洲节点，开启全局模式，能正常使用ChatGPT了。不过目前不是付费用户，所以没有联网功能和插件功能。</p>
+<h1 id="chatgpt使用技巧">2. ChatGPT使用技巧</h1>
+<p>昨晚在B站看到一个视频挺好的——</p>
+<p><a
+href="https://b23.tv/XCclvE1">学完这个视频，简历加一条：熟练掌握ChatGPT解决复杂问题｜ChatGPT使用教程-哔哩哔哩</a></p>
+<p>说实话，我也是有一部分被这个视频驱动来搞ChatGPT的。</p>
+<h2 id="乔哈里johari沟通视窗">乔哈里(Johari)沟通视窗</h2>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>你知道</th>
+<th>你不知道</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPT知道</td>
+<td>公开区</td>
+<td>盲区</td>
+</tr>
+<tr class="even">
+<td>GPT不知道</td>
+<td>隐私区</td>
+<td>未知区</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>盲区｜问法1:
+<code>我想了解xxx，我应该向你问哪些问题？</code></p></li>
+<li><p>盲区｜问法2:<code>请给我列出xxx领域/行业相关的，最常用的50个概念，并做简单解释。如果有英文缩写，请给出完整的英文解释。</code></p></li>
+<li><p>盲区｜问法3:<code>请详细介绍一下xxx的主要生平事迹。</code>
+<code>请详细介绍一下xxx公司的发展历程。</code></p></li>
+<li><p>公开区｜检验认知:<code>对于xxx主题/技能，你认为哪些是我必须理解和掌握的核心要点？</code></p></li>
+<li><p>公开区｜检验认知:<code>我理解的xxx是这样的，你觉得我的理解对吗？</code></p></li>
+<li><p>公开区｜检验认知:<code>我对xxx有一些想法，你能帮我批判性地分析一下这些想法的优点和缺点吗？</code></p></li>
+<li><p>公开区｜检验认知:<code>我正在考虑xxx的决定，你能帮我分析一下可能的结果和影响吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我知道xxx的概念，我想知道更多关于xxx的信息。</code></p></li>
+<li><p>公开区｜扩充认知:<code>我在xxx问题上遇到困难，你能提供一些可能的解决方案或建议吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想要深入学习xxx，你能推荐一些进阶的学习资源或学习路径吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想要在xxx领域有所创新，你能提供一些启发或想法吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我想在xxx领域提升自己，你能根据最新的研究和趋势给我一些建议吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>我正在考虑学习xxx，你能给我一些关于这个领域未来发展的观点吗？</code></p></li>
+<li><p>公开区｜扩充认知:<code>（背景信息）我要做关于xxx的研究，我认为原因是，还有其他可能的原因吗？给出一些可能的研究假设。</code></p></li>
+<li><p>公开区｜扩充认知:<code>我是一个xx行业新手，马上要采访这个行业的资深大佬，我应该向他请教哪些有价值的问题？</code></p></li>
+<li><p>盲区｜问法1: <code>你怎么看待这种现象？</code></p></li>
+<li><p>盲区｜问法2: <code>可能的原因有哪些？</code></p></li>
+<li><p>盲区｜问法3: <code>这会对xxx产生什么样的影响？</code></p></li>
+<li><p>盲区｜问法4: <code>你觉得xxx应该怎么做？</code></p></li>
+<li><p>未知区｜问法1:
+<code>如果xxx，这对社会会产生什么影响？</code></p></li>
+<li><p>未知区｜反向提问:
+<code>为了测试我对xxx的了解程度，你会问我什么问题来检验我的水平，最少10个</code></p></li>
+<li><p>未知区｜反向提问:
+<code>我是xx领域的专家，你会问我哪些问题来检验我的专业水平？最少10个。</code></p></li>
+<li><p>未知区｜反向提问:
+<code>现在我们玩个“你问我答”的游戏，目的是为了测试我在xxxx方面的专业水平。你负责提问，我负责回答。你要根据我的答案进行反馈、评价、补充。如果我说不知道，你就直接输出正确答案，然后你继续提问。</code></p></li>
+<li><p>未知区｜反向提问:
+<code>我已经很精通xxx了，我想知道我是否还有需要学习的地方？</code></p></li>
+</ul>
+<p>1 知道自己要干什么，但是不知道ChatGPT能帮你什么。 -
+<code>我要做xxx，你能帮我做什么？</code></p>
+<p>2 知道要ChatGPT帮你做什么，但是你不知道给它输入什么具体的信息。 -
+<code>我想要你xxx，我应该给你输入什么信息？</code></p>
+<p>3 直接给ChatGPT指令。任务目标、背景信息、输出要求都非常清晰。 -
+<code>请推荐（书名、电视剧、电影、网站、博主、专家、学习资源） 等等。请翻译.请总结.请润色。</code></p>
+<h1 id="llm学习">3. LLM学习</h1>
+<p>我：给我推荐一些学习大规模语言模型的资料吧</p>
+<blockquote>
+<p>当然！以下是一些学习大规模语言模型的资料推荐： 1.
+论文和研究文章：深入了解大规模语言模型的原理和技术，可以阅读相关的论文和研究文章，例如《Transformers:
+Attention Is All You Need》、《BERT: Pre-training of Deep Bidirectional
+Transformers for Language Understanding》和《GPT (Generative Pre-trained
+Transformer)》。 2.
+博客文章和教程：有许多博客文章和教程可供学习，这些文章会解释大规模语言模型的概念、实现和应用。可以查找像Towards
+Data Science、Medium和OpenAI Blog等平台上的相关文章。 3. GitHub
+上的代码库：学习大规模语言模型的实现和代码细节，可以查看GitHub上的开源代码库，如Hugging
+Face的transformers库、OpenAI的GPT代码库等。 4.
+视频教程和在线课程：有一些在线课程和视频教程专门介绍大规模语言模型。例如，Coursera
+上的 "Natural Language Processing with Sequence Models" 和 YouTube 上的
+"The Transformer Explained" 等。 5.
+社区和论坛：加入与自然语言处理和大规模语言模型相关的社区和论坛，与其他人交流讨论，获取实践经验和最新动态。</p>
+<p>这些资源可以帮助你深入了解大规模语言模型的背后原理、应用和实现。希望对你的学习有所帮助！如需更具体的资源或问题，请随时告诉我。</p>
+</blockquote>
+<h2 id="学习视频">学习视频</h2>
+<p>Google Cloud Tech</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=zizonToFXDs">Introduction
+to Large Language Models</a></li>
+</ul>
+<p>ZOMI</p>
+<ul>
+<li><p><a
+href="https://www.youtube.com/watch?v=XujuQB9AxGA">ChatGPT狂飙原理剖析：GPT系列详解！【ChatGPT】系列第01篇</a></p></li>
+<li><p><a
+href="https://www.youtube.com/watch?v=qf2zcev7mHQ">ChatGPT狂飙：强化学习RLHF与PPO！【ChatGPT】系列第02篇</a></p></li>
+<li><p><a
+href="https://www.youtube.com/watch?v=Oy-8BqwXck8&amp;t=1s">ChatGPT狂飙：InstructGPT解析！【ChatGPT】原理第03篇</a></p></li>
+<li><p>【ChatGPT狂飙：InstructGPT解析！】思考：</p>
+<ul>
+<li>大模型通过计算的方式模拟人类的思考，类似于ChatGPT的RLHF技术是否会给世界带来新的技术产业革命？</li>
+<li>ChatGPT 使用了 Ray 作为细粒度的并行计算和昇构计算，管理分配
+RLIDL模型完成复杂训练任务，方便利用强化学习对环境和计算任务进行控制，这对A框架的分布式能力边界带来哪些新的冲击？</li>
+<li>ChatGPT
+非常重数据交互，存算一体技术会不会针对ChatGPT等应用的现专用芯片和新的架构?</li>
+</ul></li>
+</ul>
+<p><a
+href="https://imzhanghao.com/2023/02/24/chatgpt/">ChatGPT模型的三层理解</a></p>
+<p><a
+href="https://github.com/dalinvip/Awesome-ChatGPT">Awesome-ChatGPT</a></p>
+<p>2023.6.1 学习<a
+href="https://www.youtube.com/watch?v=nzqlFIcCSWQ">Transformer论文逐段精读</a></p>
 ]]></content>
       <tags>
         <tag>tech</tag>
-        <tag>crawler</tag>
+        <tag>LLM</tag>
+        <tag>ChatGPT</tag>
       </tags>
   </entry>
   <entry>
-    <title>tflite-micro</title>
-    <url>/2023/10/27/91_tflite-micro/</url>
-    <content><![CDATA[<p>最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。</p>
+    <title>gdb</title>
+    <url>/2023/06/19/79_gdb/</url>
+    <content><![CDATA[<p>今天遇到段错误，旁观大佬一番操作定位解决。</p>
+<p>大大提高开发效率的关键几步，值得记录一下。</p>
 <span id="more"></span>
-<p>论文：<a href="https://arxiv.org/abs/2010.08678">TensorFlow Lite
-Micro: Embedded Machine Learning on TinyML Systems</a></p>
-<h1 id="克隆仓库">克隆仓库</h1>
-<p>在tensorflow的<a
-href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro">git里面</a>，看到git已经迁移至一个单独的<a
-href="https://github.com/tensorflow/tflite-micro">仓库</a>。</p>
+<p><code>gdb --args 运行命令</code></p>
+<p><code>r</code></p>
+<p><code>bt</code></p>
+<p><code>p</code></p>
+<h2 id="gdb调试传参args">gdb调试传参args</h2>
+<p>假设我们的可执行程序是worker,gdb时需要传递参数arg1和arg2，有3种方式：</p>
 <ul>
-<li>As of June 25, 2021, the TFLM codebase has moved to a <a
-href="https://github.com/tensorflow/tflite-micro">stand-alone github
-repository</a>.</li>
+<li><p>方式1</p>
+<p><code>gdb --args worker arg1 arg2</code></p></li>
+<li><p>方式2: 进入gdb界面，然后设置参数</p>
+<p><code>gdb worker</code></p>
+<p><code>set args arg1 arg2</code></p>
+<p><code>show args</code></p></li>
+<li><p>方式3: 在run指令后面直接跟参数</p>
+<p><code>gdb worker</code></p>
+<p><code>r arg1 arg2</code></p></li>
 </ul>
-<p>于是在ubuntu执行命令：</p>
-<p><code>git clone https://github.com/tensorflow/tflite-micro.git</code></p>
-<p>此时<code>commit 7ac0b662b6402c1fccc8ec8d1db84f0f34dd4a85</code></p>
-<h1 id="编译静态库">编译静态库</h1>
-<p>求助了ChatGPT 4.0：</p>
-<p>「在这个 https://github.com/tensorflow/tflite-micro ，
-怎么编译静态库？」</p>
-<p>在TensorFlow Lite
-Micro的GitHub仓库中，你可以使用以下步骤来编译静态库：</p>
-<ol type="1">
-<li>首先，你需要克隆仓库：</li>
-</ol>
-<p><code>git clone https://github.com/tensorflow/tflite-micro.git</code></p>
-<ol start="2" type="1">
-<li>进入克隆下来的仓库目录：</li>
-</ol>
-<p><code>cd tflite-micro</code></p>
-<ol start="3" type="1">
-<li>使用make命令编译静态库：</li>
-</ol>
-<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=&lt;TARGET&gt; TARGET_ARCH=&lt;ARCH&gt; microlite</code></p>
-<p>在上述命令中，<code>&lt;TARGET&gt;</code>应替换为你的目标平台（如<code>linux</code>），<code>&lt;ARCH&gt;</code>应替换为你的目标架构（如<code>x86_64</code>）。这将在<code>tensorflow/lite/micro/tools/make/gen/&lt;TARGET&gt;_&lt;ARCH&gt;/lib/</code>目录下生成一个名为<code>libtensorflow-microlite.a</code>的静态库。</p>
-<p>请注意，你可能需要根据你的具体需求和环境来修改这些步骤。例如，你可能需要安装额外的依赖库，或者修改makefile来包含你需要的特性。</p>
-<p>真是太棒了，于是我执行指令：</p>
-<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=linux TARGET_ARCH=x86_64 microlite</code></p>
-<p>在 <code>make/download/</code>
-目录下，分别下载了<code>flatbuffers</code>、<code>gemmlowp</code>、<code>kissfft</code>、<code>pigweed</code>、<code>ruy</code>。</p>
-<p>编译完成后，得到了静态库文件</p>
-<p><code>ar: creating gen/linux_x86_64_default/lib/libtensorflow-microlite.a</code></p>
-<h1 id="编写-demo-debug">编写 demo &amp; debug</h1>
-<p>仿照helloworld工程写了一个小demo</p>
-<h2 id="遇到问题">遇到问题：</h2>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Failed to allocate tail memory. Requested: 2760, available 1376, missing: 1384</span><br><span class="line">Failed to allocate memory for context-&gt;eval_tensors, 2760 bytes required</span><br><span class="line">Failed starting model allocation.</span><br></pre></td></tr></table></figure>
-<h2 id="解决方法">解决方法：</h2>
-<p>先暂时增大ArenaSize，后面再根据实际使用情况调整回来：</p>
-<p><code>constexpr int kTensorArenaSize = 300000;</code></p>
-<h2 id="遇到问题-1">遇到问题：</h2>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Didn&#x27;t find op for builtin opcode &#x27;LEAKY_RELU&#x27;</span><br><span class="line">Failed to get registration from op code LEAKY_RELU</span><br><span class="line"></span><br><span class="line">Segmentation fault (core dumped)</span><br></pre></td></tr></table></figure>
-<h2 id="解决方法-1">解决方法：</h2>
-<p>增加算子注册
-<code>TF_LITE_ENSURE_STATUS(op_resolver.AddLeakyRelu());</code></p>
-<h2 id="遇到问题-2">遇到问题</h2>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Couldn&#x27;t register builtin op #98, resolver size </span><br><span class="line">is too small (1).</span><br></pre></td></tr></table></figure>
-<h2 id="解决方法-2">解决方法</h2>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">using HelloWorldOpResolver = tflite::MicroMutableOpResolver&lt;1&gt;;</span><br></pre></td></tr></table></figure>
-<p>这里的1代表注册个数，草率了，应该<code>op_resolver</code> add
-了几个这里就写几的。</p>
-<h2 id="遇到问题-3">遇到问题</h2>
-<p>一旦执行到<code>interpreter.input(0)-&gt;data.f[0] = 1.f;</code>就段错误。</p>
-<h2 id="解决办法">解决办法</h2>
-<p><code>CFLAGS = -DTF_LITE_STATIC_MEMORY</code></p>
-<h1 id="进一步减小库体积">进一步减小库体积</h1>
-<p>为了压缩体积，<code>BUILD_TYPE</code>使用了<code>release</code>进行编译，这期间会遇到<code>MicroPrintf</code>不支持的问题（release_with_logs是可以的），进行一些注释就可以。</p>
-<p>以及进行<code>-Os</code>编译，可以减少很多体积占用。</p>
+<h2 id="命令">命令</h2>
+<p>run/<code>r</code> 运行</p>
+<p>continue/c 继续运行</p>
+<p>next/n 单步运行</p>
+<p>quit/ctrl+d 退出GDB</p>
+<p>print/<code>p</code> var 打印变量的值</p>
+<p>print/p &amp;var 打印变量地址</p>
+<p>printf/p *addr 打印地址的值</p>
+<p><code>bt</code> 查看函数back trace</p>
 ]]></content>
       <tags>
-        <tag>notes</tag>
-        <tag>tech</tag>
-        <tag>tflite-micro</tag>
-        <tag>TinyML</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>内存对齐的实现</title>
-    <url>/2022/12/13/95_memory-align/</url>
-    <content><![CDATA[<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
-<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
-<p>花了一点点时间搞懂了内存对齐的实现与细节——</p>
-<span id="more"></span>
-<h2 id="什么是内存对齐">0.什么是内存对齐？</h2>
-<p>计算机中内存空间是按照<code>byte</code>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问<code>特定类型变量</code>的时候通常在<code>特定的内存地址</code>访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。</p>
-<p>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。</p>
-<h2 id="为什么要内存对齐">1.为什么要内存对齐？</h2>
-<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
-<p><strong>比如有些架构的CPU在访问一个没有进行对齐的变量的时候会发生错误,那么在这种架构下编程必须保证字节对齐.</strong></p>
-<p>其他平台可能没有这种情况，但是最常见的是如果不按照适合其平台要求对数据存放进行对齐，会在存取效率上带来损失。</p>
-<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
-<p>参考链接：https://juejin.cn/post/6870162226032934926</p>
-<h2 id="我的分析实践">2.我的分析实践</h2>
-<p><img src="/images/memory_align/MemoryAlign1.png" width="90%"></p>
-<p><img src="/images/memory_align/MemoryAlign2.png" width="90%"></p>
-]]></content>
-      <tags>
-        <tag>tech</tag>
-        <tag>memory align</tag>
+        <tag>study</tag>
+        <tag>gdb</tag>
       </tags>
   </entry>
   <entry>
@@ -3846,6 +3706,109 @@ href="https://v.qq.com/x/page/m0373fiwrvp.html?">第一视角体验通用自动�
       </tags>
   </entry>
   <entry>
+    <title>tflite-micro</title>
+    <url>/2023/10/27/91_tflite-micro/</url>
+    <content><![CDATA[<p>最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。</p>
+<span id="more"></span>
+<p>论文：<a href="https://arxiv.org/abs/2010.08678">TensorFlow Lite
+Micro: Embedded Machine Learning on TinyML Systems</a></p>
+<h1 id="克隆仓库">克隆仓库</h1>
+<p>在tensorflow的<a
+href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/micro">git里面</a>，看到git已经迁移至一个单独的<a
+href="https://github.com/tensorflow/tflite-micro">仓库</a>。</p>
+<ul>
+<li>As of June 25, 2021, the TFLM codebase has moved to a <a
+href="https://github.com/tensorflow/tflite-micro">stand-alone github
+repository</a>.</li>
+</ul>
+<p>于是在ubuntu执行命令：</p>
+<p><code>git clone https://github.com/tensorflow/tflite-micro.git</code></p>
+<p>此时<code>commit 7ac0b662b6402c1fccc8ec8d1db84f0f34dd4a85</code></p>
+<h1 id="编译静态库">编译静态库</h1>
+<p>求助了ChatGPT 4.0：</p>
+<p>「在这个 https://github.com/tensorflow/tflite-micro ，
+怎么编译静态库？」</p>
+<p>在TensorFlow Lite
+Micro的GitHub仓库中，你可以使用以下步骤来编译静态库：</p>
+<ol type="1">
+<li>首先，你需要克隆仓库：</li>
+</ol>
+<p><code>git clone https://github.com/tensorflow/tflite-micro.git</code></p>
+<ol start="2" type="1">
+<li>进入克隆下来的仓库目录：</li>
+</ol>
+<p><code>cd tflite-micro</code></p>
+<ol start="3" type="1">
+<li>使用make命令编译静态库：</li>
+</ol>
+<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=&lt;TARGET&gt; TARGET_ARCH=&lt;ARCH&gt; microlite</code></p>
+<p>在上述命令中，<code>&lt;TARGET&gt;</code>应替换为你的目标平台（如<code>linux</code>），<code>&lt;ARCH&gt;</code>应替换为你的目标架构（如<code>x86_64</code>）。这将在<code>tensorflow/lite/micro/tools/make/gen/&lt;TARGET&gt;_&lt;ARCH&gt;/lib/</code>目录下生成一个名为<code>libtensorflow-microlite.a</code>的静态库。</p>
+<p>请注意，你可能需要根据你的具体需求和环境来修改这些步骤。例如，你可能需要安装额外的依赖库，或者修改makefile来包含你需要的特性。</p>
+<p>真是太棒了，于是我执行指令：</p>
+<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=linux TARGET_ARCH=x86_64 microlite</code></p>
+<p>在 <code>make/download/</code>
+目录下，分别下载了<code>flatbuffers</code>、<code>gemmlowp</code>、<code>kissfft</code>、<code>pigweed</code>、<code>ruy</code>。</p>
+<p>编译完成后，得到了静态库文件</p>
+<p><code>ar: creating gen/linux_x86_64_default/lib/libtensorflow-microlite.a</code></p>
+<h1 id="编写-demo-debug">编写 demo &amp; debug</h1>
+<p>仿照helloworld工程写了一个小demo</p>
+<h2 id="遇到问题">遇到问题：</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Failed to allocate tail memory. Requested: 2760, available 1376, missing: 1384</span><br><span class="line">Failed to allocate memory for context-&gt;eval_tensors, 2760 bytes required</span><br><span class="line">Failed starting model allocation.</span><br></pre></td></tr></table></figure>
+<h2 id="解决方法">解决方法：</h2>
+<p>先暂时增大ArenaSize，后面再根据实际使用情况调整回来：</p>
+<p><code>constexpr int kTensorArenaSize = 300000;</code></p>
+<h2 id="遇到问题-1">遇到问题：</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Didn&#x27;t find op for builtin opcode &#x27;LEAKY_RELU&#x27;</span><br><span class="line">Failed to get registration from op code LEAKY_RELU</span><br><span class="line"></span><br><span class="line">Segmentation fault (core dumped)</span><br></pre></td></tr></table></figure>
+<h2 id="解决方法-1">解决方法：</h2>
+<p>增加算子注册
+<code>TF_LITE_ENSURE_STATUS(op_resolver.AddLeakyRelu());</code></p>
+<h2 id="遇到问题-2">遇到问题</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Couldn&#x27;t register builtin op #98, resolver size </span><br><span class="line">is too small (1).</span><br></pre></td></tr></table></figure>
+<h2 id="解决方法-2">解决方法</h2>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">using HelloWorldOpResolver = tflite::MicroMutableOpResolver&lt;1&gt;;</span><br></pre></td></tr></table></figure>
+<p>这里的1代表注册个数，草率了，应该<code>op_resolver</code> add
+了几个这里就写几的。</p>
+<h2 id="遇到问题-3">遇到问题</h2>
+<p>一旦执行到<code>interpreter.input(0)-&gt;data.f[0] = 1.f;</code>就段错误。</p>
+<h2 id="解决办法">解决办法</h2>
+<p><code>CFLAGS = -DTF_LITE_STATIC_MEMORY</code></p>
+<h1 id="进一步减小库体积">进一步减小库体积</h1>
+<p>为了压缩体积，<code>BUILD_TYPE</code>使用了<code>release</code>进行编译，这期间会遇到<code>MicroPrintf</code>不支持的问题（release_with_logs是可以的），进行一些注释就可以。</p>
+<p>以及进行<code>-Os</code>编译，可以减少很多体积占用。</p>
+]]></content>
+      <tags>
+        <tag>notes</tag>
+        <tag>tech</tag>
+        <tag>tflite-micro</tag>
+        <tag>TinyML</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>内存对齐的实现</title>
+    <url>/2022/12/13/95_memory-align/</url>
+    <content><![CDATA[<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
+<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
+<p>花了一点点时间搞懂了内存对齐的实现与细节——</p>
+<span id="more"></span>
+<h2 id="什么是内存对齐">0.什么是内存对齐？</h2>
+<p>计算机中内存空间是按照<code>byte</code>划分的，从理论上讲似乎对任何类型的变量的访问可以从任何地址开始，但实际情况是：在访问<code>特定类型变量</code>的时候通常在<code>特定的内存地址</code>访问，这就需要对这些数据在内存中存放的位置有限制，各种类型数据按照一定的规则在空间上排列，而不是顺序的一个接一个的排放，这就是对齐。</p>
+<p>内存对齐是编译器的管辖范围。表现为：编译器为程序中的每个“数据单元”安排在适当的位置上。</p>
+<h2 id="为什么要内存对齐">1.为什么要内存对齐？</h2>
+<p>各个硬件平台对存储空间的处理上有很大的不同。一些平台对某些<code>特定类型的数据</code>只能从某些<code>特定地址</code>开始存取,而不是内存中任意地址都是可以读取的。</p>
+<p><strong>比如有些架构的CPU在访问一个没有进行对齐的变量的时候会发生错误,那么在这种架构下编程必须保证字节对齐.</strong></p>
+<p>其他平台可能没有这种情况，但是最常见的是如果不按照适合其平台要求对数据存放进行对齐，会在存取效率上带来损失。</p>
+<p>内存对齐不仅<strong>便于CPU快速访问</strong>，同时合理的利用字节对齐可以<strong>有效的节省存储空间</strong>。</p>
+<p>参考链接：https://juejin.cn/post/6870162226032934926</p>
+<h2 id="我的分析实践">2.我的分析实践</h2>
+<p><img src="/images/memory_align/MemoryAlign1.png" width="90%"></p>
+<p><img src="/images/memory_align/MemoryAlign2.png" width="90%"></p>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>memory align</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Telegram bot</title>
     <url>/2024/02/17/98_Telegram_bot/</url>
     <content><![CDATA[<p>最近学习一些telegram bot，记录一下</p>
@@ -3898,260 +3861,6 @@ bot吧|Telegram bot教程</a></p>
         <tag>Telegram bot</tag>
         <tag>ingress</tag>
         <tag>Homogeneous</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>一文搞懂转置卷积的定义、计算和加速</title>
-    <url>/2023/05/04/97_transposed-convolution/</url>
-    <content><![CDATA[<p>最近做了一些转置卷积的相关部署工作，最开始搞的时候其实有点晕头转向的，总是试图在用卷积的计算方式反过来理解转置卷积，尤其是看到<code>padding</code>部分和<code>stride</code>部分，搞得我头更大了，心想怎么这么反人类？（后来发现是我理解的问题，其实一点也不反人类）</p>
-<p>现在也算是了解了具体工作机制以及加速方式，在这里整理总结一下。欢迎留言、指正
-:)</p>
-<span id="more"></span>
-<h2 id="参考文档">0、参考文档</h2>
-<p>先敬上各位大佬的文档，这对我非常非常有帮助！</p>
-<p><a
-href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2DTranspose">tf.keras.layers.Conv2DTranspose</a></p>
-<p><a
-href="https://towardsdatascience.com/what-is-transposed-convolutional-layer-40e5e6e31c11">What
-is Transposed Convolutional Layer?</a></p>
-<p><a
-href="https://blog.csdn.net/LoseInVain/article/details/81098502">一文搞懂反卷积，转置卷积</a></p>
-<p><a
-href="https://naokishibuya.medium.com/up-sampling-with-transposed-convolution-9ae4f2df52d0">Up-sampling
-with Transposed Convolution</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/115070523">转置卷积(Transpose
-Convolution)</a></p>
-<p><a href="https://zhuanlan.zhihu.com/p/283091528">conv_transpose
-depth-wise优化技巧</a></p>
-<p>图解转置卷积，我分别在<a
-href="https://github.com/vdumoulin/conv_arithmetic">conv_arithmetic</a>和<a
-href="https://towardsdatascience.com/what-is-transposed-convolutional-layer-40e5e6e31c11">What
-is Transposed Convolutional Layer</a>里看到，感觉后者更容易理解。</p>
-<h2 id="转置卷积是什么">1、转置卷积是什么？</h2>
-<h3 id="定义">1.1 定义</h3>
-<p><code>转置卷积</code>有时候也被称为<code>反卷积</code>，我个人认为<code>反卷积</code>有很强的误导性，因为这并不是卷积的逆运算，还是叫<code>转置卷积</code>比较好。</p>
-<p><code>转置卷积</code>在深度学习中表示为<code>卷积</code>的一个逆向过程，可以根据卷积核大小和输出的大小，恢复卷积前的<code>feature map</code>尺寸，而不是恢复原始值。</p>
-<p>如果将卷积表示为y=Cx,转置卷积则是将的输入输出互换：x =
-C<sup>T</sup>y</p>
-<p>其中， C<sup>T</sup>表示矩阵转置。</p>
-<p>详细定义这里就不仔细介绍了,上文里的各个参考文档里说的都很明白。</p>
-<h3 id="需要注意">1.2 需要注意</h3>
-<p>总结一下我认为的最重要的（最开始纠结了很久的）几个点：</p>
-<ul>
-<li><p>转置卷积不是恢复原始值，而是恢复原始尺寸（所以不要试图从卷积的逆运算角度考虑）</p></li>
-<li><p><code>padding</code>方式和卷积的padding是不一样的，转置卷积的实际padding是<code>k-p-1</code></p></li>
-<li><p><code>stride</code>在这里用途不是跳几个数，而是用于判断填充几个0</p></li>
-<li><p>用公式法直接计算的话，首先对卷积核做中心对称操作(矩阵旋转180°)</p></li>
-<li><p>不考虑性能的话，直接按照转置卷积定义写。反之，一定要优化，不然慢得很。</p></li>
-</ul>
-<p>The table below summarizes the two convolutions, standard and
-transposed.</p>
-<table>
-<thead>
-<tr class="header">
-<th style="text-align: center;">Conv Type</th>
-<th style="text-align: center;">Operation</th>
-<th style="text-align: center;">Zero Insertions</th>
-<th style="text-align: center;">Padding</th>
-<th style="text-align: center;">Stride</th>
-<th style="text-align: center;">Output Size</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">Standard</td>
-<td style="text-align: center;">Downsampling</td>
-<td style="text-align: center;">0</td>
-<td style="text-align: center;">p</td>
-<td style="text-align: center;">s</td>
-<td style="text-align: center;">(i+2p-k)/s+1</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">Transposed</td>
-<td style="text-align: center;">Upsampling</td>
-<td style="text-align: center;">(s-1)</td>
-<td style="text-align: center;">(k-p-1)</td>
-<td style="text-align: center;">1</td>
-<td style="text-align: center;">(i-1)*s+k-2p</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p>注意注意，有没有觉得转置卷积的<code>padding</code>和<code>stride</code>很反人类?这和我理解的完全不一样啊？其实不然，这里的<code>padding</code>和<code>stride</code>指的其实是转置卷积结果的<code>padding</code>和<code>stride</code>。即，逆向来看的情况下，卷积的<code>padding</code>和<code>stride</code>。</p>
-</blockquote>
-<blockquote>
-<p>为了说明转置卷积如何<code>推理计算</code>，本文第二章节会使用表格所示的参数计算方式，直到第三章节才会从卷积的角度来看，到时候你会恍然大悟，<code>padding</code>和<code>stride</code>的含义，原来如此。</p>
-</blockquote>
-<h2 id="转置卷积的计算">2、转置卷积的计算</h2>
-<h3 id="从最简单的开始">2.1 从最简单的开始</h3>
-<p>conv_transpose有一种最直接的计算方式：首先对卷积核做中心对称操作(矩阵旋转180°)，并对输入feature
-map进行插0，然后把旋转后的卷积核和插0后的feature map进行卷积操作</p>
-<hr />
-<p>现在假设输入的<code>feature map</code>是3x3大小，<code>kernel size</code>是3x3大小，<code>stride</code>为1，
-<code>padding</code>为0，即：</p>
-<pre><code>input_sz:     3
-kernel_sz =   3
-stride =      1
-padding_sz =  0</code></pre>
-<p>写一段torch代码计算一下： <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">X = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">K = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">Y = torch.nn.functional.conv_transpose2d(X, K, stride=<span class="number">1</span>, padding=<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(Y)</span><br></pre></td></tr></table></figure></p>
-<p>得到输出结果： <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tensor([[[[  1.,   4.,  10.,  12.,   9.],</span><br><span class="line">          [  8.,  26.,  56.,  54.,  36.],</span><br><span class="line">          [ 30.,  84., 165., 144.,  90.],</span><br><span class="line">          [ 56., 134., 236., 186., 108.],</span><br><span class="line">          [ 49., 112., 190., 144.,  81.]]]])</span><br></pre></td></tr></table></figure> 计算过程：</p>
-<ol type="1">
-<li>对输入<code>X</code>进行处理，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding</li>
-</ol>
-<p>在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-0-1)=2</code>的padding。输入<code>X</code>则转化为</p>
-<p><img src="/images/transposed_conv/x_s1p0.png" width="50%"></p>
-<ol start="2" type="1">
-<li>对卷积核<code>K</code>进行中心对称操作</li>
-</ol>
-<p>卷积核<code>K</code>则转化为</p>
-<p><img src="/images/transposed_conv/k_reverse.png" width="30%"></p>
-<ol start="3" type="1">
-<li>进行卷积计算</li>
-</ol>
-<p><img src="/images/transposed_conv/s1p0.png" width="80%"></p>
-<ol start="4" type="1">
-<li>gif图解</li>
-</ol>
-<p><img src="/images/transposed_conv/transposed_conv_S1P0.gif" width="70%"></p>
-<h3 id="考虑stride">2.2 考虑stride</h3>
-<p>我个人建议不要用卷积的stride来理解转置卷积的stride，<code>stride</code>在这里用途不是跳几个数，而是用于判断填充几个0。</p>
-<hr />
-<p>现在假设输入的<code>feature map</code>是3x3大小，<code>kernel size</code>是3x3大小，<code>stride</code>为2，
-<code>padding</code>为0，即：</p>
-<pre><code>input_sz:     3
-kernel_sz =   3
-stride =      2
-padding_sz =  0</code></pre>
-<p>同样，写一段torch代码计算一下： <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">X = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">K = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">Y = torch.nn.functional.conv_transpose2d(X, K, stride=<span class="number">2</span>, padding=<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(Y)</span><br></pre></td></tr></table></figure></p>
-<p>得到输出结果： <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tensor([[[[  1.,   2.,   5.,   4.,   9.,   6.,   9.],</span><br><span class="line">          [  4.,   5.,  14.,  10.,  24.,  15.,  18.],</span><br><span class="line">          [ 11.,  16.,  40.,  26.,  60.,  36.,  45.],</span><br><span class="line">          [ 16.,  20.,  44.,  25.,  54.,  30.,  36.],</span><br><span class="line">          [ 35.,  46., 100.,  56., 120.,  66.,  81.],</span><br><span class="line">          [ 28.,  35.,  74.,  40.,  84.,  45.,  54.],</span><br><span class="line">          [ 49.,  56., 119.,  64., 135.,  72.,  81.]]]])</span><br></pre></td></tr></table></figure> 计算过程：</p>
-<ol type="1">
-<li>对输入<code>X</code>进行处理，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding</li>
-</ol>
-<p>在这个例子中，<code>s=2</code>，需插入1个0，进行<code>(k-p-1)=(3-0-1)=2</code>的padding。输入<code>X</code>则转化为</p>
-<p><img src="/images/transposed_conv/x_s2p0.png" width="50%"></p>
-<ol start="2" type="1">
-<li>对卷积核K进行中心对称操作</li>
-</ol>
-<p>卷积核K则转化为</p>
-<p><img src="/images/transposed_conv/k_reverse.png" width="30%"></p>
-<ol start="3" type="1">
-<li>进行卷积计算</li>
-</ol>
-<p><img src="/images/transposed_conv/s2p0.png" width="80%"></p>
-<ol start="4" type="1">
-<li>gif图解</li>
-</ol>
-<p><img src="/images/transposed_conv/transposed_conv_S2P0.gif" width="70%"></p>
-<h3 id="考虑padding">2.3 考虑padding</h3>
-<p>我最开始在<code>padding</code>这里疑惑了好一会儿，老是在从卷积的角度想转置卷积的<code>padding</code>。就很疑惑，怎么<code>padding</code>越大，计算结果的<code>feature map</code>越小呢？</p>
-<p>后来暂时不想具体物理含义了，直接认为转置卷积的实际<code>padding</code>是<code>k-p-1</code>，万事大吉。（第三章节会解<code>padding</code>这个参数）</p>
-<hr />
-<blockquote>
-<p>实际上，tensorflow的padding计算还是有点差异的，除了上面所说的计算，在计算padding的时候还有一个专门针对转置卷积的<code>offset</code>，这可能会导致
-左右/上下 的padding数不一致。
-为什么这么做呢？个人认为要从转置卷积的目的来看————还原原始<code>feature map</code>的尺寸。
-本文暂不考虑这种情况，感兴趣的可以查看tensorflow源码。</p>
-</blockquote>
-<hr />
-<p>现在假设输入的<code>feature map</code>是3x3大小，<code>kernel size</code>是3x3大小，<code>stride</code>为1，
-<code>padding</code>为1，即：</p>
-<pre><code>input_sz:     3
-kernel_sz =   3
-stride =      1
-padding_sz =  1</code></pre>
-<p>写一段torch代码计算一下： <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">X = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">K = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">Y = torch.nn.functional.conv_transpose2d(X, K, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(Y)</span><br></pre></td></tr></table></figure></p>
-<p>得到输出结果： <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tensor([[[[ 26.,  56.,  54.],</span><br><span class="line">          [ 84., 165., 144.],</span><br><span class="line">          [134., 236., 186.]]]])</span><br></pre></td></tr></table></figure> 计算过程：</p>
-<ol type="1">
-<li>对输入<code>X</code>进行处理，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding</li>
-</ol>
-<p>在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-1-1)=1</code>的padding。输入X则转化为</p>
-<p><img src="/images/transposed_conv/x_s1p1.png" width="50%"></p>
-<ol start="2" type="1">
-<li>对卷积核<code>K</code>进行中心对称操作</li>
-</ol>
-<p>卷积核<code>K</code>则转化为</p>
-<p><img src="/images/transposed_conv/k_reverse.png" width="30%"></p>
-<ol start="3" type="1">
-<li>进行卷积计算</li>
-</ol>
-<p><img src="/images/transposed_conv/s1p1.png" width="80%"></p>
-<ol start="4" type="1">
-<li>gif图解</li>
-</ol>
-<p><img src="/images/transposed_conv/transposed_conv_S1P1.gif" width="70%"></p>
-<h3 id="考虑dilation">2.4 考虑dilation</h3>
-<p>这里就不考虑了，和卷积一样的，很容易理解。</p>
-<h2 id="转置卷积的理解">3、转置卷积的理解</h2>
-<p>初次见到转置卷积的时候，我看到<a
-href="https://github.com/vdumoulin/conv_arithmetic">conv_arithmetic</a>和<a
-href="https://towardsdatascience.com/what-is-transposed-convolutional-layer-40e5e6e31c11">What
-is Transposed Convolutional
-Layer</a>里面的动图计算是很开心的，毕竟这有助于我理解转置卷积是如何计算的。</p>
-<p>但后来发现，了解计算过程看这些动图是比较好的，但是要是理解转置卷积，这些动图<strong>很容易误导</strong>。于是我写代码生成了一些动图，虽然有点丑，但是<code>padding</code>部分和<code>stride</code>部分立刻搞得清清楚楚明明白白了。</p>
-<hr />
-<p>先来个最简单的，stride=1，padding=0.</p>
-<p><img src="/images/transposed_conv/solution1_stride1_pad0.gif" width="70%"></p>
-<ul>
-<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-0-1)=2</code>的padding。</li>
-</ul>
-<p>我们来换个角度看整个计算过程：</p>
-<p><img src="/images/transposed_conv/solution2_stride1_pad0.gif" width="55%"></p>
-<ul>
-<li><strong>从output的角度来看，stride=1，padding=0（你get到这个点了吗?!）</strong></li>
-</ul>
-<hr />
-<p>进一步，stride=1，padding=1.</p>
-<p><img src="/images/transposed_conv/solution1_stride1_pad1.gif" width="60%"></p>
-<ul>
-<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-1-1)=1</code>的padding。</li>
-</ul>
-<p>同样，我们来换个角度看整个计算过程：</p>
-<p><img src="/images/transposed_conv/solution2_stride1_pad1.gif" width="50%"></p>
-<ul>
-<li><strong>从output的角度来看，stride=1，padding=1</strong></li>
-</ul>
-<p>相信你已经明白，我在最开始说的，<strong><code>padding</code>和<code>stride</code>指的其实是转置卷积结果的<code>padding</code>和<code>stride</code></strong>这句话了吧？</p>
-<hr />
-<p>再看一个stride=2的情况——</p>
-<p>stride=2，padding=0.</p>
-<p><img src="/images/transposed_conv/solution1_stride2_pad0.gif" width="70%"></p>
-<ul>
-<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=2</code>，需插入1个0，然后进行<code>(k-p-1)=(3-0-1)=2</code>的padding。</li>
-</ul>
-<p>我们来换个角度看整个计算过程：</p>
-<p><img src="/images/transposed_conv/solution2_stride2_pad0.gif" width="50%"></p>
-<ul>
-<li><strong>从output的角度来看，stride=2，padding=0</strong></li>
-</ul>
-<p>尤其是在stride&gt;1的情况下，第二种的计算量是远小于第一种的，因为第一种有大量的无效0计算。</p>
-<hr />
-<p>最后，stride=2，padding=1.</p>
-<p><img src="/images/transposed_conv/solution1_stride2_pad1.gif" width="70%"></p>
-<ul>
-<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=2</code>，需插入1个0，然后进行<code>(k-p-1)=(3-1-1)=1</code>的padding。</li>
-</ul>
-<p>output的角度看整个计算过程：</p>
-<p><img src="/images/transposed_conv/solution2_stride2_pad1.gif" width="50%"></p>
-<ul>
-<li><strong>从output的角度来看，stride=2，padding=1</strong></li>
-</ul>
-<hr />
-<p>至此，各种情况展示的差不多了，转置卷积的<code>padding</code>和<code>stride</code>的含义，相信你也理解了。大家还是习惯用卷积那套参数来定义转置卷积，甚至在很多推理框架中，转置卷积这个算子的input指的是计算结果，output指的是输入（这又是另一个曾让我困扰的地方了hhh）。</p>
-<h2 id="转置卷积的加速">4、 转置卷积的加速</h2>
-<p>在第三章节，从output的角度来看的那种计算方式，已经避免了大量的无效0计算，其实是已经大大减小<code>乘加计算量</code>的。因此可以从这个角度做加速，效果很明显的。</p>
-<p>除此之外还有其他的加速方式，能够大幅度增加推理速度。</p>
-<p>由于某些原因，转置卷积的进一步加速工作暂不列出。以后再更新吧</p>
-<hr />
-<p>本文用图参考了<a
-href="https://github.com/aqeelanwar/conv_layers_animation">aqeelanwar</a>的代码，非常感谢。</p>
-<p>图像压缩用了<a
-href="https://www.iloveimg.com/zh-cn">iloveimg</a>，非常好用～</p>
-]]></content>
-      <tags>
-        <tag>HPC</tag>
-        <tag>tech</tag>
-        <tag>engineering</tag>
-        <tag>Transposed Convolution</tag>
       </tags>
   </entry>
   <entry>
@@ -4328,6 +4037,323 @@ la，上海大竹笋计划又一次被我记起！</p>
       <tags>
         <tag>ingress</tag>
         <tag>Homogeneous</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>一文搞懂转置卷积的定义、计算和加速</title>
+    <url>/2023/05/04/97_transposed-convolution/</url>
+    <content><![CDATA[<p>最近做了一些转置卷积的相关部署工作，最开始搞的时候其实有点晕头转向的，总是试图在用卷积的计算方式反过来理解转置卷积，尤其是看到<code>padding</code>部分和<code>stride</code>部分，搞得我头更大了，心想怎么这么反人类？（后来发现是我理解的问题，其实一点也不反人类）</p>
+<p>现在也算是了解了具体工作机制以及加速方式，在这里整理总结一下。欢迎留言、指正
+:)</p>
+<span id="more"></span>
+<h1 id="转置卷积是什么">转置卷积是什么？</h1>
+<h2 id="定义">定义</h2>
+<p><code>转置卷积</code>有时候也被称为<code>反卷积</code>，我个人认为<code>反卷积</code>有很强的误导性，因为这并不是卷积的逆运算，还是叫<code>转置卷积</code>比较好。</p>
+<p><code>转置卷积</code>在深度学习中表示为<code>卷积</code>的一个逆向过程，可以根据卷积核大小和输出的大小，恢复卷积前的<code>feature map</code>尺寸，而不是恢复原始值。</p>
+<p>如果将卷积表示为y=Cx,转置卷积则是将的输入输出互换：x =
+C<sup>T</sup>y</p>
+<p>其中， C<sup>T</sup>表示矩阵转置。</p>
+<p>详细定义这里就不仔细介绍了,上文里的各个参考文档里说的都很明白。</p>
+<h2 id="需要注意">需要注意</h2>
+<p>总结一下我认为的最重要的（最开始纠结了很久的）几个点：</p>
+<ul>
+<li><p>转置卷积不是恢复原始值，而是恢复原始尺寸（所以不要试图从卷积的逆运算角度考虑）</p></li>
+<li><p><code>padding</code>方式和卷积的padding是不一样的，转置卷积的实际padding是<code>k-p-1</code></p></li>
+<li><p><code>stride</code>在这里用途不是跳几个数，而是用于判断填充几个0</p></li>
+<li><p>用公式法直接计算的话，首先对卷积核做中心对称操作(矩阵旋转180°)</p></li>
+<li><p>不考虑性能的话，直接按照转置卷积定义写。反之，一定要优化，不然慢得很。</p></li>
+</ul>
+<p>The table below summarizes the two convolutions, standard and
+transposed.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Conv Type</th>
+<th style="text-align: center;">Operation</th>
+<th style="text-align: center;">Zero Insertions</th>
+<th style="text-align: center;">Padding</th>
+<th style="text-align: center;">Stride</th>
+<th style="text-align: center;">Output Size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Standard</td>
+<td style="text-align: center;">Downsampling</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">p</td>
+<td style="text-align: center;">s</td>
+<td style="text-align: center;">(i+2p-k)/s+1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Transposed</td>
+<td style="text-align: center;">Upsampling</td>
+<td style="text-align: center;">(s-1)</td>
+<td style="text-align: center;">(k-p-1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">(i-1)*s+k-2p</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>注意注意，有没有觉得转置卷积的<code>padding</code>和<code>stride</code>很反人类?这和我理解的完全不一样啊？其实不然，这里的<code>padding</code>和<code>stride</code>指的其实是转置卷积结果的<code>padding</code>和<code>stride</code>。即，逆向来看的情况下，卷积的<code>padding</code>和<code>stride</code>。</p>
+</blockquote>
+<blockquote>
+<p>为了说明转置卷积如何<code>推理计算</code>，本文第二章节会使用表格所示的参数计算方式，直到第三章节才会从卷积的角度来看，到时候你会恍然大悟，<code>padding</code>和<code>stride</code>的含义，原来如此。</p>
+</blockquote>
+<h1 id="转置卷积的计算">转置卷积的计算</h1>
+<h2 id="从最简单的开始">从最简单的开始</h2>
+<p>conv_transpose有一种最直接的计算方式：首先对卷积核做中心对称操作(矩阵旋转180°)，并对输入feature
+map进行插0，然后把旋转后的卷积核和插0后的feature map进行卷积操作</p>
+<hr />
+<p>现在假设输入的<code>feature map</code>是3x3大小，<code>kernel size</code>是3x3大小，<code>stride</code>为1，
+<code>padding</code>为0，即：</p>
+<pre><code>input_sz:     3
+kernel_sz =   3
+stride =      1
+padding_sz =  0</code></pre>
+<p>写一段torch代码计算一下： <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">X = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">K = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">Y = torch.nn.functional.conv_transpose2d(X, K, stride=<span class="number">1</span>, padding=<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(Y)</span><br></pre></td></tr></table></figure></p>
+<p>得到输出结果： <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tensor([[[[  1.,   4.,  10.,  12.,   9.],</span><br><span class="line">          [  8.,  26.,  56.,  54.,  36.],</span><br><span class="line">          [ 30.,  84., 165., 144.,  90.],</span><br><span class="line">          [ 56., 134., 236., 186., 108.],</span><br><span class="line">          [ 49., 112., 190., 144.,  81.]]]])</span><br></pre></td></tr></table></figure> 计算过程：</p>
+<ol type="1">
+<li>对输入<code>X</code>进行处理，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding</li>
+</ol>
+<p>在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-0-1)=2</code>的padding。输入<code>X</code>则转化为</p>
+<p><img src="/images/transposed_conv/x_s1p0.png" width="50%"></p>
+<ol start="2" type="1">
+<li>对卷积核<code>K</code>进行中心对称操作</li>
+</ol>
+<p>卷积核<code>K</code>则转化为</p>
+<p><img src="/images/transposed_conv/k_reverse.png" width="30%"></p>
+<ol start="3" type="1">
+<li>进行卷积计算</li>
+</ol>
+<p><img src="/images/transposed_conv/s1p0.png" width="80%"></p>
+<ol start="4" type="1">
+<li>gif图解</li>
+</ol>
+<p><img src="/images/transposed_conv/transposed_conv_S1P0.gif" width="70%"></p>
+<h2 id="考虑stride">考虑stride</h2>
+<p>我个人建议不要用卷积的stride来理解转置卷积的stride，<code>stride</code>在这里用途不是跳几个数，而是用于判断填充几个0。</p>
+<hr />
+<p>现在假设输入的<code>feature map</code>是3x3大小，<code>kernel size</code>是3x3大小，<code>stride</code>为2，
+<code>padding</code>为0，即：</p>
+<pre><code>input_sz:     3
+kernel_sz =   3
+stride =      2
+padding_sz =  0</code></pre>
+<p>同样，写一段torch代码计算一下： <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">X = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">K = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">Y = torch.nn.functional.conv_transpose2d(X, K, stride=<span class="number">2</span>, padding=<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(Y)</span><br></pre></td></tr></table></figure></p>
+<p>得到输出结果： <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tensor([[[[  1.,   2.,   5.,   4.,   9.,   6.,   9.],</span><br><span class="line">          [  4.,   5.,  14.,  10.,  24.,  15.,  18.],</span><br><span class="line">          [ 11.,  16.,  40.,  26.,  60.,  36.,  45.],</span><br><span class="line">          [ 16.,  20.,  44.,  25.,  54.,  30.,  36.],</span><br><span class="line">          [ 35.,  46., 100.,  56., 120.,  66.,  81.],</span><br><span class="line">          [ 28.,  35.,  74.,  40.,  84.,  45.,  54.],</span><br><span class="line">          [ 49.,  56., 119.,  64., 135.,  72.,  81.]]]])</span><br></pre></td></tr></table></figure> 计算过程：</p>
+<ol type="1">
+<li>对输入<code>X</code>进行处理，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding</li>
+</ol>
+<p>在这个例子中，<code>s=2</code>，需插入1个0，进行<code>(k-p-1)=(3-0-1)=2</code>的padding。输入<code>X</code>则转化为</p>
+<p><img src="/images/transposed_conv/x_s2p0.png" width="50%"></p>
+<ol start="2" type="1">
+<li>对卷积核K进行中心对称操作</li>
+</ol>
+<p>卷积核K则转化为</p>
+<p><img src="/images/transposed_conv/k_reverse.png" width="30%"></p>
+<ol start="3" type="1">
+<li>进行卷积计算</li>
+</ol>
+<p><img src="/images/transposed_conv/s2p0.png" width="80%"></p>
+<ol start="4" type="1">
+<li>gif图解</li>
+</ol>
+<p><img src="/images/transposed_conv/transposed_conv_S2P0.gif" width="70%"></p>
+<h2 id="考虑padding">考虑padding</h2>
+<p>我最开始在<code>padding</code>这里疑惑了好一会儿，老是在从卷积的角度想转置卷积的<code>padding</code>。就很疑惑，怎么<code>padding</code>越大，计算结果的<code>feature map</code>越小呢？</p>
+<p>后来暂时不想具体物理含义了，直接认为转置卷积的实际<code>padding</code>是<code>k-p-1</code>，万事大吉。（第三章节会解<code>padding</code>这个参数）</p>
+<hr />
+<blockquote>
+<p>实际上，tensorflow的padding计算还是有点差异的，除了上面所说的计算，在计算padding的时候还有一个专门针对转置卷积的<code>offset</code>，这可能会导致
+左右/上下 的padding数不一致。
+为什么这么做呢？个人认为要从转置卷积的目的来看————还原原始<code>feature map</code>的尺寸。
+本文暂不考虑这种情况，感兴趣的可以查看tensorflow源码。</p>
+</blockquote>
+<hr />
+<p>现在假设输入的<code>feature map</code>是3x3大小，<code>kernel size</code>是3x3大小，<code>stride</code>为1，
+<code>padding</code>为1，即：</p>
+<pre><code>input_sz:     3
+kernel_sz =   3
+stride =      1
+padding_sz =  1</code></pre>
+<p>写一段torch代码计算一下： <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">X = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">K = torch.Tensor([[[[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]]])</span><br><span class="line">Y = torch.nn.functional.conv_transpose2d(X, K, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(Y)</span><br></pre></td></tr></table></figure></p>
+<p>得到输出结果： <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">tensor([[[[ 26.,  56.,  54.],</span><br><span class="line">          [ 84., 165., 144.],</span><br><span class="line">          [134., 236., 186.]]]])</span><br></pre></td></tr></table></figure> 计算过程：</p>
+<ol type="1">
+<li>对输入<code>X</code>进行处理，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding</li>
+</ol>
+<p>在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-1-1)=1</code>的padding。输入X则转化为</p>
+<p><img src="/images/transposed_conv/x_s1p1.png" width="50%"></p>
+<ol start="2" type="1">
+<li>对卷积核<code>K</code>进行中心对称操作</li>
+</ol>
+<p>卷积核<code>K</code>则转化为</p>
+<p><img src="/images/transposed_conv/k_reverse.png" width="30%"></p>
+<ol start="3" type="1">
+<li>进行卷积计算</li>
+</ol>
+<p><img src="/images/transposed_conv/s1p1.png" width="80%"></p>
+<ol start="4" type="1">
+<li>gif图解</li>
+</ol>
+<p><img src="/images/transposed_conv/transposed_conv_S1P1.gif" width="70%"></p>
+<h2 id="考虑dilation">考虑dilation</h2>
+<p>这里就不考虑了，和卷积一样的，很容易理解。</p>
+<h1 id="转置卷积的理解">转置卷积的理解</h1>
+<p>初次见到转置卷积的时候，我看到<a
+href="https://github.com/vdumoulin/conv_arithmetic">conv_arithmetic</a>和<a
+href="https://towardsdatascience.com/what-is-transposed-convolutional-layer-40e5e6e31c11">What
+is Transposed Convolutional
+Layer</a>里面的动图计算是很开心的，毕竟这有助于我理解转置卷积是如何计算的。</p>
+<p>但后来发现，了解计算过程看这些动图是比较好的，但是要是理解转置卷积，这些动图<strong>很容易误导</strong>。于是我写代码生成了一些动图，虽然有点丑，但是<code>padding</code>部分和<code>stride</code>部分立刻搞得清清楚楚明明白白了。</p>
+<h2 id="stride1padding0">stride=1，padding=0</h2>
+<p><img src="/images/transposed_conv/solution1_stride1_pad0.gif" width="70%"></p>
+<ul>
+<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-0-1)=2</code>的padding。</li>
+</ul>
+<p>我们来换个角度看整个计算过程：</p>
+<p><img src="/images/transposed_conv/solution2_stride1_pad0.gif" width="55%"></p>
+<ul>
+<li><strong>从output的角度来看，stride=1，padding=0（你get到这个点了吗?!）</strong></li>
+</ul>
+<h2 id="stride1padding1">stride=1，padding=1</h2>
+<p><img src="/images/transposed_conv/solution1_stride1_pad1.gif" width="60%"></p>
+<ul>
+<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=1</code>，则无需插入0，只进行<code>(k-p-1)=(3-1-1)=1</code>的padding。</li>
+</ul>
+<p>同样，我们来换个角度看整个计算过程：</p>
+<p><img src="/images/transposed_conv/solution2_stride1_pad1.gif" width="50%"></p>
+<ul>
+<li><strong>从output的角度来看，stride=1，padding=1</strong></li>
+</ul>
+<p>相信你已经明白，我在最开始说的，<strong><code>padding</code>和<code>stride</code>指的其实是转置卷积结果的<code>padding</code>和<code>stride</code></strong>这句话了吧？</p>
+<h2 id="stride2padding0">stride=2，padding=0</h2>
+<p><img src="/images/transposed_conv/solution1_stride2_pad0.gif" width="70%"></p>
+<ul>
+<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=2</code>，需插入1个0，然后进行<code>(k-p-1)=(3-0-1)=2</code>的padding。</li>
+</ul>
+<p>我们来换个角度看整个计算过程：</p>
+<p><img src="/images/transposed_conv/solution2_stride2_pad0.gif" width="50%"></p>
+<ul>
+<li><strong>从output的角度来看，stride=2，padding=0</strong></li>
+</ul>
+<p>尤其是在stride&gt;1的情况下，第二种的计算量是远小于第一种的，因为第一种有大量的无效0计算。</p>
+<h2 id="stride2padding1">stride=2，padding=1</h2>
+<p><img src="/images/transposed_conv/solution1_stride2_pad1.gif" width="70%"></p>
+<ul>
+<li>从input的角度来看，插入<code>(s-1)</code>的0，做<code>(k-p-1)</code>的padding。在这个例子中，<code>s=2</code>，需插入1个0，然后进行<code>(k-p-1)=(3-1-1)=1</code>的padding。</li>
+</ul>
+<p>output的角度看整个计算过程：</p>
+<p><img src="/images/transposed_conv/solution2_stride2_pad1.gif" width="50%"></p>
+<ul>
+<li><strong>从output的角度来看，stride=2，padding=1</strong></li>
+</ul>
+<hr />
+<p>至此，各种情况展示的差不多了，转置卷积的<code>padding</code>和<code>stride</code>的含义，相信你也理解了。大家还是习惯用卷积那套参数来定义转置卷积，甚至在很多推理框架中，转置卷积这个算子的input指的是计算结果，output指的是输入（这又是另一个曾让我困扰的地方了hhh）。</p>
+<h1 id="转置卷积的加速">转置卷积的加速 🚀</h1>
+<p>以最简单的stride=1，pad=0的情况为例：</p>
+<h2 id="直接计算方式">直接计算方式</h2>
+<p><img src="/images/transposed_conv/solution1_stride1_pad0.gif" width="50%"></p>
+<ul>
+<li><p>直接计算方式通过padding和补0操作，将 input 的 feature map
+增大，导致整体计算量大幅度增大</p></li>
+<li><p>其中有大量的0计算，其实是无效的。</p></li>
+</ul>
+<p>相应的伪代码为：</p>
+<p><img src="/images/transposed_conv/solution1.png" width="40%"></p>
+<h2 id="优化计算方式">优化计算方式</h2>
+<p><img src="/images/transposed_conv/solution2_stride1_pad0.gif" width="50%"></p>
+<p>也就是第三章节中提到的，从output的角度来看的计算方式，这种优化方式避免了大量的无效0计算，其实是已经大大减小<code>乘加计算量</code>的。因此可以从这个角度做加速，效果很明显的。</p>
+<ul>
+<li><p>从output的角度反过来寻找对应的input进行浮点乘加计算，这样便可以避免掉无效的0计算。</p></li>
+<li><p>然而，在这6层for循环中，有大量的边界判断，这些if操作会严重影响计算并行度</p></li>
+</ul>
+<p>相应的伪代码为：</p>
+<p><img src="/images/transposed_conv/solution2.png" width="40%"></p>
+<h2 id="进一步优化计算方式">进一步优化计算方式</h2>
+<p><img src="/images/transposed_conv/solution3_stride1_pad0.gif" width="50%"></p>
+<p><code>gemm</code>计算</p>
+<ul>
+<li>相当于做了6层for循环中的所有浮点乘法计算，该部分密集型的计算可以使用并行计算进行大幅加速</li>
+</ul>
+<p><code>col2im</code>计算</p>
+<ul>
+<li>通过stride和padding计算累加规则，累加后还原出转置卷积的计算结果。</li>
+</ul>
+<p><code>col2im</code> 相应的伪代码为：</p>
+<p><img src="/images/transposed_conv/solution3.png" width="40%"></p>
+<h1 id="总结">总结</h1>
+<p>转置卷积在诸如图像超分辨率、语音降噪等任务中还是很常见的，经过这一番的探索，现在也算是彻底理解转置卷积了。</p>
+<p>关于转置卷积的加速，终极优化版本将转置卷积转换为
+<code>gemm</code>+<code>col2im</code>，首先就是避免了大量的无效0计算，计算量通常可以减少为原来的18%～36%左右。</p>
+<p>这样的坏处就是要开辟一块额外的内存用于存放gemm结果；好处就很明显了，将乘法和加法分离，对密集的乘法进行并行加速处理，无需边界判断，计算效率大大提升。其实精髓在于可以利用gemm的加速，如果再配合一块高速内存，转置卷积的计算速度提升个300%以上简直是轻轻松松啊。</p>
+<h1 id="参考文档">参考文档</h1>
+<p><a
+href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2DTranspose">tf.keras.layers.Conv2DTranspose</a></p>
+<p><a
+href="https://towardsdatascience.com/what-is-transposed-convolutional-layer-40e5e6e31c11">What
+is Transposed Convolutional Layer?</a></p>
+<p><a
+href="https://blog.csdn.net/LoseInVain/article/details/81098502">一文搞懂反卷积，转置卷积</a></p>
+<p><a
+href="https://naokishibuya.medium.com/up-sampling-with-transposed-convolution-9ae4f2df52d0">Up-sampling
+with Transposed Convolution</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/115070523">转置卷积(Transpose
+Convolution)</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/283091528">conv_transpose
+depth-wise优化技巧</a></p>
+<p>图解转置卷积，我分别在<a
+href="https://github.com/vdumoulin/conv_arithmetic">conv_arithmetic</a>和<a
+href="https://towardsdatascience.com/what-is-transposed-convolutional-layer-40e5e6e31c11">What
+is Transposed Convolutional Layer</a>里看到，感觉后者更容易理解。</p>
+<p>本文用图参考了<a
+href="https://github.com/aqeelanwar/conv_layers_animation">aqeelanwar</a>的代码，非常感谢。</p>
+<p>图像压缩用了<a
+href="https://www.iloveimg.com/zh-cn">iloveimg</a>，非常好用～</p>
+]]></content>
+      <tags>
+        <tag>HPC</tag>
+        <tag>tech</tag>
+        <tag>engineering</tag>
+        <tag>Transposed Convolution</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Crawler</title>
+    <url>/2020/05/19/89_Crawler/</url>
+    <content><![CDATA[<p>背景：国内表情识别的数据集太少了 &amp;
+表情数据集基本都是外国人脸，训出来的模型实际使用效果不好。</p>
+<p>于是，在百度上爬了一批数据下来补充到数据集里面。</p>
+<p>[爬虫有风险，操作需谨慎]</p>
+<span id="more"></span>
+<h1 id="写在前面的话">写在前面的话</h1>
+<p>一共两个文件</p>
+<ul>
+<li><p>crawler.py</p>
+<p>主程序：实现爬虫功能，爬取的关键词在keywords.txt里面</p></li>
+<li><p>keywords.txt</p>
+<p>关键词：比如爬开心的图，就可以设置 happy 高兴 高兴表情 高兴的人
+高兴脸 开心 开心脸 开心的人 开心表情 欢愉 愉悦 愉悦表情 欢愉表情
+幸福表情 幸福的脸 幸福的人 愉悦表情 欢欣表情 欢喜表情 喜悦</p>
+<p><strong>每个关键词用换行分隔</strong></p></li>
+</ul>
+<p>运行python文件后，需要等待一会（正在获取图片的<code>url</code>），然后就显示下载log了。</p>
+<p>结果会保存到<code>image</code>文件夹内，后续需要进一步批处理文件以及进行人脸提取、对齐、清洗等工作。</p>
+<p>清洗数据集还是相当繁琐的，建议不要浪费时间在数据清洗上，自己想办法找途径处理。</p>
+<pre><code>[爬虫有风险，操作需谨慎]
+
+希望你能把这个代码用在正途，造福社会:)
+
+希望你能开源数据集，减少社会整体的成本:)</code></pre>
+<h1 id="python代码">python代码</h1>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> shutil</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">from</span> tqdm <span class="keyword">import</span> tqdm</span><br><span class="line"></span><br><span class="line">download_path = <span class="string">&#x27;./image/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_onepage_urls</span>(<span class="params">onepageurl</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;获取单个翻页的所有图片的urls+当前翻页的下一翻页的url&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> onepageurl:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;已到最后一页, 结束&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> [], <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        html = requests.get(onepageurl)</span><br><span class="line">        html.encoding = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">        html = html.text</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(e)</span><br><span class="line">        pic_urls = []</span><br><span class="line">        fanye_url = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line">    pic_urls = re.findall(<span class="string">&#x27;&quot;objURL&quot;:&quot;(.*?)&quot;,&#x27;</span>, html, re.S)</span><br><span class="line">    fanye_urls = re.findall(re.<span class="built_in">compile</span>(<span class="string">r&#x27;&lt;a href=&quot;(.*)&quot; class=&quot;n&quot;&gt;下一页&lt;/a&gt;&#x27;</span>), html, flags=<span class="number">0</span>)</span><br><span class="line">    fanye_url = <span class="string">&#x27;http://image.baidu.com&#x27;</span> + fanye_urls[<span class="number">0</span>] <span class="keyword">if</span> fanye_urls <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">return</span> pic_urls, fanye_url</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">down_pic</span>(<span class="params">pic_urls,label</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;给出图片链接列表, 下载所有图片&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment">#for i, pic_url in tqdm(enumerate(pic_urls)):</span></span><br><span class="line">    <span class="keyword">for</span> i,pic_url <span class="keyword">in</span> <span class="built_in">enumerate</span>(pic_urls):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            pic = requests.get(pic_url, timeout=<span class="number">15</span>)</span><br><span class="line">            string = download_path + label + <span class="string">&#x27;_baidu/&#x27;</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(string, <span class="string">&#x27;wb&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                f.write(pic.content)</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;成功下载第(%s/%s)张图片: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(<span class="built_in">len</span>(pic_urls)), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;下载第%s张图片时失败: %s&#x27;</span> % (<span class="built_in">str</span>(i + <span class="number">1</span>), <span class="built_in">str</span>(pic_url)))</span><br><span class="line">            <span class="comment">#print(e)</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;keywords.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, encoding=<span class="string">&#x27;UTF-8&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        lines = f.read().splitlines()</span><br><span class="line">        <span class="built_in">print</span>(lines)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> tqdm(lines):</span><br><span class="line">        file_path = os.path.join(download_path, line)</span><br><span class="line">        file_path = file_path + <span class="string">&#x27;_baidu&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(file_path):</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            shutil.rmtree(file_path)</span><br><span class="line">            os.makedirs(file_path, <span class="number">0o755</span>)</span><br><span class="line"></span><br><span class="line">        url_init_first = <span class="string">r&#x27;http://image.baidu.com/search/flip?tn=baiduimage&amp;ipn=r&amp;ct=201326592&amp;cl=2&amp;lm=-1&amp;st=-1&amp;fm=result&amp;fr=&amp;sf=1&amp;fmq=1497491098685_R&amp;pv=&amp;ic=0&amp;nc=1&amp;z=&amp;se=1&amp;showtab=0&amp;fb=0&amp;width=&amp;height=&amp;face=0&amp;istype=2&amp;ie=utf-8&amp;ctd=1497491098685%5E00_1519X735&amp;word=&#x27;</span></span><br><span class="line">        url_init = url_init_first + urllib.parse.quote(line, safe=<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">        all_pic_urls = []</span><br><span class="line">        onepage_urls, fanye_url = get_onepage_urls(url_init)</span><br><span class="line">        all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        fanye_count = <span class="number">0</span>  <span class="comment"># 累计翻页数</span></span><br><span class="line">        <span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">            onepage_urls, fanye_url = get_onepage_urls(fanye_url)</span><br><span class="line">            fanye_count += <span class="number">1</span></span><br><span class="line">            <span class="comment">#print(&#x27;第页&#x27; % str(fanye_count))</span></span><br><span class="line">            <span class="keyword">if</span> fanye_url == <span class="string">&#x27;&#x27;</span> <span class="keyword">and</span> onepage_urls == []:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            all_pic_urls.extend(onepage_urls)</span><br><span class="line"></span><br><span class="line">        down_pic(<span class="built_in">list</span>(<span class="built_in">set</span>(all_pic_urls)),line)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="附keywords.txt">附<code>keywords.txt</code></h1>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">鄙视脸</span><br><span class="line">鄙视表情</span><br><span class="line">嫌恶</span><br><span class="line">恶心表情</span><br><span class="line">腻烦表情</span><br><span class="line">厌烦表情</span><br><span class="line">憎恶表情</span><br><span class="line">反感表情</span><br><span class="line">不耐烦</span><br><span class="line">不耐烦表情</span><br><span class="line">嫌弃表情</span><br><span class="line">fear</span><br><span class="line">恐惧</span><br><span class="line">恐惧表情</span><br><span class="line">恐惧的人</span><br><span class="line">恐惧脸</span><br><span class="line">害怕</span><br><span class="line">害怕表情</span><br><span class="line">害怕脸</span><br><span class="line">恐慌</span><br><span class="line">恐慌表情</span><br><span class="line">恐慌脸</span><br><span class="line">惊吓</span><br><span class="line">惊怖表情</span><br><span class="line">可骇表情</span><br><span class="line">怯生生表情</span><br><span class="line">胆怯表情</span><br><span class="line">胆怯脸</span><br><span class="line">恐慌的人</span><br><span class="line">惧怕表情</span><br><span class="line">惧怕的人</span><br><span class="line">happy</span><br><span class="line">高兴</span><br><span class="line">高兴表情</span><br><span class="line">高兴的人</span><br><span class="line">高兴脸</span><br><span class="line">开心</span><br><span class="line">开心脸</span><br><span class="line">开心的人</span><br><span class="line">开心表情</span><br><span class="line">欢愉</span><br><span class="line">愉悦</span><br><span class="line">愉悦表情</span><br><span class="line">欢愉表情</span><br><span class="line">幸福表情</span><br><span class="line">幸福的脸</span><br><span class="line">幸福的人</span><br><span class="line">愉悦表情</span><br><span class="line">欢欣表情</span><br><span class="line">欢喜表情</span><br><span class="line">喜悦</span><br><span class="line">sad</span><br><span class="line">悲伤</span><br><span class="line">悲伤表情</span><br><span class="line">悲伤的人</span><br><span class="line">悲伤脸</span><br><span class="line">伤心</span><br><span class="line">伤心表情</span><br><span class="line">难过</span><br><span class="line">难过表情</span><br><span class="line">难过的人</span><br><span class="line">伤心的人</span><br><span class="line">伤感表情</span><br><span class="line">悲痛表情</span><br><span class="line">哀伤</span><br><span class="line">心酸表情</span><br><span class="line">悲戚表情</span><br><span class="line">哀痛的人</span><br><span class="line">悲痛的人</span><br><span class="line">哀伤脸</span><br><span class="line">心酸脸</span><br><span class="line">surprise</span><br><span class="line">惊讶</span><br><span class="line">惊讶表情</span><br><span class="line">惊讶的人</span><br><span class="line">惊讶脸</span><br><span class="line">诧异</span><br><span class="line">惊奇</span><br><span class="line">惊奇表情</span><br><span class="line">惊奇脸</span><br><span class="line">诧异脸</span><br><span class="line">诧异表情</span><br><span class="line">吃惊</span><br><span class="line">吃惊表情</span><br><span class="line">吃惊脸</span><br><span class="line">吃惊的人</span><br><span class="line">惊诧</span><br><span class="line">惊愕</span><br><span class="line">惊诧表情</span><br><span class="line">惊叫表情</span><br><span class="line">惊叫脸</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>tech</tag>
+        <tag>crawler</tag>
       </tags>
   </entry>
 </search>
