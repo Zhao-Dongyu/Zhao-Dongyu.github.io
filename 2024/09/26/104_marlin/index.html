@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Marlin Kernel是IST-DASLab 开发的GPTQ量化模型高性能 FP16(activation) x INT4(weight) GEMM算子实现，在现有W4A16 GEMM Kernel中，Marlin Kernel性能是最好的。 作为一个不会cuda的小白，研究完marlin算子之后神清气爽， 【长文预警 &amp; 多图预警】">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Marlin代码解读">
+<meta property="og:url" content="http://example.com/2024/09/26/104_marlin/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="Marlin Kernel是IST-DASLab 开发的GPTQ量化模型高性能 FP16(activation) x INT4(weight) GEMM算子实现，在现有W4A16 GEMM Kernel中，Marlin Kernel性能是最好的。 作为一个不会cuda的小白，研究完marlin算子之后神清气爽， 【长文预警 &amp; 多图预警】">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/marlin/0_gemm.png">
+<meta property="og:image" content="http://example.com/images/marlin/1_stripe.png">
+<meta property="og:image" content="http://example.com/images/marlin/2.png">
+<meta property="og:image" content="http://example.com/images/marlin/3.png">
+<meta property="og:image" content="http://example.com/images/marlin/4.png">
+<meta property="og:image" content="http://example.com/images/marlin/5.gif">
+<meta property="og:image" content="http://example.com/images/marlin/6.png">
+<meta property="og:image" content="http://example.com/images/marlin/mma-ldmatrix-fragments.png">
+<meta property="og:image" content="http://example.com/images/marlin/mma-16816-A-f16.png">
+<meta property="og:image" content="http://example.com/images/marlin/mma-16816-B-f16.png">
+<meta property="og:image" content="http://example.com/images/marlin/9.png">
+<meta property="og:image" content="http://example.com/images/marlin/7.png">
+<meta property="og:image" content="http://example.com/images/marlin/8.png">
+<meta property="og:image" content="http://example.com/images/marlin/10.jpg">
+<meta property="og:image" content="http://example.com/images/marlin/a_gl.png">
+<meta property="og:image" content="http://example.com/images/marlin/a_smem.png">
+<meta property="og:image" content="http://example.com/images/marlin/b_gl.png">
+<meta property="og:image" content="http://example.com/images/marlin/b_smem.png">
+<meta property="og:image" content="http://example.com/images/marlin/0_gemm.png">
+<meta property="og:image" content="http://example.com/images/marlin/3.png">
+<meta property="og:image" content="http://example.com/images/marlin/11.png">
+<meta property="og:image" content="http://example.com/images/marlin/12.png">
+<meta property="og:image" content="http://example.com/images/marlin/13.png">
+<meta property="og:image" content="http://example.com/images/marlin/ncu0.png">
+<meta property="og:image" content="http://example.com/images/marlin/ncu1.png">
+<meta property="og:image" content="http://example.com/images/marlin/ncu2.png">
+<meta property="og:image" content="http://example.com/images/marlin/ncu3.png">
+<meta property="og:image" content="http://example.com/images/marlin/ncu4.png">
+<meta property="og:image" content="http://example.com/images/marlin/ncu5.png">
+<meta property="article:published_time" content="2024-09-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-11-05T02:58:12.713Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="GEMM">
+<meta property="article:tag" content="HPC">
+<meta property="article:tag" content="CUDA">
+<meta property="article:tag" content="MARLIN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/marlin/0_gemm.png">
+
+<link rel="canonical" href="http://example.com/2024/09/26/104_marlin/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Marlin代码解读 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/09/26/104_marlin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Marlin代码解读
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-09-26 00:00:00" itemprop="dateCreated datePublished" datetime="2024-09-26T00:00:00+08:00">2024-09-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-11-05 10:58:12" itemprop="dateModified" datetime="2024-11-05T10:58:12+08:00">2024-11-05</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>28k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>26 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Marlin Kernel是<a target="_blank" rel="noopener" href="https://github.com/IST-DASLab">IST-DASLab</a>
+开发的GPTQ量化模型高性能 FP16(activation) x INT4(weight)
+GEMM算子实现，在现有W4A16 GEMM Kernel中，Marlin Kernel性能是最好的。</p>
+<p>作为一个不会cuda的小白，研究完<a
+target="_blank" rel="noopener" href="https://github.com/IST-DASLab/marlin"><code>marlin</code></a>算子之后神清气爽，</p>
+<p>【长文预警 &amp; 多图预警】</p>
+<span id="more"></span>
+<h1 id="准备工作">准备工作</h1>
+<h2 id="分析工具">分析工具</h2>
+<p>先把工具学习了，学习 <code>nsight-compute</code>。 NVIDIA Nsight
+Compute 是一款适用于 CUDA
+应用程序的交互式内核分析器。它通过用户界面和命令行工具提供详细的性能指标和
+API 调试。</p>
+<p><a
+target="_blank" rel="noopener" href="https://docs.nvidia.com/nsight-compute/NsightCompute/index.html">Nsight
+Compute</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV13w411o7cu/?vd_source=a706cf2a9a33f4c298a6ef4764cea661">【CUDA进阶】深入理解
+Nsight System 和 Nsight Compute</a></p>
+<h2 id="搭建环境">搭建环境</h2>
+<ul>
+<li><code>git clone https://github.com/IST-DASLab/marlin.git</code></li>
+<li><code>export TORCH_CUDA_ARCH_LIST="8.6"</code>
+(这里要根据实际的版本来)</li>
+<li><code>pip install .</code></li>
+<li><code>python test.py</code></li>
+</ul>
+<hr />
+<p>我是先读了<a
+target="_blank" rel="noopener" href="https://arxiv.org/pdf/2408.11743">论文</a>，看了一些大佬的分析文章，比如
+<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/707470647">Marlin
+W4A16&amp;W4A8代码走读</a>、<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/698715169">fp16*int4计算kernel--MARLIN代码走读</a>
+、 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/716412368">MARLIN:
+Mixed-Precision Auto-Regressive Parallel Inference on Large Language
+Models论文解读</a>等，以及<a
+target="_blank" rel="noopener" href="https://github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md">NVIDIA
+官方指导文档</a>， 然后开始进行代码的详细分析，慢慢学会了 cuda 和 marlin
+。</p>
+<hr />
+<h1 id="开始分析">开始分析</h1>
+<p>在 <strong>test.py</strong> 中起一个 m = 128, sms = 5 的
+<code>marlin.mul</code></p>
+<p>即 <code>self.run_problem(128, 768, 256, -1, -1)</code>。</p>
+<p>⚠️注意：本文全部使用这个case的数值进行带入。即</p>
+<ul>
+<li>m = 128</li>
+<li>k = 256</li>
+<li>n = 768</li>
+</ul>
+<p>这个算子里面的变量不要老是按照拿到的数进行理解，要结合代码进行理解。</p>
+<p>接下来进入 <strong>marlin_cuda_kernel.cu</strong> 文件的
+<code>marlin_cuda</code> 函数逐步分析。</p>
+<h1 id="int-marlin_cuda函数">int marlin_cuda()函数</h1>
+<h2 id="变量分析">变量分析</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> tot_m = prob_m;</span><br><span class="line"><span class="type">int</span> tot_m_blocks = ceildiv(tot_m, <span class="number">16</span>);</span><br><span class="line"><span class="type">int</span> pad = <span class="number">16</span> * tot_m_blocks - tot_m;</span><br></pre></td></tr></table></figure>
+<p>由于传入的<code>prob_m = 128</code>，则
+<code>tot_m = 128</code>，将其除以16并进行上取整，得<code>tot_m_blocks = 8</code>，这里是整除，没有进行pad，所以<code>pad</code>计算出来也就是0。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (sms == <span class="number">-1</span>)</span><br><span class="line">  cudaDeviceGetAttribute(&amp;sms, cudaDevAttrMultiProcessorCount, dev);</span><br></pre></td></tr></table></figure>
+<p>这里由于指定了<code>sms = 5</code>，所以不会走后面的代码，否则会获取指定
+CUDA 设备（dev）的多处理器数量。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (thread_k == <span class="number">-1</span> || thread_n == <span class="number">-1</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (prob_m &lt;= <span class="number">16</span>) &#123;</span><br><span class="line">    <span class="comment">// For small batchizes, better partioning is slightly more important than better compute utilization</span></span><br><span class="line">    thread_k = <span class="number">128</span>;</span><br><span class="line">    thread_n = <span class="number">128</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    thread_k = <span class="number">64</span>;</span><br><span class="line">    thread_n = <span class="number">256</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如注释所说：对于小批量处理来说，<strong>较好的分区(better
+partioning)</strong> 比 <strong>较好的计算资源利用(better compute
+utilization)</strong> 稍微更重要。​在目前的例子中，prob_m =
+128，所以得到的分区是</p>
+<ul>
+<li><code>thread_k = 64</code></li>
+<li><code>thread_n = 256</code></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> thread_k_blocks = thread_k / <span class="number">16</span>;</span><br><span class="line"><span class="type">int</span> thread_n_blocks = thread_n / <span class="number">16</span>;</span><br><span class="line"><span class="type">int</span> group_blocks = (groupsize == <span class="number">-1</span>) ? <span class="number">-1</span> : groupsize / <span class="number">16</span>;</span><br><span class="line"><span class="type">int</span> blocks = sms;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>thread_k_blocks = 64/16 = 4</code></li>
+<li><code>thread_n_blocks = 256/16 = 16</code></li>
+</ul>
+<blockquote>
+<p>为什么是除以16呢？因为Marlin Kernel使用的Tensor Core指令为
+<code>m16n8k16</code>
+size的MMA指令，所以一次MMA指令执行的矩阵size为m16n8k16。而Marlin
+Kernel在设计的时候，以n方向的2次MMA计算的矩阵作为一个基本的sub_tile，即sub_tile的尺寸为<code>m16n16k16</code>。——源自<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/707470647">Marlin
+W4A16&amp;W4A8代码走读</a></p>
+</blockquote>
+<h2 id="主循环">主循环</h2>
+<p>接下来进入沿着m方向的循环</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; tot_m_blocks; i += <span class="number">4</span>) &#123;</span><br><span class="line">  <span class="type">int</span> thread_m_blocks = tot_m_blocks - i;</span><br><span class="line">  prob_m = tot_m - <span class="number">16</span> * i;</span><br><span class="line">  <span class="type">int</span> par = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">if</span> (thread_m_blocks &gt; <span class="number">4</span>) &#123;</span><br><span class="line">    <span class="comment">// Note that parallel &gt; 1 currently only works for inputs without any padding</span></span><br><span class="line">    par = (<span class="number">16</span> * thread_m_blocks - pad) / <span class="number">64</span>;</span><br><span class="line">    <span class="keyword">if</span> (par &gt; max_par)</span><br><span class="line">      par = max_par;</span><br><span class="line">    prob_m = <span class="number">64</span> * par;</span><br><span class="line">    i += <span class="number">4</span> * (par - <span class="number">1</span>);</span><br><span class="line">    thread_m_blocks = <span class="number">4</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+<p>之前算过 tot_m_blocks=8，则</p>
+<ul>
+<li><code>i = 0</code></li>
+<li><code>thread_m_blocks = 8</code></li>
+<li><code>prob_m = 128 - 16 * 0 = 128</code></li>
+</ul>
+<p>由于 <code>thread_m_blocks &gt; 4</code>，则
+<code>par = (16 * 8 - 0) / 64 = 2</code>，这里可以看出来，<strong>m方向最大的基本执行单元是
+64</strong>。</p>
+<p><code>prob_m = 64 * par = 128</code>, 这里是做了 pad 后的
+prob_m。</p>
+<p>然后<code>i += 4 * (2 - 1)</code>，此时 i = 4。</p>
+<pre><code>我认为这里的(par - 1)的原因就是因为 for 循环里对 i 也有一个增加操作，
+感觉二者结合起来看比较容易理解
+（或者我认为改成i += 4 * par, for循环里不做i增操作更好理解一些）。</code></pre>
+<p>此时，得到<code>thread_m_blocks = 4</code>。</p>
+<p><code>i</code>进入for循环的<code>i+=4</code>，不再满足循环条件，循环结束。</p>
+<pre><code>这里的par是2，如果par超过了max_par，那么应该就会多循环几次了。</code></pre>
+<p>这一段的作用就是确定了m方向上的blocks = 4 和 parallel = 2。</p>
+<p>目前的结果是</p>
+<ul>
+<li>thread_m_blocks = 4</li>
+<li>thread_n_blocks = 16</li>
+<li>thread_k_blocks = 4</li>
+<li>group_blocks = -1</li>
+</ul>
+<p>于是进入<code>CALL_IF(4,16,4,-1)</code></p>
+<h2 id="参数整理">参数整理</h2>
+<p>各个参数都确定下来了，先画个图整理一下：</p>
+<p><img src="/images/marlin/0_gemm.png" width="95%"></p>
+<p>以M=128, K=256, N=768为例，每个小方格的大小是64x64，即 tile
+的大小。</p>
+<h1 id="global-void-marlin函数"><strong>global</strong> void
+Marlin()函数</h1>
+<h2 id="变量分析-1">变量分析</h2>
+<p>开始核心代码 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> parallel = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">if</span> (prob_m &gt; <span class="number">16</span> * thread_m_blocks) &#123;</span><br><span class="line">  parallel = prob_m / (<span class="number">16</span> * thread_m_blocks);</span><br><span class="line">  prob_m = <span class="number">16</span> * thread_m_blocks;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+这里是对prob_m进行了限制，如前文所说，<strong>m方向最大的基本执行单元是64</strong>，对于较大的
+GEMM，并行运行多个batch大小为 64 的版本。</p>
+<p>所以这几句的结果是</p>
+<ul>
+<li>thread_m_blocks = 4</li>
+<li>parallel = 2</li>
+<li>prob_m = 64</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> k_tiles = prob_k / <span class="number">16</span> / thread_k_blocks;</span><br><span class="line"><span class="type">int</span> n_tiles = prob_n / <span class="number">16</span> / thread_n_blocks;</span><br><span class="line"><span class="type">int</span> iters = ceildiv(k_tiles * n_tiles * parallel, gridDim.x);</span><br></pre></td></tr></table></figure>
+<p>得到k_tiles = 4, n_tiles = 3, 所以目前一共有 k_tiles * n_tiles *
+parallel =
+24个tile。而SM=5，因此，每个block需要计算的tile数量为5（24除以5后上取整，最后一个block只需要计算4个tile），即iters
+= 5.</p>
+<h2 id="条带分区">条带分区</h2>
+<p>在讲接下来的部分前先讲一下marlin里面的stripe概念。</p>
+<p><img src="/images/marlin/1_stripe.png" width="50%"></p>
+<p><a target="_blank" rel="noopener" href="https://www.arxiv.org/pdf/2408.11743">图片来源</a></p>
+<p>条带分区（Striped
+Partitioning）是一种在并行计算中常用的技术，特别是在大型矩阵乘法计算中，通过该技术可以<strong>提高负载均衡并最小化计算过程中的开销</strong>。</p>
+<p>MARLIN内核中，条带分区是指由多个SM（流式多处理器）处理不同的矩阵“条带”，这意味着<strong>每个SM负责处理多块矩阵数据</strong>，这种分区方法保证了工作负载在处理器之间的<strong>均匀分布</strong>。</p>
+<p>条带分区的核心思想是：</p>
+<ul>
+<li>工作均衡分配：通过跨列或跨行分配条带，可以确保处理器均匀分配任务，防止部分处理器过载而其他处理器闲置。</li>
+<li>减少全局同步开销：由于条带分区将任务均匀分配给各个处理器，减少了全局同步的需求，降低了并行计算中的通信开销。</li>
+<li>提高缓存和内存效率：通过分割矩阵数据到条带，系统能够更有效地使用GPU缓存和内存带宽，从而最大化内存加载的吞吐量，并提高整体计算效率。</li>
+</ul>
+<p>这种方法有助于在不同的GPU架构中优化计算性能，特别是在大规模深度学习模型的推理任务中。</p>
+<h2 id="本示例下的条带分区">本示例下的条带分区</h2>
+<p>前文讲过，每个block需要计算的tile数量为5。这里对B画个图表示一下：</p>
+<p><img src="/images/marlin/2.png" width="95%"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> slice_row = (iters * blockIdx.x) % k_tiles;</span><br><span class="line"><span class="type">int</span> slice_col_par = (iters * blockIdx.x) / k_tiles;</span><br></pre></td></tr></table></figure>
+<p>这两句有点抽象，结合上面的图，这里的计算其实是确定了每个block起始位置的纵坐标和横坐标。</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th>block 0</th>
+<th>block 1</th>
+<th>block 2</th>
+<th>block 3</th>
+<th>block 4</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>slice_row</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>slice_col_par</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<h2 id="指针推进">指针推进</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// We can easily implement parallel problem execution by just remapping indices and advancing global pointers</span></span><br><span class="line"><span class="keyword">if</span> (slice_col_par &gt;= n_tiles) &#123;</span><br><span class="line">  A += (slice_col_par / n_tiles) * <span class="number">16</span> * thread_m_blocks * prob_k / <span class="number">8</span>;</span><br><span class="line">  C += (slice_col_par / n_tiles) * <span class="number">16</span> * thread_m_blocks * prob_n / <span class="number">8</span>;</span><br><span class="line">  locks += (slice_col_par / n_tiles) * n_tiles;</span><br><span class="line">  slice_col = slice_col_par % n_tiles;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>只需重新映射索引(remapping indices)和推进全局指针(advancing global
+pointers)，就可以轻松实现并行问题执行。</p>
+<p>比如这里的 <code>n_tiles = 3</code>，那对于 block 3 和 block 4
+而言，要处理的就是第二个parallel，所以要推进一下A和C的指针。</p>
+<h1 id="init_slice函数">init_slice()函数</h1>
+<p>接下来看比较容易迷惑的部分，如果不想细看这部分代码，可以直接看结论
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Compute all information about the current slice which is required for synchronization.</span></span><br><span class="line"><span class="keyword">auto</span> init_slice = [&amp;] () &#123;</span><br><span class="line">  slice_iters = iters * (blockIdx.x + <span class="number">1</span>) - (k_tiles * slice_col_par + slice_row);</span><br><span class="line">  <span class="keyword">if</span> (slice_iters &lt; <span class="number">0</span> || slice_col_par &gt;= n_tiles * parallel)</span><br><span class="line">    slice_iters = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">if</span> (slice_iters == <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  <span class="keyword">if</span> (slice_row + slice_iters &gt; k_tiles) </span><br><span class="line">    slice_iters = k_tiles - slice_row;</span><br><span class="line">  slice_count = <span class="number">1</span>;</span><br><span class="line">  slice_idx = <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> col_first = iters * ceildiv(k_tiles * slice_col_par, iters);</span><br><span class="line">  <span class="keyword">if</span> (col_first &lt;= k_tiles * (slice_col_par + <span class="number">1</span>)) &#123;</span><br><span class="line">    <span class="type">int</span> col_off = col_first - k_tiles * slice_col_par;</span><br><span class="line">    slice_count = ceildiv(k_tiles - col_off, iters);</span><br><span class="line">    <span class="keyword">if</span> (col_off &gt; <span class="number">0</span>)</span><br><span class="line">      slice_count++;</span><br><span class="line">    <span class="type">int</span> delta_first = iters * blockIdx.x - col_first;</span><br><span class="line">    <span class="keyword">if</span> (delta_first &lt; <span class="number">0</span> || (col_off == <span class="number">0</span> &amp;&amp; delta_first == <span class="number">0</span>))</span><br><span class="line">      slice_idx = slice_count - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      slice_idx = slice_count - <span class="number">1</span> - delta_first / iters;</span><br><span class="line">      <span class="keyword">if</span> (col_off &gt; <span class="number">0</span>)</span><br><span class="line">        slice_idx--;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (slice_col == n_tiles) &#123;</span><br><span class="line">    A += <span class="number">16</span> * thread_m_blocks * prob_k / <span class="number">8</span>;</span><br><span class="line">    C += <span class="number">16</span> * thread_m_blocks * prob_n / <span class="number">8</span>;</span><br><span class="line">    locks += n_tiles;</span><br><span class="line">    slice_col = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/marlin/3.png" width="95%"></p>
+<p><code>slice_iters</code></p>
+<ul>
+<li>当前slice中的线程块(threadblock)块数</li>
+<li>block 0有4个，要迭代4次，block 1有3个，要迭代3次，依此类比</li>
+</ul>
+<p><code>slice_count</code></p>
+<ul>
+<li>当前slice中活跃线程块(active threadblock)的总数</li>
+<li>第一个slice有1个（只有block 0），第二个slice有2个（有block 0和block
+1）</li>
+</ul>
+<p><code>slice_idx</code></p>
+<ul>
+<li>当前slice中的线程块索引(index of threadblock)</li>
+<li>这个索引从下到上编号。以第二个slice为例，block 1的idx是0，block
+0的idx是1。</li>
+</ul>
+<h1 id="a_sh_wr_iters-变量">a_sh_wr_iters 变量</h1>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a_gl_stride = prob_k / <span class="number">8</span>; <span class="comment">// stride of the A matrix in global memory</span></span><br><span class="line"><span class="comment">// We typically use `constexpr` to indicate that this value is a compile-time constant</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_stride = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// stride of an A matrix tile in shared memory</span></span><br><span class="line">constexpr <span class="type">int</span> a_gl_rd_delta_o = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// delta between subsequent A tiles in global memory</span></span><br><span class="line"><span class="type">int</span> a_gl_rd_delta_i = a_gl_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between subsequent accesses within a tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between shared memory writes</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_rd_delta_o = <span class="number">2</span> * ((threads / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>)); <span class="comment">// between shared memory tile reads</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_rd_delta_i = a_sh_stride * <span class="number">16</span>; <span class="comment">// within a shared memory tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_stage = a_sh_stride * (<span class="number">16</span> * thread_m_blocks); <span class="comment">// overall size of a tile</span></span><br><span class="line">constexpr <span class="type">int</span> a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta); <span class="comment">// number of shared write iterations for a tile</span></span><br></pre></td></tr></table></figure>
+<p>接下来<strong>着重</strong>看一下 <code>a_sh_wr_iters</code>
+这个变量：</p>
+<p>从 Global mem 加载数据到 Shared mem 的时候，每一个 thread 会读取一个
+int4（即4个int，128 bits），一个 thread blocks
+256个线程需要分多次才能将完整的 tile 数据块读取完毕。</p>
+<pre><code>为什么用int4？
+因为 kernel 使用的读取全局显存数据的`cp.async.cg.shared.global`指令最大处理长度是128 bits。</code></pre>
+<p>在本文中，读取A矩阵tile需要的次数</p>
+<p><code>a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta)</code>,</p>
+<p>表示A的一个 tile 的 shared write 迭代次数。 其中，</p>
+<ul>
+<li>a_sh_stage = 512，表示A的一个 tile 的整体尺寸
+<ul>
+<li>A矩阵一个 tile
+为<code>[16 x thread_m_blocks, 16 x thread_k_blocks]</code>，所以大小是
+64 * 64 / 8</li>
+<li>除以8是因为A的指针是int4类型，4个int32_t, 128
+bit，对应8个fp16，</li>
+</ul></li>
+<li>a_sh_wr_delta = 256，表示between shared memory writes。
+<ul>
+<li>a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o);</li>
+<li>8 * (256 / 8) = 256</li>
+</ul></li>
+</ul>
+<p><img src="/images/marlin/4.png" width="95%"></p>
+<p>也就意味着，一个 thread blocks
+256个线程能够读取256个<code>int4</code>，一个 tile 有 512
+个<code>int4</code>，读取A矩阵 tile 要循环两次。在后面的
+<code>fetch_to_shared</code> 函数里，一次是 fetch A 的一个
+tile，这个地方会体现出循环了两次。</p>
+<h1 id="a_sh_wr_pred-变量">a_sh_wr_pred 变量</h1>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Precompute which thread should not read memory in which iterations; this is needed if there are more threads than</span></span><br><span class="line"><span class="comment">// required for a certain tilesize or when the batchsize is not a multiple of 16.</span></span><br><span class="line"><span class="type">bool</span> a_sh_wr_pred[a_sh_wr_iters];</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; a_sh_wr_iters; i++)</span><br><span class="line">  a_sh_wr_pred[i] = a_sh_wr_delta * i + a_sh_wr &lt; a_sh_stride * prob_m;</span><br><span class="line"><span class="type">bool</span> s_sh_wr_pred = threadIdx.x &lt; s_sh_stride;</span><br></pre></td></tr></table></figure>
+<p>在矩阵运算中预先计算出哪些线程在特定的迭代过程中不应该从内存中读取数据。这是为了优化计算资源的使用，特别是在以下两种情况下：</p>
+<ul>
+<li>线程数超过所需的 tile
+大小时：即当前的任务需要的线程数比实际提供的线程数要少，这可能会导致一些线程不需要参与内存读取。</li>
+<li>batchsize 不是 16
+的倍数时：当批处理大小无法整齐地划分时，可能会出现某些线程无需读取数据的情况。</li>
+</ul>
+<p><code>#pragma unroll</code>：这个编译器指令提示编译器将循环展开（unroll），以减少循环控制的开销，优化性能。通常用于
+GPU 编程中的小规模循环，因为展开循环可以减少分支跳转。</p>
+<h1 id="a矩阵的load">A矩阵的load</h1>
+<h2 id="关于-bank-conflict-的背景知识">关于 bank conflict
+的背景知识</h2>
+<p>Shared memory 是片上存储器，因此与 local memory 或 global memory
+相比更高的带宽和更低的延迟。前提是线程之间没有 bank conflicts。</p>
+<p>为了实现高带宽，共享内存被划分为大小相等的内存模块，称为
+Banks，可以同时访问。因此，任何由 n
+个地址组成的内存读取或写入请求都可以同时提供服务，从而产生比单个模块带宽高
+n 倍的总带宽。</p>
+<p>但是，如果warp内多个线程的内存请求的两个地址位于同一Bank中，则存在bank
+conflict，并且必须序列化访问。也就是说，<strong>Bank conflict 是在一个
+warp 内，有2个或者以上的线程访问了同一个 bank
+上不同地址的内存。</strong></p>
+<p>shared memory被分为 32 bank，每个bank的位宽是 4 byte。最大
+transaction 大小为 128 bit。如果每个线程请求 16 bit，那么 warp
+宽度将为每次请求（warp 宽度）的 512 bit。</p>
+<p>当GPU每个线程访存大于 4 bytes，即每个 warp 大于
+<code>4 * 32 = 128</code> bytes 时,GPU 不会发出单个transaction，GPU
+会将其分成 4 个 transactions（在这种情况下：T0-T7
+组成一个transaction，T8-T15
+是一个transaction，依此类推），每个transaction的宽度为 128 bit。</p>
+<p>需要注意的是，bank conflicts 的确定是按 <strong>transaction</strong>
+进行的，而不是按request、warp 或instruction进行的。</p>
+<p>因此，每个 wrap 则会分割成多个 transaction 去执行，每个 transaction
+保证线程内的访存不落在同一bank即可，所以当我们用最大访存指令时，需要保证1/4个连续线程不会存在地址重叠。</p>
+<p>这也就是这个说法：</p>
+<p>an access to Shared Memory will be conflict-free if the following
+conditions are satisfied across each warp:</p>
+<ul>
+<li>{T0, T1, .., T7} do not access the same 128-bit bank</li>
+<li>{T8, T9, .., T15} do not access the same 128-bit bank</li>
+<li>{T16, T17, .., T23} do not access the same 128-bit bank</li>
+<li>{T24, T25, .., T31} do not access the same 128-bit bank</li>
+</ul>
+<h2 id="a矩阵的解决方式">A矩阵的解决方式</h2>
+<p>在marlin中，为了提高 load
+效率，一般会使用<strong>向量化</strong>的读取命令，一次读取 128
+bit，也就是 16 byte，对应<strong>4个bank</strong>。那么 8
+个线程就可以一次完成 32 个bank 的load，所以问题简化为研究
+<code>T0 - T7</code> or <code>T8 - T15</code> or <code>T16 - T23</code>
+or <code>T24 - T32</code> 这 8 个线程内没有 bank 冲突。</p>
+<p>如上文所讲，bank conflict 是针对单次 memory transaction
+而言的。如果单次 memory transaction 需要访问的 128 bytes 中有多个 word
+属于同一个 bank，就产生了 bank conflict。</p>
+<p>对于A矩阵这种<strong>激活值矩阵</strong>而言，没有办法提前pack，因此
+ldmatrix 指令<strong>读取</strong>的时候，会发生bank
+conflict。为了解决这个问题，需要对A矩阵的存储地址进行转换。对于ij位置可以通过转存到i(i
+⊕ j)位置来避免冲突， 其中⊕是异或计算。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> transform_a = [&amp;] (<span class="type">int</span> i) &#123;</span><br><span class="line">  <span class="type">int</span> row = i / a_gl_rd_delta_o;</span><br><span class="line">  <span class="keyword">return</span> a_gl_rd_delta_o * row + (i % a_gl_rd_delta_o) ^ row;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// Since the computation of this remapping is non-trivial and, due to our main loop unrolls, all shared memory </span></span><br><span class="line"><span class="comment">// accesses are static, we simply precompute both transformed reads and writes.</span></span><br><span class="line"><span class="type">int</span> a_sh_wr_trans[a_sh_wr_iters];</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; a_sh_wr_iters; i++)</span><br><span class="line">  a_sh_wr_trans[i] = transform_a(a_sh_wr_delta * i + a_sh_wr);</span><br></pre></td></tr></table></figure>
+<p>由于重映射计算较为复杂，且主循环进行了展开（unroll），所有的共享内存访问都是静态的，因此预先计算好重映射的读取和写入索引可以提高性能。</p>
+<h2 id="swizzle-的实现">Swizzle 的实现</h2>
+<p>A矩阵的swizzle实现是<code>transform_a</code>这个函数，其实现很简单</p>
+<ul>
+<li><code>row = i / a_gl_rd_delta_o</code> 算出来是在第几行</li>
+<li><code>i % a_gl_rd_delta_o</code> 算出来是在第几列</li>
+<li><code>(i % a_gl_rd_delta_o) ^ row</code>
+进行异或，修改了列的位置</li>
+<li><code>a_gl_rd_delta_o * row + (i % a_gl_rd_delta_o) ^ row</code>加上整体偏移</li>
+</ul>
+<p><code>a_sh_wr_trans</code>这个数组记录了进行swizzle的相关映射。</p>
+<p>做了个动图看一下，就非常明晰了：</p>
+<p><img src="/images/marlin/5.gif" width="95%"></p>
+<p>从 global memory 到 shared memory
+搬运的代码实现是在<code>fetch_to_shared</code>函数中 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">int4* sh_a_stage = sh_a + a_sh_stage * pipe;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; a_sh_wr_iters; i++) &#123;</span><br><span class="line">  cp_async4_pred(</span><br><span class="line">    &amp;sh_a_stage[a_sh_wr_trans[i]],</span><br><span class="line">    &amp;A[a_gl_rd_delta_i * i + a_gl_rd + a_gl_rd_delta_o * a_off],</span><br><span class="line">    a_sh_wr_pred[i]</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>其中 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Predicated asynchronous global-&gt;shared copy; used for inputs A where we apply predication to handle batchsizes that</span></span><br><span class="line"><span class="comment">// are not multiples of 16.</span></span><br><span class="line">__device__ <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">cp_async4_pred</span><span class="params">(<span class="type">void</span>* smem_ptr, <span class="type">const</span> <span class="type">void</span>* glob_ptr, <span class="type">bool</span> pred = <span class="literal">true</span>)</span> &#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> BYTES = <span class="number">16</span>;</span><br><span class="line">  <span class="type">uint32_t</span> smem = static_cast&lt;<span class="type">uint32_t</span>&gt;(__cvta_generic_to_shared(smem_ptr));</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(</span></span><br><span class="line"><span class="params">    <span class="string">&quot;&#123;\n&quot;</span></span></span><br><span class="line"><span class="params">    <span class="string">&quot;   .reg .pred p;\n&quot;</span></span></span><br><span class="line"><span class="params">    <span class="string">&quot;   setp.ne.b32 p, %0, 0;\n&quot;</span></span></span><br><span class="line"><span class="params">    <span class="string">&quot;   @p cp.async.cg.shared.global [%1], [%2], %3;\n&quot;</span></span></span><br><span class="line"><span class="params">    <span class="string">&quot;&#125;\n&quot;</span> :: <span class="string">&quot;r&quot;</span>((<span class="type">int</span>) pred), <span class="string">&quot;r&quot;</span>(smem), <span class="string">&quot;l&quot;</span>(glob_ptr), <span class="string">&quot;n&quot;</span>(BYTES)</span></span><br><span class="line"><span class="params">  )</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 由此可见，copy矩阵A 使用的是异步拷贝指令。</p>
+<ul>
+<li><p>cp.async
+指令用于从全局内存异步拷贝数据到共享内存，不会阻塞其他计算操作。后面在讲流水线的时候还会再提到这块。</p></li>
+<li><p>通过 pred
+参数，允许控制是否执行这次异步拷贝。它用于处理批处理大小不是 16
+的情况，确保在某些条件下可以跳过无效的数据拷贝操作。</p></li>
+<li><p>16 字节是 GPU
+进行全局到共享内存拷贝的一个高效的最小块，这样能够提升拷贝效率。</p></li>
+</ul>
+<h2 id="load到寄存器">load到寄存器</h2>
+<p>接下来看一下A矩阵是怎么load到寄存器的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++)</span><br><span class="line">  ldsm4(frag_a[k % <span class="number">2</span>][i], &amp;sh_a_stage[a_sh_rd_trans[k % b_sh_wr_iters][i]]);</span><br></pre></td></tr></table></figure>
+<p>可以看到，在 shared memory 到 frag 的过程中，用到了
+<code>a_sh_rd_trans</code>
+进行索引，而这也是通过上述的<code>transform_a</code>函数实现的，相当于往shared
+memory写的时候是按照异或规则写的，读的时候也要按照异或规则读出来，这样才能正确地映射。</p>
+<hr />
+<p>说一下题外话：</p>
+<p>其实这里我纠结了很久，关于bank conflict 和
+swizzle的内容我能够理解，但是我不能理解 marlin 用 <code>swizzle</code>
+实现 <code>bank conflict free</code>: 在 marlin 中，A矩阵是 row-major
+排布的，所以我一直疑惑为什么需要进行 swizzle ：这个矩阵在 global memory
+本身就是 row-major 排布的，岂不是按照原始顺序 load 到 shared
+memory，然后顺序读取的话也不会 bank conflict？</p>
+<p>为此我在<a
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/667972067">cuda的swizzle是怎么实现bank
+conflict free的？</a>进行了提问，<a
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/667972067/answer/3634692524">Arthur</a>的回答我认为很合理，即：</p>
+<ul>
+<li>swizzle 是在更复杂访问模式下，确保每个线程不会访问到相同的memory
+bank。</li>
+<li>如果矩阵是row-major的且读取是连续的，那么可能无需swizzle操作就能避免bank
+conflict。</li>
+<li>但如果存在交错访问或者更复杂的访问模式，则swizzle是有必要的，用以确保bank
+conflict free。</li>
+</ul>
+<p>作为一个cuda小白最开始对这里非常疑惑，这里整理一下看过的一些相关资料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/671419093">cute 之 Swizzle</a>
+- reed</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/684250988">cute
+Swizzle细谈</a> - 进击的Killua</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/706796240">cute swizzle</a> -
+shengying.wei</li>
+<li><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/659142274">CUDA编程概念:什么是bank
+conflict？</a> - likewind1993</li>
+<li><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/681966685">[深入分析CUTLASS系列] 0x03
+cutlass 源码分析(二) --- bank conflict free 的shared memory layout
+(附tvm等价pass)</a> - JoeNomad</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/690052715">搞懂 CUDA Shared
+Memory 上的 bank conflicts 和向量化指令（LDS.128 /
+float4）的访存特点</a> - Alan 小分享</li>
+<li><a
+target="_blank" rel="noopener" href="https://forums.developer.nvidia.com/t/how-to-understand-the-bank-conflict-of-shared-mem/260900">How
+to understand the bank conflict of shared_mem</a></li>
+</ul>
+<hr />
+<p>后来发现，如果不做 swizzle 其实是会发生 <code>bank conflict</code>
+的，有一个细节：</p>
+<p>在计算<code>a_sh_rd_trans</code>的时候 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; b_sh_wr_iters; i++) &#123;</span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; thread_m_blocks; j++)</span><br><span class="line">    a_sh_rd_trans[i][j] = transform_a(a_sh_rd_delta_o * i + a_sh_rd_delta_i * j + a_sh_rd); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>要注意输入<code>a_sh_rd</code>变量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Shared read index.</span></span><br><span class="line"><span class="type">int</span> a_sh_rd = a_sh_stride * ((threadIdx.x % <span class="number">32</span>) % <span class="number">16</span>) + (threadIdx.x % <span class="number">32</span>) / <span class="number">16</span>;</span><br><span class="line">a_sh_rd += <span class="number">2</span> * ((threadIdx.x / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>));</span><br></pre></td></tr></table></figure>
+<p>这里估计是最难懂的一点，<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/698715169">fp16*int4计算kernel--MARLIN代码走读</a>
+中解释了这一点：</p>
+<p>第一行结合关于ldmatrix的说明，在 thread 0-32 分别获取对应 ldmatrix
+需要的地址。这里可以看出确实是需要做swizzle操作。</p>
+<p>第二行的 (thread_n_blocks / 4) 的逻辑：</p>
+<ul>
+<li><p>256个线程，至少需要 b_sh_wr_iters
+次后处理完一行，那就需要一次读取
+<code>thread_k_blocks/b_sh_wr_iters</code> 个 SUB_TILE。</p></li>
+<li><p><code>thread_k_blocks/b_sh_wr_iters = threads/8/thread_n_blocks</code></p></li>
+<li><p>为了能够利用资源，如果不重复读取，就会处理<code>threads/32</code>个SUB_TILE。</p></li>
+<li><p>但是我们可以重复读取A矩阵来进行乘法后再归约，那么就有</p></li>
+<li><p><code>threads/32/x = threads/8/thread_n_blocks</code></p></li>
+<li><p>因此 <code>x = thread_n_blocks/4</code></p></li>
+<li><p>这就是<code>thread_n_blocks/4</code>的由来。</p></li>
+<li><p>因此A矩阵，在LDMATRIX后，有重复矩阵。</p></li>
+</ul>
+<p>如果仔细分析的话，可以这么理解：</p>
+<ul>
+<li>实际上的GLOBAL IO没有变化，还是GLOBAL-&gt;SHARED的大小</li>
+<li>运算并没有变多，B矩阵一直在变化，所以不会有重复计算。</li>
+</ul>
+<p>简单来说就是为了<strong>配平IO和MMA操作</strong>，做的妖操作。<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/698715169">fp16*int4计算kernel--MARLIN代码走读</a></p>
+<hr />
+<p>这里画了一个图展示Global memory -&gt; Shared Memory -&gt; Frag
+的过程：</p>
+<p><img src="/images/marlin/6.png" width="95%"></p>
+<p>需要注意的是，<code>ldmatrix</code> 指令从 shared mem
+加载数据到寄存器时会自动处理，使得寄存器中的数据满足这种特定的
+layout。</p>
+<h2 id="ldmatrix函数">ldmatrix函数</h2>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/702818267">CUTLASS CuTe
+GEMM细节分析（一）——ldmatrix的选择</a>
+一文中指出了ldmatrix在加载地址上的灵活性，也就是ldmatrix并不要求这8个行在Shared
+Memory上连续存储，但每个行内部必须是连续存储的。这一点解疑了我关于A整体不连续是怎么ldmatrix的这个疑问。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Instruction for loading a full 16x16 matrix fragment of operand A from shared memory, directly in tensor core layout.</span></span><br><span class="line">__device__ <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">ldsm4</span><span class="params">(FragA&amp; frag_a, <span class="type">const</span> <span class="type">void</span>* smem_ptr)</span> &#123;</span><br><span class="line">  <span class="type">uint32_t</span>* a = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;frag_a);</span><br><span class="line">  <span class="type">uint32_t</span> smem = static_cast&lt;<span class="type">uint32_t</span>&gt;(__cvta_generic_to_shared(smem_ptr));</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(</span></span><br><span class="line"><span class="params">    <span class="string">&quot;ldmatrix.sync.aligned.m8n8.x4.shared.b16 &#123;%0,%1,%2,%3&#125;, [%4];\n&quot;</span></span></span><br><span class="line"><span class="params">    : <span class="string">&quot;=r&quot;</span>(a[<span class="number">0</span>]), <span class="string">&quot;=r&quot;</span>(a[<span class="number">1</span>]), <span class="string">&quot;=r&quot;</span>(a[<span class="number">2</span>]), <span class="string">&quot;=r&quot;</span>(a[<span class="number">3</span>]) : <span class="string">&quot;r&quot;</span>(smem)</span></span><br><span class="line"><span class="params">  )</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a
+target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/parallel-thread-execution/#mma-ldmatrix-fragments">Warp-level
+matrix load instruction: ldmatrix</a></p>
+<p>这里使用了<code>ldmatrix.sync.aligned.m8n8.x4</code>,第二、三、四个矩阵的元素按照上表的布局加载到每个线程的后续目标寄存器中。</p>
+<p><img src="/images/marlin/mma-ldmatrix-fragments.png" width="95%"></p>
+<p>这样，A矩阵就被按照特定的 layout 加载到了寄存器中。而这个 layout 又是
+mma 指令所需要的：</p>
+<p>在 <a
+target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/parallel-thread-execution/#matrix-fragments-for-mma-m16n8k16-with-floating-point-type">matrix-fragments-for-mma-m16n8k16-with-floating-point-type</a>中可以看到
+Multiplicand A 的 The layout of the fragments held by different
+threads:</p>
+<p><img src="/images/marlin/mma-16816-A-f16.png" width="95%"></p>
+<h1 id="b矩阵的load">B矩阵的load</h1>
+<p>B矩阵的load相对简单，没有做swizzle。因为是顺序 fetch 到 SMEM，再顺序
+fetch 到 frag，B矩阵经过重排，使得MMA计算需要的[8, 16]
+tile全部处于一行，所以也不会有 bank conflict。</p>
+<h2 id="矩阵排布">矩阵排布</h2>
+<p>需要关注的是在算子之前的矩阵的排布，也就是 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">perm = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">32</span>):</span><br><span class="line">    perm1 = []</span><br><span class="line">    col = i // <span class="number">4</span></span><br><span class="line">    <span class="keyword">for</span> block <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">1</span>]:</span><br><span class="line">        <span class="keyword">for</span> row <span class="keyword">in</span> [</span><br><span class="line">            <span class="number">2</span> * (i % <span class="number">4</span>),</span><br><span class="line">            <span class="number">2</span> * (i % <span class="number">4</span>) + <span class="number">1</span>,</span><br><span class="line">            <span class="number">2</span> * (i % <span class="number">4</span> + <span class="number">4</span>),</span><br><span class="line">            <span class="number">2</span> * (i % <span class="number">4</span> + <span class="number">4</span>) + <span class="number">1</span></span><br><span class="line">        ]:</span><br><span class="line">            perm1.append(<span class="number">16</span> * row + col + <span class="number">8</span> * block)</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">        perm.extend([p + <span class="number">256</span> * j <span class="keyword">for</span> p <span class="keyword">in</span> perm1])</span><br><span class="line"></span><br><span class="line">perm = np.array(perm)</span><br><span class="line">interleave = np.array([<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>])</span><br><span class="line">perm = perm.reshape((-<span class="number">1</span>, <span class="number">8</span>))[:, interleave].ravel()</span><br></pre></td></tr></table></figure>
+这个过程，实现了Multiplicand B 的 The layout of the fragments held by
+different threads：</p>
+<p><img src="/images/marlin/mma-16816-B-f16.png" width="95%"></p>
+<p>当然，后面还是做了一个 interleave 操作的，所以 B
+的真正排布是在这个基础上做了 interleave
+的，但是在进行dequant的时候又反interleave
+了，所以这里的分析就不管interleave了，更直观一些。</p>
+<p><img src="/images/marlin/9.png" width="95%"></p>
+<h1 id="matmul">matmul</h1>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Execute the actual tensor core matmul of a sub-tile. </span></span><br><span class="line"><span class="keyword">auto</span> matmul = [&amp;] (<span class="type">int</span> k) &#123;</span><br><span class="line">  <span class="comment">// We have the m dimension as the inner loop in order to encourage overlapping dequantization and matmul operations.</span></span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span>; j++) &#123;</span><br><span class="line">    <span class="type">int</span> b_quant = frag_b_quant[k % <span class="number">2</span>][j];</span><br><span class="line">    <span class="type">int</span> b_quant_shift = b_quant &gt;&gt; <span class="number">8</span>;</span><br><span class="line">    FragB frag_b0 = dequant(b_quant);</span><br><span class="line">    <span class="comment">// If there are no groups, we can just scale the final output once and can avoid doing so for each weight.</span></span><br><span class="line">    <span class="keyword">if</span> (group_blocks != <span class="number">-1</span>)</span><br><span class="line">      scale(frag_b0, frag_s[k % <span class="number">2</span>][j], <span class="number">0</span>);</span><br><span class="line">    FragB frag_b1 = dequant(b_quant_shift);</span><br><span class="line">    <span class="keyword">if</span> (group_blocks != <span class="number">-1</span>)</span><br><span class="line">      scale(frag_b1, frag_s[k % <span class="number">2</span>][j], <span class="number">1</span>);</span><br><span class="line">    <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++) &#123;</span><br><span class="line">      mma(frag_a[k % <span class="number">2</span>][i], frag_b0, frag_c[i][j][<span class="number">0</span>]);</span><br><span class="line">      mma(frag_a[k % <span class="number">2</span>][i], frag_b1, frag_c[i][j][<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>关于dequant这个函数，我之前在 <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/710203211">WeightonlyGEMM:
+dequantize_s4_to_fp16x2代码解析</a> 详细分析过。思路是一样的，区别就是
+marlin 想要 <code>signed int4</code> 输出，于是将 <code>-8</code> 这个
+symmetric zero point 直接融合到 <code>SUB</code> 和 <code>ADD</code> 的
+magic number 中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">__device__ <span class="keyword">inline</span> FragB <span class="title function_">dequant</span><span class="params">(<span class="type">int</span> q)</span> &#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> LO = <span class="number">0x000f000f</span>;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> HI = <span class="number">0x00f000f0</span>;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> EX = <span class="number">0x64006400</span>;</span><br><span class="line">  <span class="comment">// Guarantee that the `(a &amp; b) | c` operations are LOP3s.</span></span><br><span class="line">  <span class="type">int</span> lo = lop3&lt;(<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>&gt;(q, LO, EX);</span><br><span class="line">  <span class="type">int</span> hi = lop3&lt;(<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>&gt;(q, HI, EX);</span><br><span class="line">  <span class="comment">// We want signed int4 outputs, hence we fuse the `-8` symmetric zero point directly into `SUB` and `ADD`.</span></span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> SUB = <span class="number">0x64086408</span>;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> MUL = <span class="number">0x2c002c00</span>;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> ADD = <span class="number">0xd480d480</span>;</span><br><span class="line">  FragB frag_b;</span><br><span class="line">  frag_b[<span class="number">0</span>] = __hsub2(</span><br><span class="line">    *reinterpret_cast&lt;half2*&gt;(&amp;lo),</span><br><span class="line">    *reinterpret_cast&lt;<span class="type">const</span> half2*&gt;(&amp;SUB)</span><br><span class="line">  );</span><br><span class="line">  frag_b[<span class="number">1</span>] = __hfma2(</span><br><span class="line">    *reinterpret_cast&lt;half2*&gt;(&amp;hi),</span><br><span class="line">    *reinterpret_cast&lt;<span class="type">const</span> half2*&gt;(&amp;MUL), *reinterpret_cast&lt;<span class="type">const</span> half2*&gt;(&amp;ADD)</span><br><span class="line">  );</span><br><span class="line">  <span class="keyword">return</span> frag_b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里仅以 e0 和 e1 为例：</p>
+<p><img src="/images/marlin/7.png" width="95%"></p>
+<p>进行 <code>lop3</code> 操作后，提出来 e0 和 e1
+元素，但此时的结果是加了 2^10 的，因此要减去 1024，以及减 8 这个zero
+point，<code>SUB = 0x64086408</code> 中的 <code>6408</code> 对应的就是
+1032。</p>
+<p>frag_b_quant 类型是 <code>Vec&lt;int, 4&gt;</code>，这里的 j
+循环是对这4个int的循环。</p>
+<p>FragB 类型是 <code>Vec&lt;half2, 2&gt;</code>，也就是说
+<code>dequant</code> 函数计算后得到的是2个 half2.</p>
+<p>对应关系是这样的：</p>
+<p><img src="/images/marlin/8.png" width="95%"></p>
+<p>对B进行dequant后，就进行了 mma 操作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; thread_m_blocks; i++) &#123;</span><br><span class="line">  mma(frag_a[k % <span class="number">2</span>][i], frag_b0, frag_c[i][j][<span class="number">0</span>]);</span><br><span class="line">  mma(frag_a[k % <span class="number">2</span>][i], frag_b1, frag_c[i][j][<span class="number">1</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/marlin/10.jpg" width="40%"></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/702818267">图片来源</a></p>
+<p>在m维度的循环是内循环，这样可以复用 b 的 dequant 结果。</p>
+<p>一次matmul调用，外循环迭代4次，即在B矩阵的n方向计算4个16x16的B矩阵小块。内循环迭代thread_m_blocks次，即在A矩阵的m方向计算thread_m_blocks个16x16小块。每次内循环调用两次mma指令，完成一个
+m16n16k16 的子块计算。</p>
+<p>为什么每个matmul要计算4个B矩阵的 16x16 子块呢？这是因为从 shared mem
+加载数据到 reg 的时候，每个线程读取 128 bit，每个 warp 个 32
+线程总共读取 128x32 bits数据，而4个16x16
+B矩阵块的数据量正好就是(16x16/8)x4x32
+bits。这样可以使用所有的线程去加载计算所需要的数据。</p>
+<h2 id="mma-指令">mma 指令</h2>
+<p>其中 mma 是用的 <a
+target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/parallel-thread-execution/#multiply-and-accumulate-instruction-mma">mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// m16n8k16 tensor core mma instruction with fp16 inputs and fp32 output/accumulation.</span></span><br><span class="line">__device__ <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">mma</span><span class="params">(<span class="type">const</span> FragA&amp; a_frag, <span class="type">const</span> FragB&amp; frag_b, FragC&amp; frag_c)</span> &#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span>* a = reinterpret_cast&lt;<span class="type">const</span> <span class="type">uint32_t</span>*&gt;(&amp;a_frag);</span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span>* b = reinterpret_cast&lt;<span class="type">const</span> <span class="type">uint32_t</span>*&gt;(&amp;frag_b);</span><br><span class="line">  <span class="type">float</span>* c = reinterpret_cast&lt;<span class="type">float</span>*&gt;(&amp;frag_c);</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(</span></span><br><span class="line"><span class="params">    <span class="string">&quot;mma.sync.aligned.m16n8k16.row.col.f32.f16.f16.f32 &quot;</span></span></span><br><span class="line"><span class="params">    <span class="string">&quot;&#123;%0,%1,%2,%3&#125;, &#123;%4,%5,%6,%7&#125;, &#123;%8,%9&#125;, &#123;%10,%11,%12,%13&#125;;\n&quot;</span></span></span><br><span class="line"><span class="params">    : <span class="string">&quot;=f&quot;</span>(c[<span class="number">0</span>]), <span class="string">&quot;=f&quot;</span>(c[<span class="number">1</span>]), <span class="string">&quot;=f&quot;</span>(c[<span class="number">2</span>]), <span class="string">&quot;=f&quot;</span>(c[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">    :  <span class="string">&quot;r&quot;</span>(a[<span class="number">0</span>]),  <span class="string">&quot;r&quot;</span>(a[<span class="number">1</span>]),  <span class="string">&quot;r&quot;</span>(a[<span class="number">2</span>]),  <span class="string">&quot;r&quot;</span>(a[<span class="number">3</span>]),  <span class="string">&quot;r&quot;</span>(b[<span class="number">0</span>]),  <span class="string">&quot;r&quot;</span>(b[<span class="number">1</span>]),</span></span><br><span class="line"><span class="params">       <span class="string">&quot;f&quot;</span>(c[<span class="number">0</span>]),  <span class="string">&quot;f&quot;</span>(c[<span class="number">1</span>]),  <span class="string">&quot;f&quot;</span>(c[<span class="number">2</span>]),  <span class="string">&quot;f&quot;</span>(c[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">  )</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>mma() 是张量核心的矩阵乘法函数，执行 A × B 的操作，并将结果累积到
+frag_c 中。由于量化后的数据拆分为两部分（frag_b0 和
+frag_b1），因此执行了两次乘法，每次使用不同的子块进行运算。</p>
+<p>在mma的计算过程中SM就已经做了tile层面的b_sh_wr_iters 的归约操作。</p>
+<h1 id="a矩阵-和-b矩阵-的参数分析">A矩阵 和 B矩阵 的参数分析</h1>
+<p>在m = 128，k = 256，n = 768的情况下：</p>
+<h2 id="a-矩阵">A 矩阵</h2>
+<p><img src="/images/marlin/a_gl.png" width="95%"> <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a_gl_stride = prob_k / <span class="number">8</span>; <span class="comment">// stride of the A matrix in global memory 每一个 thread 会读取一个 int4，所以除以 128/16=8</span></span><br><span class="line">a_gl_rd_delta_o = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// delta between subsequent A tiles in global memory</span></span><br><span class="line">a_gl_rd_delta_i = a_gl_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between subsequent accesses within a tile</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/marlin/a_smem.png" width="50%"> <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">a_sh_stride = <span class="number">16</span> * thread_k_blocks / <span class="number">8</span>; <span class="comment">// stride of an A matrix tile in shared memory</span></span><br><span class="line">a_sh_wr_delta = a_sh_stride * (threads / a_gl_rd_delta_o); <span class="comment">// between shared memory writes</span></span><br><span class="line">a_sh_rd_delta_o = <span class="number">2</span> * ((threads / <span class="number">32</span>) / (thread_n_blocks / <span class="number">4</span>)); <span class="comment">// between shared memory tile reads</span></span><br><span class="line">a_sh_rd_delta_i = a_sh_stride * <span class="number">16</span>; <span class="comment">// within a shared memory tile</span></span><br><span class="line">a_sh_stage = a_sh_stride * (<span class="number">16</span> * thread_m_blocks); <span class="comment">// overall size of a tile</span></span><br><span class="line">a_sh_wr_iters = ceildiv(a_sh_stage, a_sh_wr_delta); <span class="comment">// number of shared write iterations for a tile</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="b-矩阵">B 矩阵</h2>
+<p><img src="/images/marlin/b_gl.png" width="95%"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">b_gl_stride = <span class="number">16</span> * prob_n / <span class="number">32</span>; </span><br><span class="line"><span class="comment">// B的16在最内维([16*thread_k_blocks, 16*thread_n_blocks]-&gt;[thread_k_blocks, 16*thread_n_blocks*16])，所以会乘以16；</span></span><br><span class="line"><span class="comment">// 每一个 thread 会读取一个 int4，所以除以 128/4=32. </span></span><br><span class="line">b_gl_rd_delta_o = b_gl_stride * thread_k_blocks;</span><br><span class="line">b_gl_rd_delta_i = b_gl_stride * (threads / b_sh_stride);</span><br></pre></td></tr></table></figure>
+<p><img src="/images/marlin/b_smem.png" width="95%"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">b_sh_stride = <span class="number">32</span> * thread_n_blocks / <span class="number">4</span>;</span><br><span class="line">b_sh_wr_delta = threads;</span><br><span class="line">b_sh_rd_delta = threads;</span><br><span class="line">b_sh_stage = b_sh_stride * thread_k_blocks;</span><br><span class="line">b_sh_wr_iters = b_sh_stage / b_sh_wr_delta;</span><br></pre></td></tr></table></figure>
+<p><code>b_sh_stride = 32 * thread_n_blocks / 4;</code></p>
+<p>这里困扰了我很久，在这里一定要记录一下：</p>
+<ul>
+<li>32 = 16 * 16 * 4 / 32
+<ul>
+<li>16 * 16 是warp大小</li>
+<li>4是重复4次</li>
+<li>32是类型转换 int4-&gt;INT4（128bit/4bit=32）</li>
+</ul></li>
+<li>4是重复4次</li>
+</ul>
+<h1 id="reduce">Reduce</h1>
+<p><img src="/images/marlin/0_gemm.png" width="95%"></p>
+<p><img src="/images/marlin/3.png" width="95%"></p>
+<p>按照Marlin Kernel的Tile切分方式，一个C矩阵的Tile可能由多个thread
+block参与计算。如上文，C矩阵第一个Tile只有 <code>thread block 0</code>
+参与计算，而第二个Tile由 <code>block 0</code> 和 <code>block 1</code>
+共同计算，两个 <code>block</code> 分别持有部分结果。</p>
+<p>对于第一个 Tile 这种只由一个 block 参与计算的情况，由于一个 thread
+block 中不同的 warp 分别持有部分结果，因此，只需要进行 thread block 内的
+reduce，把不同 warp 持有的部分结果规约。这部分工作由
+<code>thread_block_reduce()</code> 负责。thread_block_reduce() 利用
+shared mem交换数据。</p>
+<p>而对于第二个 Tile 这种由多个 block 参与计算的情况，则需要在进行
+thread block 内的 Reduce 之后，再进行 block 间的 reduce，将多个 block
+持有的部分结果进行规约。这部分工作由 <code>global_reduce()</code>
+负责。global_reduce()利用 global mem 交换数据。</p>
+<h1 id="block-reduce">block reduce</h1>
+<h2 id="frag_c-寄存器">frag_c 寄存器</h2>
+<p>先看一下 <code>FragC frag_c[thread_m_blocks][4][2];</code></p>
+<ul>
+<li><code>using FragC = Vec&lt;float, 4&gt;;</code>
+mma后，一个线程是4个fp32；</li>
+<li><code>thread_m_blocks</code>: 比较好理解，一个 tile 里面在 m
+方向计算过 thread_m_blocks 个 16x16 小块；</li>
+<li>4: 在n方向计算4个16x16的B矩阵小块；</li>
+<li>2: subtile 即 <code>A(16,16) * B(16,16)</code> 分为2次 mma
+执行。</li>
+</ul>
+<p><img src="/images/marlin/11.png" width="95%"></p>
+<p>从 <code>frag_c</code> 的角度看第一个 slice 的过程：</p>
+<ol type="1">
+<li><code>zero_accums</code>函数将 <code>frag_c</code> 清零</li>
+<li>循环 <code>slice_iters</code> 次，<code>frag_c</code>
+的各个<code>[thread_m_blocks][4][2]</code> 不断在做累加，实现了在 tile
+层面的 b_sh_wr_iters 的归约。</li>
+<li>当 slice_iters == 0
+的时候，也就意味着做完这个block在这个slice里做完mma了，于是要进行
+<code>thread_block_reduce</code>，在K维度做
+<code>thread_k_blocks/b_sh_wr_iters</code> 的归约。</li>
+</ol>
+<h2 id="block-reduce-分析">block reduce 分析</h2>
+<p>在许多并行计算的情况下，k 维度（内积的长度）可能非常大，因此通过将 k
+维度切分为多个块可以增加并行计算的粒度和线程的利用率。</p>
+<ul>
+<li>k 维度的切分：为了增加并行计算的线程块（warps）的数量，这里选择将 k
+维度进行切分。切分后的每个 k 维度的子块可以由不同的 warp
+进行并行计算。</li>
+<li>增加 warp 数量：通过将 k 维度切分，不仅可以增加参与计算的 warp
+数量，还能更好地利用 GPU 的并行计算能力，提高整体吞吐量。</li>
+</ul>
+<p>为了确保性能，代码选择只切分 k 维度，而保持 n
+维度（列数）大小合理。这样可以保证每个线程块（warp）有足够的计算工作，但不会因为过多线程竞争导致
+n 维度变得过大，从而降低局部数据重用的效率。</p>
+<p>由于不同的 warp 都在并行处理相同的输出位置，因此每个 warp
+只计算了部分的结果（partial
+sums），这些部分结果需要在最后进行归约（reduction）操作.通过在共享内存中累积每个
+warp
+的部分和，可以高效地进行归约操作，而不必依赖全局内存。这避免了全局内存带来的延迟，同时利用共享内存实现快速的同步和数据共享。</p>
+<p>通过切分 k 维度，这段代码增加了并行度，从而提高了 GPU 的利用率。每个
+warp
+计算部分和的结果，最终需要通过共享内存进行归约操作，将多个部分和合并为最终结果。这种方式可以有效提升矩阵乘法的性能，同时利用共享内存的高效性来完成必要的同步操作。</p>
+<h2 id="代码">代码</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> m_block = <span class="number">0</span>; m_block &lt; thread_m_blocks; m_block++) &#123;</span><br><span class="line">  <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = red_off; i &gt; <span class="number">0</span>; i /= <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (i &lt;= red_idx &amp;&amp; red_idx &lt; <span class="number">2</span> * i) &#123;</span><br><span class="line">      <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span> * <span class="number">2</span>; j++) &#123;</span><br><span class="line">        <span class="type">int</span> red_sh_wr = red_sh_delta * j + (red_sh_rd - red_sh_stride * i);</span><br><span class="line">        <span class="keyword">if</span> (i &lt; red_off) &#123;</span><br><span class="line">          <span class="type">float</span>* c_rd = reinterpret_cast&lt;<span class="type">float</span>*&gt;(&amp;sh[red_sh_delta * j + red_sh_rd]); <span class="comment">// 将共享内存的整数地址转换为 float* 指针，从而方便操作浮点数据。</span></span><br><span class="line">          <span class="type">float</span>* c_wr = reinterpret_cast&lt;<span class="type">float</span>*&gt;(&amp;sh[red_sh_wr]);</span><br><span class="line">          <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">          <span class="keyword">for</span> (<span class="type">int</span> k = <span class="number">0</span>; k &lt; <span class="number">4</span>; k++)</span><br><span class="line">            reinterpret_cast&lt;FragC*&gt;(frag_c)[<span class="number">4</span> * <span class="number">2</span> * m_block + j][k] += c_rd[k] + c_wr[k]; <span class="comment">//每个线程会将共享内存中的值 c_rd 和 c_wr 读取出来，并将其累加到 frag_c 中。</span></span><br><span class="line">        &#125;</span><br><span class="line">        sh[red_sh_wr] = reinterpret_cast&lt;int4*&gt;(&amp;frag_c)[<span class="number">4</span> * <span class="number">2</span> * m_block + j];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    __syncthreads();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (red_idx == <span class="number">0</span>) &#123; <span class="comment">//当前线程是最后的归约线程，它负责将共享内存中最终的归约结果写回到 frag_c 中。</span></span><br><span class="line">    <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">4</span> * <span class="number">2</span>; i++) &#123;</span><br><span class="line">      <span class="type">float</span>* c_rd = reinterpret_cast&lt;<span class="type">float</span>*&gt;(&amp;sh[red_sh_delta * i + red_sh_rd]);</span><br><span class="line">      <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="number">4</span>; j++) <span class="comment">// 循环遍历每个剩余的数据块，并将结果累加。</span></span><br><span class="line">        reinterpret_cast&lt;FragC*&gt;(frag_c)[<span class="number">4</span> * <span class="number">2</span> * m_block + i][j] += c_rd[j];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  __syncthreads(); <span class="comment">//线程同步，避免不同线程之间的数据竞争问题。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码实现的是
+并行的对数级共享内存归约（reduction）操作，通过减少内存读写操作来提高归约的性能。对数级归约是指通过每次减少一半的数据规模来加速归约操作，时间复杂度为
+O(log(n))，这里通过逐步合并部分结果实现归约。</p>
+<p>在并行计算中，不仅需要在每个 warp
+内部进行局部归约，还需要在计算的最后阶段对多个 warp
+产生的中间结果进行合并，得到最终的结果。</p>
+<h2 id="数据流向">数据流向</h2>
+<p>由于每个线程的寄存器是私有的，其他线程无法访问，因此线程之间若需要共享数据或进行同步处理，必须通过共享内存来进行通信和数据交换。</p>
+<p>所以block reduce只需要进行 <code>REG-&gt;SHARED-&gt;REG</code>
+的转化，不涉及全局内存读取。而且这一过程避免了任何不必要的读取或写入迭代，例如，对于两个
+warp，我们仅通过 warp 1 写入一次，仅通过 warp 0 读取一次。</p>
+<h1 id="global-reduce">global reduce</h1>
+<p>通过条状分区，同一列的数据会尽量集中在较少的线程块上处理，从而减少归约操作的频率。尽可能减少全局归约是优化并行程序性能的重要手段之一。</p>
+<p>最终的归约操作是在 L2 缓存 中串行完成的。L2
+缓存速度比全局内存快，但比共享内存慢。使用 L2
+缓存进行归约操作具有以下优点：</p>
+<ul>
+<li>L2 缓存的优势：相比全局内存，L2
+缓存的延迟较低，访问速度更快。在全局归约过程中，使用 L2
+缓存可以加快数据的合并速度，减少内存带宽的消耗。</li>
+<li>串行归约：归约操作是串行进行的，这可能是因为最终的输出数据较小，串行执行归约的开销很低。并且，串行操作可以简化编程复杂度，不需要额外的并行归约算法。</li>
+</ul>
+<p><img src="/images/marlin/12.png" width="95%"></p>
+<p>看一下第二个 slice 的过程：</p>
+<ul>
+<li>第一次 <code>start_pipes</code> 后，block1 进行了 3
+次迭代(slice_iters)，在最后一次做完mma后进行了
+<code>thread_block_reduce</code></li>
+<li>第二次 <code>start_pipes</code> 后，block0 进行了 1
+次迭代(slice_iters)，在做完mma后进行了
+<code>thread_block_reduce</code></li>
+<li>注意此时 <code>last = slice_idx == slice_count - 1</code>
+为true（要注意slice_idx是numbered bottom to top）</li>
+</ul>
+<p>这个slice的slice_count是大于1的，所以会进行global_reduce
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (slice_count &gt; <span class="number">1</span>) &#123; <span class="comment">// only globally reduce if there is more than one block in a slice</span></span><br><span class="line">  barrier_acquire(&amp;locks[slice_col], slice_idx);</span><br><span class="line">  global_reduce(slice_idx == <span class="number">0</span>, last);</span><br><span class="line">  barrier_release(&amp;locks[slice_col], last);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>global_reduce的工作原理其实是按照 <code>slice_idx</code>
+的顺序依次进行规约：</p>
+<p>1）第一个slice(slice_idx==0)，将自己持有的部分结果写到全局显存。</p>
+<p>2）后续非最后一个slice从全局显存读取已经规约的结果，与自己持有的结果相加，结果写回全局显存。</p>
+<p>3）最后一个slice从全局显存读取已经规约的结果与自己持有的结果相加。</p>
+<h2 id="global_reduce-函数"><code>global_reduce</code> 函数</h2>
+<p><img src="/images/marlin/13.png" width="60%"></p>
+<p>对照这个流程图，对于 <code>slice_idx = 0</code> 的 block
+而言，是first，不是last，所以是将结果转成 half 类型后写到 global memory
+里面；</p>
+<p>对于 <code>slice_idx = 1</code> 的 block
+而言，不是first，不是last，所以是先将 global memory 的结果fetch到 shared
+memory，转成 float 后进行 reduce，结果转成 half 类型后写到 global
+memory里面；</p>
+<p>对于 <code>slice_idx = 2</code> 的 block
+而言，不是first，是last，所以是先将 global memory 的结果fetch到 shared
+memory，转成 float 后进行 reduce，结果还在寄存器里面</p>
+<p>按照我的理解，<code>slice_idx = 0</code> 的 block 和
+<code>slice_idx = 1</code> 的 block 是在一个 pipe里面，那么怎么保证
+<code>slice_idx = 1</code> 的 block 在<code>slice_idx = 0</code> 的
+block
+存完之后再操作呢？这种按slice顺序进行reduce的行为由<code>barrier_acquire</code>
+和 <code>barrier_release</code> 函数来保证的。</p>
+<h2 id="barrier_acquire-函数"><code>barrier_acquire</code> 函数</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Wait until barrier reaches `count`, then lock for current threadblock.</span></span><br><span class="line">__device__ <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">barrier_acquire</span><span class="params">(<span class="type">int</span>* lock, <span class="type">int</span> count)</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (threadIdx.x == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="type">int</span> state = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">      <span class="comment">// Guarantee that subsequent writes by this threadblock will be visible globally.</span></span><br><span class="line">      <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(<span class="string">&quot;ld.global.acquire.gpu.b32 %0, [%1];\n&quot;</span> : <span class="string">&quot;=r&quot;</span>(state) : <span class="string">&quot;l&quot;</span>(lock))</span>;</span><br><span class="line">    <span class="keyword">while</span> (state != count);</span><br><span class="line">  &#125;</span><br><span class="line">  __syncthreads();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>只有线程块中的第一个线程（threadIdx.x == 0）会执行对 lock
+的检查。这是为了避免同一线程块中的所有线程都同时访问全局内存，造成资源竞争。</p>
+<p><code>asm volatile ("ld.global.acquire.gpu.b32 %0, [%1];\n" : "=r"(state) : "l"(lock));</code>
+这条内联汇编指令从全局内存中读取锁的值 lock，并将其存入 state。它使用了
+CUDA 的 acquire
+语义，这保证了在该点之前的所有读写操作对其他线程是可见的。</p>
+<p>如果当前锁的值与 count
+不一致，线程块中的第一个线程会一直循环，直到锁值等于
+count。这意味着线程块会等待，直到其他线程块执行了对应的操作，修改了 lock
+的值。</p>
+<p>后面有一个线程同步，确保整个线程块中的所有线程在 lock
+达到指定值之前不会继续执行后续代码。</p>
+<p>这个函数整体是用于等待锁达到指定值，让线程块中的所有线程在达到barrier前等待。这是一个同步点，确保后续操作不会与前面已经发生的操作重叠。</p>
+<h2 id="barrier_release-函数"><code>barrier_release</code> 函数</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Release barrier and increment visitation count.</span></span><br><span class="line">__device__ <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">barrier_release</span><span class="params">(<span class="type">int</span>* lock, <span class="type">bool</span> reset = <span class="literal">false</span>)</span> &#123;</span><br><span class="line">  __syncthreads();</span><br><span class="line">  <span class="keyword">if</span> (threadIdx.x == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (reset) &#123;</span><br><span class="line">      lock[<span class="number">0</span>] = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> val = <span class="number">1</span>;</span><br><span class="line">    <span class="comment">// Make sure that all writes since acquiring this barrier are visible globally, while releasing the barrier. </span></span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(<span class="string">&quot;fence.acq_rel.gpu;\n&quot;</span>)</span>;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(<span class="string">&quot;red.relaxed.gpu.global.add.s32 [%0], %1;\n&quot;</span> : : <span class="string">&quot;l&quot;</span>(lock), <span class="string">&quot;r&quot;</span>(val))</span>; </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在释放barrier前，先进行线程同步，确保线程块内的所有线程都已经完成了各自的工作，达到了barrier点。
+仍然是线程块内的第一个线程执行锁的更新操作，避免多线程对同一锁进行竞争访问。
+如果 reset 为 true，则将 lock 重置为 0
+并立即返回，不再执行后续的释放操作。这用于在这个slice的最后一次global
+reduce
+<code>asm volatile ("fence.acq_rel.gpu;\n");</code>：这条指令是一个“获取-释放（acquire-release）”内存屏障，它确保在屏障释放前，当前线程块对共享数据的所有写操作对其他线程块是可见的。</p>
+<p><code>asm volatile ("red.relaxed.gpu.global.add.s32 [%0], %1;\n" : : "l"(lock), "r"(val));</code>：这里使用了
+add.s32（32位整数加法）操作，通过原子操作将 lock 值加
+1，表示当前线程块已经达到了屏障。其他等待这个锁的线程块就可以继续运行了。</p>
+<p>这种加法操作使用了
+<code>red.relaxed.gpu.global.add</code>，它是一个relaxed操作，不需要严格的同步模型，因此有助于性能优化。</p>
+<p>这个函数整体是用于释放锁，并将锁的值加
+1，表示当前线程块已经完成了当前阶段的工作。如果是在这个slice的最后一次global
+reduce，则重置锁，以便重新初始化同步机制。</p>
+<p>这两个函数共同实现了线程块之间的同步机制，确保数据在不同线程块之间传递时的一致性，同时最大化性能优化。</p>
+<p>workspace：是用来做global_reduce的标志位，shape为[n / 128 *
+max_par]，由于n维度最小切分粒度为128，因此C矩阵最多被切分为n / 128 *
+max_par个slice，每个slice需要一个标志位。</p>
+<h1 id="write_result">write_result</h1>
+<p>global_reduce规约完不同thread
+block的结果之后，C矩阵Tile的结果规约在最后一个slice的寄存器中了，因此，最后一个slice负责把结果写回全局显存，这部分工作由write_result()负责。</p>
+<p>write_result()先将结果写回shared mem，再从shared
+mem写回全局显存。同时，如果使用per_channel量化，则在这里会进行结果的scale操作。</p>
+<p>因为共享内存访问比全局内存要快得多，所以先在共享内存中对结果进行重新排序，</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> write = [&amp;] (<span class="type">int</span> idx, <span class="type">float</span> c0, <span class="type">float</span> c1, FragS&amp; s) &#123;</span><br><span class="line">  half2 res = __halves2half2(__float2half(c0), __float2half(c1));</span><br><span class="line">  <span class="keyword">if</span> (group_blocks == <span class="number">-1</span>) <span class="comment">// for per-column quantization we finally apply the scale here</span></span><br><span class="line">    res = __hmul2(res, s[<span class="number">0</span>]);</span><br><span class="line">  ((half2*) sh)[idx] = res;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><code>res = __halves2half2(__float2half(c0), __float2half(c1))</code>
+将两个单精度浮点数压缩成一个半精度浮点数对</p>
+<p>如果
+<code>group_blocks == -1</code>，说明需要进行按列量化（per-column
+quantization）。</p>
+<p>最后，重排后的 half2 结果被写入共享内存 sh 的指定位置 idx。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; ceildiv(<span class="number">16</span> * thread_m_blocks, threads / (<span class="number">2</span> * thread_n_blocks)); i++) &#123;</span><br><span class="line">  <span class="keyword">if</span> (c_gl_wr &lt; c_gl_wr_end) &#123;</span><br><span class="line">    C[c_gl_wr] = sh[c_sh_rd];</span><br><span class="line">    c_gl_wr += c_gl_wr_delta;</span><br><span class="line">    c_sh_rd += c_sh_rd_delta;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>共享内存中的数据被整理后，通过循环依次写入全局内存。线程逐步读取共享内存中的数据（sh），并写入全局内存的对应位置（C）。</p>
+<h1 id="任务调度">任务调度</h1>
+<p>https://zhuanlan.zhihu.com/p/716412368</p>
+<p>相比于CNN的卷积，LLM的矩阵乘有这样的特性：IO比乘法运算更重要，因此需要更加精致的优化。TILE的核心是在IO读取和计算之间的一种平衡，这种调度目前IO处理非常有优势。</p>
+<p>疑惑的点：</p>
+<p>矩阵A为什么是竖的 block reduce具体是哪些在reduce</p>
+<h1 id="参考资料">参考资料：</h1>
+<p>https://arxiv.org/pdf/2408.11743</p>
+<p>进击的Killua：<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/716412368">MARLIN: Mixed-Precision
+Auto-Regressive Parallel Inference on Large Language
+Models论文解读</a></p>
+<p>suluner：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/707470647">Marlin
+W4A16&amp;W4A8代码走读</a></p>
+<p>cutlass/media/docs/implicit_gemm_convolution.md at main ·
+NVIDIA/cutlass</p>
+<p>reed：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/665082713">cute 之
+GEMM流水线</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/698715169">fp16*int4计算kernel--MARLIN代码走读</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf">Optimizing
+Parallel Reduction in CUDA</a></p>
+<h1 id="ncu-rep">ncu-rep</h1>
+<p>输入 m = 128, k = 256, n = 768</p>
+<ul>
+<li>0_base.ncu-rep: 原始版本，不限制SM数量</li>
+<li>1_base_sm5.ncu-sep: 限制SM数量为5</li>
+</ul>
+<p><code>ncu --set full --target-processes all --kernel-name 'Marlin' --export base.ncu-rep python test.py</code></p>
+<p>最开始设置 SM 为5，分析报告指出：</p>
+<p>The grid for this launch is configured to execute only 5 blocks,
+which is less than the GPU's 82 multiprocessors. This can underutilize
+some multiprocessors. If you do not intend to execute this kernel
+concurrently with other workloads, consider reducing the block size to
+have at least one block per multiprocessor or increase the size of the
+grid to fully utilize the available hardware resources. See the 
+Hardware Model description for more details on launch
+configurations.</p>
+<p>于是解除对SM的限制，最终得到的报告如下：</p>
+<p><img src="/images/marlin/ncu0.png" width="100%">
+<img src="/images/marlin/ncu1.png" width="100%">
+<img src="/images/marlin/ncu2.png" width="100%">
+<img src="/images/marlin/ncu3.png" width="100%">
+<img src="/images/marlin/ncu4.png" width="100%">
+<img src="/images/marlin/ncu5.png" width="100%"></p>
+<p>https://zhuanlan.zhihu.com/p/714731771</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LLM/" rel="tag"># LLM</a>
+              <a href="/tags/GEMM/" rel="tag"># GEMM</a>
+              <a href="/tags/HPC/" rel="tag"># HPC</a>
+              <a href="/tags/CUDA/" rel="tag"># CUDA</a>
+              <a href="/tags/MARLIN/" rel="tag"># MARLIN</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/" rel="prev" title="WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析">
+      <i class="fa fa-chevron-left"></i> WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/10/18/105_marlin_fp8/" rel="next" title="Marlin fp8">
+      Marlin fp8 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="nav-number">1.1.</span> <span class="nav-text">分析工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83"><span class="nav-number">1.2.</span> <span class="nav-text">搭建环境</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">开始分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#int-marlin_cuda%E5%87%BD%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">int marlin_cuda()函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-number">3.1.</span> <span class="nav-text">变量分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E5%BE%AA%E7%8E%AF"><span class="nav-number">3.2.</span> <span class="nav-text">主循环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E6%95%B4%E7%90%86"><span class="nav-number">3.3.</span> <span class="nav-text">参数整理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#global-void-marlin%E5%87%BD%E6%95%B0"><span class="nav-number">4.</span> <span class="nav-text">global void
+Marlin()函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E5%88%86%E6%9E%90-1"><span class="nav-number">4.1.</span> <span class="nav-text">变量分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%A1%E5%B8%A6%E5%88%86%E5%8C%BA"><span class="nav-number">4.2.</span> <span class="nav-text">条带分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E7%A4%BA%E4%BE%8B%E4%B8%8B%E7%9A%84%E6%9D%A1%E5%B8%A6%E5%88%86%E5%8C%BA"><span class="nav-number">4.3.</span> <span class="nav-text">本示例下的条带分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8C%87%E9%92%88%E6%8E%A8%E8%BF%9B"><span class="nav-number">4.4.</span> <span class="nav-text">指针推进</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#init_slice%E5%87%BD%E6%95%B0"><span class="nav-number">5.</span> <span class="nav-text">init_slice()函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#a_sh_wr_iters-%E5%8F%98%E9%87%8F"><span class="nav-number">6.</span> <span class="nav-text">a_sh_wr_iters 变量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#a_sh_wr_pred-%E5%8F%98%E9%87%8F"><span class="nav-number">7.</span> <span class="nav-text">a_sh_wr_pred 变量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#a%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">8.</span> <span class="nav-text">A矩阵的load</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-bank-conflict-%E7%9A%84%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-number">8.1.</span> <span class="nav-text">关于 bank conflict
+的背景知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#a%E7%9F%A9%E9%98%B5%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E5%BC%8F"><span class="nav-number">8.2.</span> <span class="nav-text">A矩阵的解决方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#swizzle-%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">8.3.</span> <span class="nav-text">Swizzle 的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#load%E5%88%B0%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">8.4.</span> <span class="nav-text">load到寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ldmatrix%E5%87%BD%E6%95%B0"><span class="nav-number">8.5.</span> <span class="nav-text">ldmatrix函数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#b%E7%9F%A9%E9%98%B5%E7%9A%84load"><span class="nav-number">9.</span> <span class="nav-text">B矩阵的load</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%A9%E9%98%B5%E6%8E%92%E5%B8%83"><span class="nav-number">9.1.</span> <span class="nav-text">矩阵排布</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#matmul"><span class="nav-number">10.</span> <span class="nav-text">matmul</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mma-%E6%8C%87%E4%BB%A4"><span class="nav-number">10.1.</span> <span class="nav-text">mma 指令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#a%E7%9F%A9%E9%98%B5-%E5%92%8C-b%E7%9F%A9%E9%98%B5-%E7%9A%84%E5%8F%82%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">11.</span> <span class="nav-text">A矩阵 和 B矩阵 的参数分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#a-%E7%9F%A9%E9%98%B5"><span class="nav-number">11.1.</span> <span class="nav-text">A 矩阵</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#b-%E7%9F%A9%E9%98%B5"><span class="nav-number">11.2.</span> <span class="nav-text">B 矩阵</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reduce"><span class="nav-number">12.</span> <span class="nav-text">Reduce</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#block-reduce"><span class="nav-number">13.</span> <span class="nav-text">block reduce</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#frag_c-%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">13.1.</span> <span class="nav-text">frag_c 寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#block-reduce-%E5%88%86%E6%9E%90"><span class="nav-number">13.2.</span> <span class="nav-text">block reduce 分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">13.3.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%B5%81%E5%90%91"><span class="nav-number">13.4.</span> <span class="nav-text">数据流向</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#global-reduce"><span class="nav-number">14.</span> <span class="nav-text">global reduce</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#global_reduce-%E5%87%BD%E6%95%B0"><span class="nav-number">14.1.</span> <span class="nav-text">global_reduce 函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#barrier_acquire-%E5%87%BD%E6%95%B0"><span class="nav-number">14.2.</span> <span class="nav-text">barrier_acquire 函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#barrier_release-%E5%87%BD%E6%95%B0"><span class="nav-number">14.3.</span> <span class="nav-text">barrier_release 函数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#write_result"><span class="nav-number">15.</span> <span class="nav-text">write_result</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6"><span class="nav-number">16.</span> <span class="nav-text">任务调度</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">17.</span> <span class="nav-text">参考资料：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ncu-rep"><span class="nav-number">18.</span> <span class="nav-text">ncu-rep</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">39</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">121k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:50</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : '1ff0ee580860192493d86ebd2a1d08f7',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>
