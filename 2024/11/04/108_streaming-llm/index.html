@@ -37,7 +37,7 @@
 <meta property="og:image" content="http://example.com/images/108_streaming-llm/d_streaming_llm.png">
 <meta property="og:image" content="http://example.com/images/108_streaming-llm/illustration.png">
 <meta property="article:published_time" content="2024-11-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-11-05T02:57:15.844Z">
+<meta property="article:modified_time" content="2024-11-06T06:58:53.125Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="LLM">
 <meta property="article:tag" content="Tech">
@@ -255,7 +255,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2024-11-05 10:57:15" itemprop="dateModified" datetime="2024-11-05T10:57:15+08:00">2024-11-05</time>
+                <time title="Modified: 2024-11-06 14:58:53" itemprop="dateModified" datetime="2024-11-06T14:58:53+08:00">2024-11-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -280,14 +280,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>2.3k</span>
+              <span>3k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>2 mins.</span>
+              <span>3 mins.</span>
             </span>
 
         </div>
@@ -465,6 +465,28 @@ style="text-align: left;">当句子长度超过窗口长度时，困惑度爆炸
 </tbody>
 </table>
 <h1 id="代码研究">代码研究</h1>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">pip install torch torchvision torchaudio</span><br><span class="line">pip install transformers==4.33.0 accelerate datasets evaluate wandb scikit-learn scipy sentencepiece</span><br><span class="line"></span><br><span class="line">python setup.py develop</span><br></pre></td></tr></table></figure>
+<p>Run Streaming Llama Chatbot</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CUDA_VISIBLE_DEVICES=0 python examples/run_streaming_llama.py  --enable_streaming</span><br></pre></td></tr></table></figure>
+<p>最开始没有注定安装<code>transformers==4.33.0</code>，遇到报错：</p>
+<p>研究一下代码逻辑：</p>
+<p>使用了默认的 model_name_or_path， lmsys/vicuna-13b-v1.3 下载到了
+<code>~/.cache/huggingface/transformers</code></p>
+<p>data_root</p>
+<p>start_size是4</p>
+<p>recent_size是2000</p>
+<p>在main函数里，load函数获取到 model 和 tokenizer。</p>
+<blockquote>
+<p>Tokenizer 是 NLP
+中的一个重要组件，负责将文本分解为更小的可处理单元。不同的分词策略适用于不同的语言和任务，选择合适的分词器对模型性能有很大影响。</p>
+</blockquote>
+<p>由于使能了 enable_streaming</p>
+<pre><code>kv_cache = enable_streaming_llm(
+    model, start_size=args.start_size, recent_size=args.recent_size
+)</code></pre>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/vllm-project/vllm/issues/1253">StreamingLLM
+support?</a></p>
 
     </div>
 
