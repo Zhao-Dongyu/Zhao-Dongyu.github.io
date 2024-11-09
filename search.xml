@@ -507,13 +507,13 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in 1st place in Duos
 </td>
 <td>
-205/250
+207/250
 </td>
 <td>
 Finish in top 2 in Duos
 </td>
 <td>
-299/300
+301/1000
 </td>
 </tr>
 <tr>
@@ -5606,6 +5606,28 @@ support?</a></p>
         <tag>LLM</tag>
         <tag>Tech</tag>
         <tag>KV Cache</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LLM Compressor</title>
+    <url>/2024/11/08/109_llm_compressor/</url>
+    <content><![CDATA[<p>llmcompressor is an easy-to-use library for optimizing models for
+deployment with vllm.</p>
+<p><a
+href="https://github.com/vllm-project/llm-compressor">Github</a></p>
+<p><a
+href="https://neuralmagic.com/blog/llm-compressor-is-here-faster-inference-with-vllm/">Blog</a></p>
+<p>LLM Compressor
+是一款优化大型语言模型（LLM）的工具，通过先进的压缩技术实现快速推理，尤其在vLLM框架内。该工具旨在将分散的压缩库统一封装，简化应用并提升性能。</p>
+<span id="more"></span>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>LLM</tag>
+        <tag>Tech</tag>
+        <tag>Compressor</tag>
       </tags>
   </entry>
 </search>

@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-11-05T02:57:52.376Z</updated>
+  <updated>2024-11-09T05:31:20.979Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,36 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>LLM Compressor</title>
+    <link href="http://example.com/2024/11/08/109_llm_compressor/"/>
+    <id>http://example.com/2024/11/08/109_llm_compressor/</id>
+    <published>2024-11-07T16:00:00.000Z</published>
+    <updated>2024-11-09T05:31:20.979Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;llmcompressor is an easy-to-use library for optimizing models for
+deployment with vllm.&lt;/p&gt;
+&lt;p&gt;&lt;a
+href=&quot;https://github.com/vllm-project/llm-compressor&quot;&gt;Github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a
+href=&quot;https://neuralmagic.com/blog/llm-compressor-is-here-faster-inference-with-vllm/&quot;&gt;Blog&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;LLM Compressor
+是一款优化大型语言模型（LLM）的工具，通过先进的压缩技术实现快速推理，尤其在vLLM框架内。该工具旨在将分散的压缩库统一封装，简化应用并提升性能。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="Compressor" scheme="http://example.com/tags/Compressor/"/>
+    
+  </entry>
   
   <entry>
     <title>TinyML and Efficient Deep Learning Computing</title>
@@ -299,7 +329,7 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <link href="http://example.com/2023/07/09/100_Battlegrounds/"/>
     <id>http://example.com/2023/07/09/100_Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2024-11-07T05:40:50.778Z</updated>
+    <updated>2024-11-09T05:31:56.074Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
@@ -447,26 +477,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="study" scheme="http://example.com/tags/study/"/>
     
     <category term="gdb" scheme="http://example.com/tags/gdb/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>vtype_register</title>
-    <link href="http://example.com/2023/06/14/81_vtype-register/"/>
-    <id>http://example.com/2023/06/14/81_vtype-register/</id>
-    <published>2023-06-13T16:00:00.000Z</published>
-    <updated>2024-09-27T08:41:27.717Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;最近搞了搞risc-v v，vtype寄存器可谓是灵魂的存在了。&lt;/p&gt;
-&lt;p&gt;在此记录一下关于vtype寄存器相关的知识和结论。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="risc-v" scheme="http://example.com/tags/risc-v/"/>
-    
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
