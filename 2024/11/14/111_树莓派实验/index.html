@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="做一些在树莓派zero w 上面的实验，这里记录一下整体流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="树莓派Zero实验">
+<meta property="og:url" content="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="做一些在树莓派zero w 上面的实验，这里记录一下整体流程。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-11-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2024-11-28T05:24:03.120Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="Tech">
+<meta property="article:tag" content="Raspberry">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>树莓派Zero实验 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          树莓派Zero实验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-11-14 00:00:00" itemprop="dateCreated datePublished" datetime="2024-11-14T00:00:00+08:00">2024-11-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-11-28 13:24:03" itemprop="dateModified" datetime="2024-11-28T13:24:03+08:00">2024-11-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>8.8k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>8 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>做一些在树莓派<code>zero w</code>
+上面的实验，这里记录一下整体流程。</p>
+<span id="more"></span>
+<h1 id="准备工作">准备工作</h1>
+<p>在 <a target="_blank" rel="noopener" href="https://www.raspberrypi.com/software/">官网</a> 下载
+<code>Raspberry Pi Imager</code> 安装 <code>Raspberry Pi OS</code>。</p>
+<p>下载
+<code>operating system image</code>，考虑到其较低的硬件配置（1GHz
+单核处理器和 512MB 内存），选择使用了 <strong>Raspberry Pi OS
+(Legacy)</strong>，这是 A stable legacy version of Raspberry Pi OS
+Bullseye，具体信息是：</p>
+<pre><code>  Raspberry Pi OS (Legacy) Lite
+  Release date: October 22nd 2024
+  System: 32-bit
+  Kernel version: 6.1
+  Debian version: 11 (bullseye)
+  Size: 366MB
+  Show SHA256 file integrity hash:
+  45dd65d579ec2b106a1e3181032144406eab61df892fcd2da8d83382fa4f7e51</code></pre>
+<p>烧录过程参照<a
+target="_blank" rel="noopener" href="https://www.raspberrypi.com/documentation/computers/getting-started.html">官网教程</a>一步一步走就好了。</p>
+<p>然而没能连上网（猜测在烧录工具里设置的 wifi
+密码保存是乱码），于是在Boot目录中创建名为
+<code>wpa_supplicant.conf</code> 文件。</p>
+<p>将下面内容直接粘贴进去</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">country=CN</span><br><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line"></span><br><span class="line">network=&#123;</span><br><span class="line">   ssid=&quot;power_cube&quot;</span><br><span class="line">   psk=&quot;22222222&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>Angry IP Scanner</code>
+软件扫描了一下，确定了树莓派连接wifi后的IP，顺利开始 ssh
+连接开发之旅。</p>
+<h1 id="树莓派zero-w">树莓派zero w</h1>
+<p>https://www.raspberrypi.com/products/raspberry-pi-zero-w/</p>
+<p>树莓派 Zero 是树莓派系列中小尺寸高性价比的卡片式开发主板。树莓派 Zero
+采用的是 ARM11 内核的 BCM2835 处理器，经济适用。树莓派 Zero W 是在 Zero
+原版的基础上板载无线网卡，支持蓝牙和 WiFi 功能，Zero WH 是在 Zero W
+的基础上加焊了 40PIN 排针，方便用户的调试和使用。</p>
+<p>主要功能特性有：</p>
+<pre><code>  802.11 b/g/n wireless LAN
+  Bluetooth 4.1
+  Bluetooth Low Energy (BLE)
+  1GHz, single-core CPU
+  512MB RAM
+  Mini HDMI® port and micro USB On-The-Go (OTG) port
+  Micro USB power
+  HAT-compatible 40-pin header
+  Composite video and reset headers
+  CSI camera connector</code></pre>
+<h2 id="架构信息">架构信息</h2>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~ $ uname -m</span><br><span class="line">armv6l</span><br></pre></td></tr></table></figure>
+<ul>
+<li>armv6l：表示 ARMv6 架构（通常是树莓派 Zero、Zero W）。</li>
+<li>armv7l：表示 ARMv7 架构（树莓派 2）。</li>
+<li>aarch64 或 armv8：表示 64 位的 ARMv8 架构（树莓派 3、树莓派
+4，如果运行的是 64 位操作系统）。</li>
+</ul>
+<h2 id="cpu-信息">CPU 信息</h2>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~ $ cat /proc/cpuinfo</span><br><span class="line">processor	: 0</span><br><span class="line">model name	: ARMv6-compatible processor rev 7 (v6l)</span><br><span class="line">BogoMIPS	: 697.95</span><br><span class="line">Features	: half thumb fastmult vfp edsp java tls </span><br><span class="line">CPU implementer	: 0x41</span><br><span class="line">CPU architecture: 7</span><br><span class="line">CPU variant	: 0x0</span><br><span class="line">CPU part	: 0xb76</span><br><span class="line">CPU revision	: 7</span><br><span class="line"></span><br><span class="line">Hardware	: BCM2835</span><br><span class="line">Revision	: 9000c1</span><br><span class="line">Serial		: 000000008caea6be</span><br><span class="line">Model		: Raspberry Pi Zero W Rev 1.1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>half：半精度浮点运算支持（16 位浮点数）。</li>
+<li>thumb：支持 Thumb 16 位压缩指令集，节省代码空间。</li>
+<li>fastmult：支持快速整数乘法运算，提升性能。</li>
+<li>vfp：支持向量浮点运算硬件，加速浮点计算。</li>
+<li>edsp：增强的 DSP 指令集，用于加速数字信号处理。</li>
+<li>java：支持 Jazelle 指令集扩展，用于加速 Java 字节码执行。</li>
+<li>tls：支持线程本地存储，用于多线程编程。</li>
+</ul>
+<p>这些特性使得 ARMv6 处理器在树莓派 Zero W
+上能够兼具浮点计算、数字信号处理和节省内存空间的能力，适合嵌入式和轻量级的多任务应用。</p>
+<h2 id="主频">主频</h2>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~ $ vcgencmd measure_clock arm</span><br><span class="line">frequency(48)=700000000</span><br></pre></td></tr></table></figure>
+<p>当前是700MHz，实验了一下，当CPU推理模型时,会变成
+<code>1 GHz</code>，如<a
+target="_blank" rel="noopener" href="https://forums.raspberrypi.com/viewtopic.php?t=127934">文档</a>所说：
+&gt; It runs at 700MHz when idle and 1000MHz when busy (the core is
+above 50% utilised).</p>
+<h2 id="温度">温度</h2>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vcgencmd measure_temp</span><br></pre></td></tr></table></figure>
+<p>如果温度接近或超过 80°C，说明需要更好的散热。</p>
+<h1 id="交叉编译">交叉编译</h1>
+<p>树莓派 Zero W 使用 BCM2835 芯片，架构为 ARMv6，因此需要 ARMv6
+兼容的交叉编译工具链。</p>
+<p>我实验了官网的<a
+target="_blank" rel="noopener" href="https://github.com/raspberrypi/tools">交叉编译链接</a></p>
+<ul>
+<li><p><strong>路径</strong>：<code>tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/</code></p></li>
+<li><p><code>arm-linux-gnueabihf-gcc</code>（ARMv6 兼容的 GCC
+编译器）</p></li>
+<li><p><code>arm-linux-gnueabihf-g++</code>（ARMv6 兼容的 G++
+编译器）</p></li>
+</ul>
+<p>配置了树莓派的交叉编译链，编译报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.../gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-gcc: cannot execute binary file</span><br></pre></td></tr></table></figure>
+<p>这是因为arm-linux-gnueabihf-gcc 是针对 Linux 系统的二进制文件，macOS
+的架构不支持直接运行此工具链。</p>
+<p>于是在mac上装一个docker</p>
+<pre><code>  docker version
+  Client:
+  Version:           27.3.1
+  API version:       1.47
+  Go version:        go1.22.7
+  Git commit:        ce12230
+  Built:             Fri Sep 20 11:38:18 2024
+  OS/Arch:           darwin/arm64
+  Context:           default</code></pre>
+<p>启动一个 Linux 容器，并挂载项目目录：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run --platform linux/amd64 -it -v /Users/zhaodongyu/Projects:/Projects --name aidget ubuntu:20.04 /bin/bash</span><br><span class="line">docker start aidget</span><br><span class="line">docker <span class="built_in">exec</span> -it aidget /bin/bash</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这会在 Docker 容器中将您的项目目录挂载到 /Projects。</p>
+<p>注意，一定要加 <code>--platform linux/amd64</code>! 我是 MAC M1
+电脑，这个选项可以强制 Docker 使用 x86-64 模拟环境。不然会报错
+<code>rosetta error: failed to open elf at /lib64/ld-linux-x86-64.so.2</code>。（被这个问题恶心了很久）</p>
+<p>经过实验，官方的交叉编译链编译出的可执行程序在树莓派
+<code>zero w</code> 上运行是有问题的。</p>
+<p>参考<a
+target="_blank" rel="noopener" href="https://forums.raspberrypi.com/viewtopic.php?t=336678">官方交流文档</a>在<a
+target="_blank" rel="noopener" href="https://github.com/tttapa/docker-arm-cross-toolchain?tab=readme-ov-file">这里</a>
+下载<a
+target="_blank" rel="noopener" href="https://github.com/tttapa/docker-arm-cross-toolchain/releases/latest/download/x-tools-armv6-rpi-linux-gnueabihf-gcc12.tar.xz">1.0.0
+交叉编译链</a>。</p>
+<ul>
+<li>Target triplet:armv6-rpi-linux-gnueabihf</li>
+<li>GCC 12.4</li>
+</ul>
+<blockquote>
+<p>ABI BREAK: the armv6-rpi-linux-gnueabihf toolchain is now built using
+-march=armv6 instead of -march=armv6kz to provide compatibility with the
+ARMv6 version of Raspberry Pi OS. This may affect the ABI, so you are
+advised to recompile all code and dependencies after upgrading. (See
+tttapa/RPi-Cross-Cpp-Development#4 (comment) for more information.)</p>
+</blockquote>
+<p>下载后解压：</p>
+<p><code>tar -xf x-tools-aarch64-rpi3-linux-gnu-armv6-rpi-linux-gnueabihf-gcc12.tar.xz</code></p>
+<p>在容器中安装相关工具：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apt update</span><br><span class="line">apt install make</span><br><span class="line">apt install -y binutils</span><br><span class="line"></span><br><span class="line"><span class="comment"># apt install -y gcc-arm-linux-gnueabihf</span></span><br></pre></td></tr></table></figure>
+<p>这些标志的含义如下：</p>
+<ul>
+<li>-march=armv6：指定 ARMv6 架构，适用于树莓派 Zero 和 Pi 1。</li>
+<li>-mfloat-abi=hard：使用硬件浮点 ABI。</li>
+<li>-mfpu=vfp：指定使用 VFP（Vector Floating Point）浮点单元。</li>
+<li>-marm：强制使用 ARM 指令集，而非 Thumb 指令集。</li>
+</ul>
+<h1 id="软件信息">软件信息</h1>
+<p>树莓派的gcc版本(bullseye)：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~ $ gcc --version</span><br><span class="line">gcc (Raspbian 10.2.1-6+rpi1) 10.2.1 20210110</span><br><span class="line">Copyright (C) 2020 Free Software Foundation, Inc.</span><br><span class="line">This is free software; see the source for copying conditions.  There is NO</span><br><span class="line">warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span><br></pre></td></tr></table></figure>
+<h1 id="加速">加速？</h1>
+<p>处理器性能：BCM2835 使用的是 1GHz 的单核 ARM11 处理器，架构为
+ARMv6，比现代 ARM 处理器（ARMv7、ARMv8
+等）落后，缺少现代处理器中的许多优化指令集（如 NEON SIMD 指令）。</p>
+<p>由于 CMSIS-NN 主要优化的是 ARM Cortex-M 系列处理器，对 ARMv6
+并没有专门的加速支持。然而，CMSIS-NN
+的优化策略（如量化、卷积优化、循环展开和指令调度）可以为 ARMv6
+上的神经网络推理提供启发。</p>
+<h1 id="section">2024-11-17</h1>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/mit-han-lab/tinyengine">tinyengine</a>是个很好的推理框架，我想跟它
+PK 推理数据，经过一番移植遇到各种各样的问题，包括且不限于 <a
+target="_blank" rel="noopener" href="https://github.com/mit-han-lab/tinyengine/issues/43">get_kernel_buffer
+undefined</a>, arm cortex-M7/M4
+cores，针对性做了一些加速算子，移植起来确实需要些精力，给他改得算子性能差了的话又胜之不武，于是放弃。如果能够
+PK，这一定是一个强有力的对手！</p>
+<p>我发现它使用tf_convertor.parseOperatorInfo()解析模型要比我用flatbuffer解析简洁很多，我也要优化一下我的转换脚本。</p>
+<p>tf_convertor.parseOperatorInfo() 是 TensorFlow 提供的 Python
+API，简化了对 TFLite 模型的操作和解析，提供高级封装，方便直接读取 TFLite
+模型中的算子信息。</p>
+<p>直接解析 FlatBuffer，TFLite 模型的文件格式是 FlatBuffer
+二进制文件，直接解析可以获取所有模型信息，包括 TensorFlow
+工具链不支持的部分。</p>
+<p>对比总结</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>特性</th>
+<th>tf_convertor.parseOperatorInfo()</th>
+<th>解析 FlatBuffer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>开发难度</td>
+<td>简单，高度封装</td>
+<td>高，需解析 FlatBuffer 结构</td>
+</tr>
+<tr class="even">
+<td>灵活性</td>
+<td>较低，依赖 TensorFlow 提供的功能</td>
+<td>高，可访问底层和自定义信息</td>
+</tr>
+<tr class="odd">
+<td>性能</td>
+<td>较低，依赖 TensorFlow 工具链运行</td>
+<td>高，直接操作二进制数据</td>
+</tr>
+<tr class="even">
+<td>依赖</td>
+<td>TensorFlow 工具链</td>
+<td>FlatBuffer 库，无需 TensorFlow</td>
+</tr>
+<tr class="odd">
+<td>适用场景</td>
+<td>快速开发、标准模型解析</td>
+<td>需要深度分析或轻量化项目</td>
+</tr>
+</tbody>
+</table>
+<p>既然项目是要让大家使用，使用 tf_convertor.parseOperatorInfo()
+快速获取基本信息确实是更好的选择，决定改成这种方式，如果这种方式搞不定，再换成解析
+FlatBuffer。</p>
+<p>本来想用tinyengine的几个tflite作为实验模型，既然也用不了这个框架，那还是改用tflite的一些公开模型吧。所以PK的主力对象又换成了tflite
+for micro（没什么挑战）</p>
+<h1 id="搭建tflm">搭建TFLM</h1>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd Projects/RaspberryPi/tflm</span><br><span class="line">git clone https://github.com/tensorflow/tflite-micro.git</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>commit b23864944c0bc6c2603408754fd2b9b3dbaa862d</p>
+</blockquote>
+<p>在<code>tflite-micro/tensorflow/lite/micro/tools/make/targets/</code>目录下新建<code>rpi_zero_w_makefile.inc</code></p>
+<p>内容为：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">TARGET_TOOLCHAIN_PREFIX := ~/x-tools/armv6-rpi-linux-gnueabihf/bin/armv6-rpi-linux-gnueabihf-</span><br><span class="line"></span><br><span class="line">CXXFLAGS += $(FLAGS_GCC)</span><br><span class="line">CCFLAGS += $(FLAGS_GCC)</span><br><span class="line"></span><br><span class="line">PLATFORM_FLAGS = \</span><br><span class="line">  -DTF_LITE_MCU_DEBUG_LOG \</span><br><span class="line">  -mfloat-abi=hard \</span><br><span class="line">  -mfpu=vfp \</span><br><span class="line">  -funsigned-char \</span><br><span class="line">  -mlittle-endian \</span><br><span class="line">  -Wno-type-limits \</span><br><span class="line">  -Wno-unused-private-field \</span><br><span class="line">  -fomit-frame-pointer \</span><br><span class="line">  -MD \</span><br><span class="line">  -march=armv6 \</span><br><span class="line">  -marm</span><br><span class="line"></span><br><span class="line">ifneq ($(PIC),)</span><br><span class="line">  PLATFORM_FLAGS += -fpic</span><br><span class="line">endif</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Common + C/C++ flags</span></span><br><span class="line">CXXFLAGS += $(PLATFORM_FLAGS)</span><br><span class="line">CCFLAGS += $(PLATFORM_FLAGS)</span><br><span class="line"></span><br><span class="line">CC := $(TARGET_TOOLCHAIN_PREFIX)gcc</span><br><span class="line">CXX := $(TARGET_TOOLCHAIN_PREFIX)g++</span><br><span class="line">AR := $(TARGET_TOOLCHAIN_PREFIX)ar</span><br></pre></td></tr></table></figure>
+<p>编译静态库：</p>
+<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=rpi_zero_w microlite</code></p>
+<p>得到静态库：</p>
+<p><code>x-tools/armv6-rpi-linux-gnueabihf/bin/armv6-rpi-linux-gnueabihf-ar: creating gen/rpi_zero_w_x86_64_default_gcc/lib/libtensorflow-microlite.a</code></p>
+<p>为了公平竞争，编译<code>BUILD_TYPE := release</code>版本,编译时没什么问题，运行时会遇到报错:</p>
+<blockquote>
+<p>undefined reference to `MicroPrintf(char const*, ...)'</p>
+</blockquote>
+<p>include/tensorflow/lite/micro/micro_mutable_op_resolver.h里面关于MicroPrintf的代码注释掉即可编译。</p>
+<h1 id="数据分析">数据分析</h1>
+<h2 id="lenet-5-模型">lenet-5 模型</h2>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~/lenet5 $ size empty </span><br><span class="line">   text	   data	    bss	    dec	    hex	filename</span><br><span class="line">   2191	    340	      4	   2535	    9e7	empty</span><br><span class="line">pi@raspberrypi:~/lenet5 $ size tfml_default </span><br><span class="line">   text	   data	    bss	    dec	    hex	filename</span><br><span class="line"> 117353	 252116	     16	 369485	  5a34d	tfml_default</span><br><span class="line">pi@raspberrypi:~/lenet5 $ size tfml_release </span><br><span class="line">   text	   data	    bss	    dec	    hex	filename</span><br><span class="line">  85925	 252100	     12	 338037	  52875	tfml_release</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>filename</th>
+<th style="text-align: right;">text</th>
+<th style="text-align: right;">data</th>
+<th style="text-align: right;">bss</th>
+<th style="text-align: right;">dec</th>
+<th style="text-align: right;">invoke time</th>
+<th>heap(B)</th>
+<th>stack(B)</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>empty</td>
+<td style="text-align: right;">2191</td>
+<td style="text-align: right;">340</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2535</td>
+<td style="text-align: right;"></td>
+<td>27368</td>
+<td>2292</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>tfml_default</td>
+<td style="text-align: right;">117353</td>
+<td style="text-align: right;">252116</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">369485</td>
+<td style="text-align: right;"></td>
+<td>67880</td>
+<td>42464</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>tfml_release</td>
+<td style="text-align: right;">85925</td>
+<td style="text-align: right;">252100</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">338037</td>
+<td style="text-align: right;"></td>
+<td>67880</td>
+<td>42464</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>aidget</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>tfml_default</td>
+<td style="text-align: right;">115162</td>
+<td style="text-align: right;">251776</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">18.37 ms</td>
+<td>40512</td>
+<td>40172</td>
+<td>-empty</td>
+</tr>
+<tr class="even">
+<td>tfml_release</td>
+<td style="text-align: right;">83734</td>
+<td style="text-align: right;">251416</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">17.11 ms</td>
+<td>40512</td>
+<td>40172</td>
+<td>-empty</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>text
+<ul>
+<li>表示代码段（.text）的大小。</li>
+<li>包含程序的可执行指令。</li>
+<li>较大时，说明程序包含更多功能或逻辑。</li>
+</ul></li>
+<li>data
+<ul>
+<li>表示已初始化全局和静态变量的大小。</li>
+<li>包含变量的初始值。</li>
+</ul></li>
+<li>bss
+<ul>
+<li>表示未初始化或默认初始化为零的全局和静态变量的大小。</li>
+<li>仅分配内存，不包含实际数据。</li>
+</ul></li>
+<li>dec
+<ul>
+<li>总大小（text + data + bss），以字节为单位。</li>
+</ul></li>
+<li>hex
+<ul>
+<li>dec 的十六进制表示。</li>
+</ul></li>
+</ul>
+<h3 id="速度测试">速度测试</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pi@raspberrypi:~/lenet5 $ ./tfml_release </span><br><span class="line">Time taken: 17.111680108 seconds</span><br><span class="line">output = 0.100160</span><br><span class="line">pi@raspberrypi:~/lenet5 $ ./tfml_default </span><br><span class="line">Time taken: 18.373274514 seconds</span><br><span class="line">output = 0.100160</span><br></pre></td></tr></table></figure>
+<h3 id="heap测试">heap测试</h3>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ valgrind --tool=massif --stacks=yes --massif-out-file=massif_output_empty.out ./empty </span><br><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ valgrind --tool=massif --stacks=yes --massif-out-file=massif_output_tfml_default.out ./tfml_default_1</span><br><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ valgrind --tool=massif --stacks=yes --massif-out-file=massif_output_tfml_release.out ./tfml_release_1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ ms_print massif_output_empty.out </span><br><span class="line">pi@raspberrypi:~/lenet5 $ ms_print massif_output_tfml_default.out </span><br><span class="line">pi@raspberrypi:~/lenet5 $ ms_print massif_output_tfml_release.out </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">Node CONV_2D (number 0) invoke time: 11.220000</span><br><span class="line">Node TANH (number 1) invoke time: 1.351000</span><br><span class="line">Node MUL (number 2) invoke time: 0.506000</span><br><span class="line">Node ADD (number 3) invoke time: 0.387000</span><br><span class="line">Node MAX_POOL_2D (number 4) invoke time: 0.294000</span><br><span class="line">Node CONV_2D (number 5) invoke time: 5.136000</span><br><span class="line">Node TANH (number 6) invoke time: 0.469000</span><br><span class="line">Node MUL (number 7) invoke time: 0.178000</span><br><span class="line">Node ADD (number 8) invoke time: 0.128000</span><br><span class="line">Node MAX_POOL_2D (number 9) invoke time: 0.100000</span><br><span class="line">Node RESHAPE (number 10) invoke time: 0.013000</span><br><span class="line">Node FULLY_CONNECTED (number 11) invoke time: 1.234000</span><br><span class="line">Node TANH (number 12) invoke time: 0.049000</span><br><span class="line">Node FULLY_CONNECTED (number 13) invoke time: 0.272000</span><br><span class="line">Node TANH (number 14) invoke time: 0.038000</span><br><span class="line">Node FULLY_CONNECTED (number 15) invoke time: 0.038000</span><br><span class="line">Node SOFTMAX (number 16) invoke time: 0.013000</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr class="header">
+<th>index</th>
+<th>operator</th>
+<th>tflm</th>
+<th>aidget</th>
+<th>aidget</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>CONV_2D</td>
+<td>11.22</td>
+<td>14.502</td>
+<td>6.038</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>TANH</td>
+<td>1.351</td>
+<td>2.725</td>
+<td>0.334</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>MUL</td>
+<td>0.506</td>
+<td>0.269</td>
+<td>0.193</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>ADD</td>
+<td>0.387</td>
+<td>2.725</td>
+<td>0.176</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>MAX_POOL_2D</td>
+<td>0.294</td>
+<td>1.114</td>
+<td>0.496</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>CONV_2D</td>
+<td>5.136</td>
+<td>11.357</td>
+<td>5.152</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>TANH</td>
+<td>0.469</td>
+<td>0.857</td>
+<td>0.119</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>MUL</td>
+<td>0.178</td>
+<td>0.094</td>
+<td>0.066</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td>ADD</td>
+<td>0.128</td>
+<td>0.092</td>
+<td>0.059</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td>MAX_POOL_2D</td>
+<td>0.100</td>
+<td>0.155</td>
+<td>0.161</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td>RESHAPE</td>
+<td>0.013</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>11</td>
+<td>FULLY_CONNECTED</td>
+<td>1.234</td>
+<td>3.805</td>
+<td>1.163</td>
+</tr>
+<tr class="odd">
+<td>12</td>
+<td>TANH</td>
+<td>0.049</td>
+<td>0.075</td>
+<td>0.013</td>
+</tr>
+<tr class="even">
+<td>13</td>
+<td>FULLY_CONNECTED</td>
+<td>0.272</td>
+<td>0.385</td>
+<td>0.251</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td>TANH</td>
+<td>0.038</td>
+<td>0.059</td>
+<td>0.011</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td>FULLY_CONNECTED</td>
+<td>0.038</td>
+<td>0.036</td>
+<td>0.027</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>SOFTMAX</td>
+<td>0.013</td>
+<td>0.010</td>
+<td>0.006</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+              <a href="/tags/Raspberry/" rel="tag"># Raspberry</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/11/13/110_C++Primer/" rel="prev" title="C++Primer学习">
+      <i class="fa fa-chevron-left"></i> C++Primer学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/11/14/112_triton/" rel="next" title="triton">
+      triton <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%91%E8%8E%93%E6%B4%BEzero-w"><span class="nav-number">2.</span> <span class="nav-text">树莓派zero w</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E4%BF%A1%E6%81%AF"><span class="nav-number">2.1.</span> <span class="nav-text">架构信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cpu-%E4%BF%A1%E6%81%AF"><span class="nav-number">2.2.</span> <span class="nav-text">CPU 信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E9%A2%91"><span class="nav-number">2.3.</span> <span class="nav-text">主频</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%A9%E5%BA%A6"><span class="nav-number">2.4.</span> <span class="nav-text">温度</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91"><span class="nav-number">3.</span> <span class="nav-text">交叉编译</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AF%E4%BB%B6%E4%BF%A1%E6%81%AF"><span class="nav-number">4.</span> <span class="nav-text">软件信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E9%80%9F"><span class="nav-number">5.</span> <span class="nav-text">加速？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#section"><span class="nav-number">6.</span> <span class="nav-text">2024-11-17</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%90%AD%E5%BB%BAtflm"><span class="nav-number">7.</span> <span class="nav-text">搭建TFLM</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90"><span class="nav-number">8.</span> <span class="nav-text">数据分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#lenet-5-%E6%A8%A1%E5%9E%8B"><span class="nav-number">8.1.</span> <span class="nav-text">lenet-5 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9F%E5%BA%A6%E6%B5%8B%E8%AF%95"><span class="nav-number">8.1.1.</span> <span class="nav-text">速度测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#heap%E6%B5%8B%E8%AF%95"><span class="nav-number">8.1.2.</span> <span class="nav-text">heap测试</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">143k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">2:10</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : 'a9b88b5bb29a3aa2bf0ac4a731bf4032',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>

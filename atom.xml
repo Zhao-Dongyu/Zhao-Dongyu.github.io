@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-11-09T05:31:20.979Z</updated>
+  <updated>2024-12-02T09:09:00.291Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,115 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>113_tensorflow实现量化softmax算子</title>
+    <link href="http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/"/>
+    <id>http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</id>
+    <published>2024-12-01T16:00:00.000Z</published>
+    <updated>2024-12-02T09:09:00.291Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;研究了一下 tensorflow 实现 int8 量化的 softmax 算子&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="tensorflow" scheme="http://example.com/tags/tensorflow/"/>
+    
+    <category term="softmax" scheme="http://example.com/tags/softmax/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Mac M1 安装 Tensorflow</title>
+    <link href="http://example.com/2024/11/22/113_MacM1_tensorflow/"/>
+    <id>http://example.com/2024/11/22/113_MacM1_tensorflow/</id>
+    <published>2024-11-21T16:00:00.000Z</published>
+    <updated>2024-11-24T05:17:20.452Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;近期在Mac M1上使用tensorflow，发现不能用了。报错：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;The TensorFlow library was compiled to use AVX instructions, but these aren&#39;t available on your machine.&lt;/code&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Mac" scheme="http://example.com/tags/Mac/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>triton</title>
+    <link href="http://example.com/2024/11/14/112_triton/"/>
+    <id>http://example.com/2024/11/14/112_triton/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2024-11-21T08:46:43.389Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
+&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a
+href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>树莓派Zero实验</title>
+    <link href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
+    <id>http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2024-11-28T05:24:03.120Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt;
+上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="Raspberry" scheme="http://example.com/tags/Raspberry/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>C++Primer学习</title>
+    <link href="http://example.com/2024/11/13/110_C++Primer/"/>
+    <id>http://example.com/2024/11/13/110_C++Primer/</id>
+    <published>2024-11-12T16:00:00.000Z</published>
+    <updated>2024-11-13T07:42:55.461Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习C++&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="C++" scheme="http://example.com/tags/C/"/>
+    
+  </entry>
   
   <entry>
     <title>LLM Compressor</title>
@@ -329,7 +438,7 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <link href="http://example.com/2023/07/09/100_Battlegrounds/"/>
     <id>http://example.com/2023/07/09/100_Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2024-11-09T05:31:56.074Z</updated>
+    <updated>2024-11-30T13:18:02.762Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
@@ -386,97 +495,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
     <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Using Ubuntu from scratch</title>
-    <link href="http://example.com/2023/06/30/87_Using-Ubuntu-from-scratch/"/>
-    <id>http://example.com/2023/06/30/87_Using-Ubuntu-from-scratch/</id>
-    <published>2023-06-29T16:00:00.000Z</published>
-    <updated>2024-09-27T08:41:27.718Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;原来的Ubuntu系统的用户权限搞崩了，从头开始搞一个～&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
-    <category term="ubuntu" scheme="http://example.com/tags/ubuntu/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>万物皆可RSS</title>
-    <link href="http://example.com/2023/06/29/67_RSS/"/>
-    <id>http://example.com/2023/06/29/67_RSS/</id>
-    <published>2023-06-28T16:00:00.000Z</published>
-    <updated>2024-09-27T08:41:27.713Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;万物皆可RSS！&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="RSS" scheme="http://example.com/tags/RSS/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>flatc</title>
-    <link href="http://example.com/2023/06/28/71_flatc/"/>
-    <id>http://example.com/2023/06/28/71_flatc/</id>
-    <published>2023-06-27T16:00:00.000Z</published>
-    <updated>2024-09-27T08:41:27.714Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;记录一下flatbuffer的学习&lt;/p&gt;</summary>
-    
-    
-    
-    
-  </entry>
-  
-  <entry>
-    <title>git</title>
-    <link href="http://example.com/2023/06/19/73_git/"/>
-    <id>http://example.com/2023/06/19/73_git/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2024-09-27T08:41:27.715Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;日常的一些git操作其实已经非常熟悉了，比较欠缺的是团队协作遇到的一些问题。&lt;/p&gt;
-&lt;p&gt;在此记录一下需要经常查阅的情景。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="git" scheme="http://example.com/tags/git/"/>
-    
-    <category term="branch" scheme="http://example.com/tags/branch/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>gdb</title>
-    <link href="http://example.com/2023/06/19/79_gdb/"/>
-    <id>http://example.com/2023/06/19/79_gdb/</id>
-    <published>2023-06-18T16:00:00.000Z</published>
-    <updated>2024-09-27T08:41:27.716Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;今天遇到段错误，旁观大佬一番操作定位解决。&lt;/p&gt;
-&lt;p&gt;大大提高开发效率的关键几步，值得记录一下。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="study" scheme="http://example.com/tags/study/"/>
-    
-    <category term="gdb" scheme="http://example.com/tags/gdb/"/>
     
   </entry>
   

@@ -507,13 +507,13 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in 1st place in Duos
 </td>
 <td>
-207/250
+222/250
 </td>
 <td>
 Finish in top 2 in Duos
 </td>
 <td>
-301/1000
+320/1000
 </td>
 </tr>
 <tr>
@@ -5628,6 +5628,1024 @@ href="https://neuralmagic.com/blog/llm-compressor-is-here-faster-inference-with-
         <tag>LLM</tag>
         <tag>Tech</tag>
         <tag>Compressor</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++Primer学习</title>
+    <url>/2024/11/13/110_C++Primer/</url>
+    <content><![CDATA[<p>学习C++</p>
+<span id="more"></span>
+<h1 id="起源">起源</h1>
+<p>1、之前看一个NV公司的人分享经验，就是后悔没有好好学习C++；</p>
+<p>2、昨日，丁大佬指导我要把C++学好。</p>
+<p>想想自己一直在吃c语言的底子，确实没有发展上限了，这二件事情的碰撞，让我燃起学习C++的热情！</p>
+<h1 id="理由">理由</h1>
+<p>（引用 孟岩推荐序 2013 年 8 月）</p>
+<p>C++11
+标准公布之后，C++社群出现了久违的热情，有人甚至叫出“C++的复兴”。指望
+C++回到 20 世纪 90 年代中期那样的地位显然是昧于大势的奢望，但是
+C++经历了这么多年的打磨与起伏，其在工业界的地位已经非常稳固，在很多领域里已经是不可取代也没必要被取代的统治者。新标准的出现能够大大提升
+C++开发的效率和质量，因此赢得欢呼也是情理之中。在这种氛围之下，编译器实现的速度也令人惊喜。短短两年时间，从开源的
+GCC、LLVM 到专有的 VisualC++和 Intel
+C++，对于新标准的追踪之快，覆盖之全，与当年 C++98
+标准颁布之后迟迟不能落地的窘境相比，可谓对比强烈。当年是热情的开发者反复敦促厂商实现完整标准而不得，为此沮丧无奈，那种心情，至今记忆犹新。时过境迁，今天是编译器实现远远冲在前面，开发者倒是大大地落在了后面。</p>
+<p>时至今日，能够基本了解 C++11 标准的程序员恐怕不多，而能够以新的
+C++风格开发实践的人更是凤毛麟角。因此，今天的
+C++开发者面临的一个重要任务就是快速掌握新的 C++风格和工具。</p>
+<p>而说到教授“正宗的”C++11 编程风格，《C++Primer（第 5
+版）》如同它之前的版本一样，扮演着法定教科书的角色。</p>
+<p>一种优秀的编程语言，一定要对于计算这件事情实现一个完整和自洽的抽象。十几年来编程语言领域的竞争，除却实现质量之外，基本上是在比拼抽象的设计。而
+C
+语言之所以四十年长盛不衰，根本在于它对于现代计算机提供了一个最底层的高级抽象：凡是比它低的抽象都过于简陋，凡是比它高的抽象都可以用
+C
+语言构造出来。C++成功的根本原因，恰恰是因为它虽然试图提供一些高级的抽象机制，但是其根基与
+C 在同一层面。正因为如此，每当你需要走下去直接与硬件对话时，C++成为 C
+之外唯一有效率的选择。我的一个朋友在进行了多年的大型系统软件开发之后，不无感慨地说，C++最大的力量不在于其抽象，恰恰在于其不抽象。</p>
+<p>话虽然如此，但是 C++之所以脱离 C
+而存在，毕竟还是因为其强大的抽象能力。BjarneStroustrup
+曾经总结说，C++同时支持 4 种不同的编程风格：C
+风格、基于对象、面向对象和泛型。事实上，把微软的 COM
+也算进来的话，还可以加上一种“基于组件”的风格。这么多的风格共存于一种语言，就是其强大抽象机制的证明。但是，在
+C++11
+以前，C++的抽象可以说存在若干缺陷，其中最严重的是缺少自动内存管理和对象级别的消息发送机制。今天看来，C++98
+只能说是特定历史条件造成的半成品，无论是从语言机制，还是标准库完备程度来说，可以说都存在明显的、不容忽略的缺陷。其直接后果，就是优雅性的缺失和效率的降低。我本人在十年前曾经与当时中国
+C++社群中不少杰出的人物交流探讨，试图从 C++98
+中剪裁出一个小巧、优雅的、自成一体的子集，希望至少在日常编程中，能够在这个子集之内可以写出与当时的
+Java 和
+C#同样干净明晰的代码。为此我们尝试了各种古怪的模板技巧，并且到处寻找有启发的代码和经验来构造这个语言子集，结果并不理想，甚至可以说是令人非常失望。后来我在我的博客中发表过好几篇文章，探讨所谓的
+C++风格问题，其实就是说，C++不支持简洁明快的面向对象风格，大家还不如回到基于对象甚至
+C 语言的风格，最多加点模板，省一点代码量。非要面向对象的话，就必须依赖像
+Qt 或者 MFC 那样的基础设施才可以。</p>
+<p>C++11 出来之后，增强的语言机制和大为完善的标准库，为
+C++语言的编程风格带来了革命性的变化。如果能够纯熟地运用 C++11
+的新特征、新机制，那么就能够形成一种简洁优雅的
+C++编程风格，以比从前更高的效率、更好的质量进行软件开发。对于这种新的风格，我认为“直觉、自然”是最佳的描述。也就是说，解决任何问题不必拘泥于什么笼盖一切的编程思想，也不再沉溺于各种古怪的模板技巧中无法自拔，而是能够根据那个问题本身采用最自然、最符合直觉的方式。C++有自己的一套思维方式，比如容器、算法、作为概念抽象的对象等，很大程度上这套思维方式确实是合乎直觉的。只有到了
+C++11
+这一代，C++语言的高级抽象才基本完备，这样一种风格才可能真正落实。因此可以说
+C++11 对于 C++98 而言，不是一次简单的升级，而是一次本质的跃升。</p>
+<p>学习新的 C++风格，并不是轻而易举的事情。即便对于以前已经精通
+C++的人来说，熟练掌握 rvaluereference、move 语义，了解
+unique_ptr、shared_ptr 和 weak_ptr 的完整用法，明智地使用 function/bind
+和 lambda 机制，学习 C++Concurrency
+的新技术，都绝非一朝一夕之功。对于那些初学者来说，这件事情更不简单。</p>
+<p>本书无论对于初学者还是提高者，都是最经典的教科全书。一直以来，它的特点就是完整而详细，基本上关于语言本身的问题，都可以在这本书里得到解决。而本书的另一个重要优点，就是其完全基于新的编程风格编写，所有的例子和讲解都遵循
+C++11
+标准所体现出来的思路和风格进行，如果能够踏下心来认真学习和练习，那么就能“一次到位”地掌握
+C++11，尽管可能会比较慢。有经验的
+C++开发者阅读这本书当然不用从头到尾，选择自己关心的内容学习 C++11
+的新特性就可以，是快速升级自身能力的捷径。</p>
+<p>差不多十年前，我提出一个观点，每一个具体的技术领域，只需要读四五本书就够了。以前的
+C++是个例外，因为语言设计有缺陷，所以要读很多书才知道如何绕过缺陷。现在的
+C++11
+完全可以了，大家读四五本书就可以达到合格的水平，这恰恰是语言进步的体现。</p>
+<p>本书是这四五本中的一本，而且是“教程+参考书”，扛梁之作，初学者的不二法门。另一本是《C++标准程序库（第
+2 版）》，对于 C++熟手来说更为快捷。ScottMeyers 的 Effective
+C++永远是学习 C++者必读的，只不过这本书的第 4
+版不知道什么时候出来。AnthonyWilliams 的 C++ Concurrency inAction
+是学习用标准
+C++开发并发程序的最佳选择。国内的作品，我则高度推荐陈硕的《Linux
+多线程服务端编程》。这本书的名字赶跑了不少潜在的读者，所以我要特别说明一下。这本书是
+C++开发的高水平作品，与其说是教你怎么用
+C++写服务端开发，不如说是教你如何以服务端开发为例子提升
+C++开发水平。前面几本书都是谈标准 C++自己的事情，碰到像 iostream
+这样失败的标准组件也不得不硬着头皮介绍。而这本书是接地气的实践结晶，告诉你面对具体问题时应怎样权衡，C++里什么好用，什么不好用，为什么，等等。</p>
+<p>今天的 C++学习者是非常幸运的，可以在 C++11
+这个基础上大步向前，不必再因为那些语言的缺陷和过度的技巧而烦恼。大家静下心来认真读几本书，可以打下很好的基础。</p>
+<h1 id="记录">记录</h1>
+<h2 id="注释">注释</h2>
+<blockquote>
+<p>Although the compiler ignores comments, readers of our code do not.
+Programmers tend to believe comments even when other parts of the system
+documentation are out of date. An incorrect comment is worse than no
+comment at all because it may mislead the reader. When you change your
+code, be sure to update the comments, too!</p>
+</blockquote>
+<p>虽然编译器会忽略注释，但我们代码的读者不会。即使系统文档的其他部分已经过时，程序员也倾向于相信注释。不正确的注释比没有注释更糟糕
+因为它可能会误导读者。当您更改代码时，请务必更新注释！</p>
+<blockquote>
+<p>Comment pairs generally are used for multiline explanations, whereas
+double-slash comments tend to be used for half-line and single-line
+remarks</p>
+</blockquote>
+<p>注释对通常用于多行解释，而双斜线注释往往用于半行和单行注释</p>
+<h2 id="debug">debug</h2>
+<blockquote>
+<p>It is a good practice to <strong>correct errors in the sequence they
+are reported</strong>. Often a single error can have a cascading effect
+and cause a compiler to report more errors than actually are
+present.</p>
+</blockquote>
+<blockquote>
+<p>It is also a good idea to <strong>recompile the code after each
+fix—or after making</strong> at most a small number of obvious fixes.
+This cycle is known as <code>edit-compile-debug</code>.</p>
+</blockquote>
+<p>按照错误报告的顺序来纠正错误是一种很好的做法。通常，一个错误会产生连锁反应，导致编译器报告的错误比实际存在的错误更多。每次修复后重新编译代码也是一个好主意——或者在进行少数明显的修复后重新编译代码。这个循环称为<code>编辑-编译-调试</code>。</p>
+<h2 id="class">Class</h2>
+<blockquote>
+<p>In C++ we define our own data structures by defining a class. A class
+defines a type along with a collection of operations that are related to
+that type. The class mechanism is one of the most important features in
+C++. In fact, a primary focus of the design of C++ is to make it
+possible to <strong>define class types that behave as naturally as the
+built-in types</strong>.</p>
+</blockquote>
+<p>在 C++
+中，我们通过定义类来定义自己的数据结构。一个类定义了一种类型，以及与该类型相关的操作集合。类机制是
+C++ 中最重要的特性之一。事实上，C++
+设计的主要重点是<strong>使定义行为与内置类型一样自然的类类型成为可能</strong>。</p>
+<p>Perhaps the most important feature in C++ is the class, which lets
+programmers define their own types. In C++ such types are sometimes
+called “class types” to distinguish them from the types that are built
+into the language.</p>
+<p>Some languages let programmers define types that specify only what
+data make up the type. Others, like C++, allow programmers to define
+types that include operations as well as data.</p>
+<p><strong>A major design goal of C++ is to let programmers define their
+own types that are as easy to use as the built-in types.</strong> The
+Standard C++ library uses these features to implement a rich library of
+class types and associated functions.</p>
+<hr />
+<p>我的疑问：C++里面的类和结构体有什么区别？</p>
+<p>在 C++ 中，<strong>类（class）</strong> 和
+<strong>结构体（struct）</strong>
+的基本功能几乎是相同的，它们都可以用来定义数据成员和成员函数，具有相似的语法和行为。然而，二者之间的主要区别在于默认的访问权限以及在代码设计上的一些常见约定：</p>
+<h3 id="默认访问权限">1. <strong>默认访问权限</strong></h3>
+<ul>
+<li><strong>类（class）</strong>：默认情况下，类的成员是
+<strong>私有（private）</strong>
+的。即，所有未指定访问权限的成员在类中都是私有的。</li>
+<li><strong>结构体（struct）</strong>：结构体的成员默认是
+<strong>公有（public）</strong>
+的。也就是说，如果不显式定义访问修饰符，所有成员在结构体中都是公有的。</li>
+</ul>
+<p><strong>示例</strong>： <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyClass</span> &#123;</span><br><span class="line">    <span class="type">int</span> x; <span class="comment">// 默认是 private</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> y;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">MyStruct</span> &#123;</span><br><span class="line">    <span class="type">int</span> x; <span class="comment">// 默认是 public</span></span><br><span class="line">    <span class="type">int</span> y;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h3 id="代码风格和用途上的习惯">2.
+<strong>代码风格和用途上的习惯</strong></h3>
+<ul>
+<li><strong>类</strong>：在 C++
+中，类通常用于表示带有封装性和私有成员的复杂数据类型，适合用来定义对象和数据抽象。</li>
+<li><strong>结构体</strong>：虽然 C++
+的结构体具备和类相同的功能，但通常用于表示简单的数据结构，主要用于存储数据。结构体在
+C++ 中常用于兼容 C
+语言的代码，也更倾向于用于无复杂行为的简单数据封装。</li>
+</ul>
+<h3 id="继承时的默认访问控制">3.
+<strong>继承时的默认访问控制</strong></h3>
+<ul>
+<li><strong>类继承</strong>：当一个类从另一个类继承时，如果没有指定继承方式，则默认是
+<strong>私有继承</strong>。</li>
+<li><strong>结构体继承</strong>：当结构体继承另一个结构体或类时，默认是
+<strong>公有继承</strong>。</li>
+</ul>
+<p><strong>示例</strong>： <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">BaseClass</span> &#123;&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">BaseStruct</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DerivedClass</span> : BaseClass &#123;&#125;; <span class="comment">// 默认 private 继承</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">DerivedStruct</span> : BaseStruct &#123;&#125;; <span class="comment">// 默认 public 继承</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="兼容性">4. <strong>兼容性</strong></h3>
+<ul>
+<li><strong>结构体</strong>：更接近 C 语言中的 struct，适合与 C
+语言代码兼容。</li>
+<li><strong>类</strong>：C++ 中独有，包含更多的面向对象特性。</li>
+</ul>
+<h3 id="代码可读性和设计意图">5.
+<strong>代码可读性和设计意图</strong></h3>
+<ul>
+<li>使用 <strong>class</strong>
+表示对象的设计更符合面向对象编程的设计习惯，意图更加明确。</li>
+<li>使用 <strong>struct</strong>
+则更适合简单的数据集合，传达出“主要用于数据存储”的意图。</li>
+</ul>
+<h3 id="总结">总结</h3>
+<p>尽管类和结构体在 C++
+中功能相似，但类更常用于封装复杂行为和数据，而结构体更偏向简单数据存储。它们之间的区别主要在于访问控制上的默认值以及编程习惯。</p>
+<hr />
+<blockquote>
+<p>In general, the class author determines all the operations that can
+be used on objects of the class type.</p>
+</blockquote>
+<h2 id="include">include</h2>
+<p>Headers from the standard library are enclosed in angle brackets
+(&lt; &gt;).</p>
+<p>Those that are not part of the library are enclosed in double quotes
+(" ").</p>
+<ul>
+<li>&lt;&gt;：用于包含标准库和第三方库的头文件，编译器直接从系统路径中查找。</li>
+<li>""：用于包含用户定义的头文件，编译器优先在当前目录查找，找不到时再去系统路径查找。</li>
+</ul>
+<h2 id="constexpr">constexpr</h2>
+<blockquote>
+<p>Variables declared as constexpr are implicitly const and must be
+initialized by constant expressions:</p>
+</blockquote>
+<p>声明为 constexpr 的变量一定是一个常量，并且必须用常量表达式初始化</p>
+<ul>
+<li>常量类型：const 常量的值可以在运行时确定，constexpr
+要求值在编译时确定。</li>
+<li>应用范围：constexpr 可以用于函数，以便让编译器在编译时计算结果，而
+const 不具备此功能。</li>
+<li>性能：constexpr 能提升编译时计算的性能，而 const
+可能会产生运行时开销。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>triton</title>
+    <url>/2024/11/14/112_triton/</url>
+    <content><![CDATA[<p>其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。</p>
+<p>听人劝，吃饱饭。开始学习 <a
+href="https://github.com/triton-lang/triton">triton</a></p>
+<span id="more"></span>
+<p><a href="https://openai.com/index/triton/">官网</a> <a
+href="https://zhuanlan.zhihu.com/p/719703418">翻译</a></p>
+<p>Triton 是一种类似 Python 的开源编程语言，它使没有 CUDA
+经验的研究人员能够编写高效的 GPU
+代码——大多数时候与专家能够编写的代码相当。</p>
+<p>其他框架too verbose, lack flexibility or generate code noticeably
+slower than Triton‘s hand-tuned baselines.</p>
+<ul>
+<li>目前已有的 DSL 在灵活性和（对相同算法）速度上明显慢于像
+cuBLAS、cuDNN 或 TensorRT 这样的库中可用的最佳手写计算内核。</li>
+<li>已有的 DSL 如 polyhedral machinery (Tiramisu/Tensor
+Comprehensions)、scheduling languages (Halide、TVM)
+等在效率上还有提升空间。</li>
+</ul>
+<p>The architecture of modern GPUs can be roughly divided into three
+major components—DRAM, SRAM and ALUs—each of which must be considered
+when optimizing CUDA code:</p>
+<ul>
+<li><p>Memory transfers from DRAM must be coalesced into large
+transactions to leverage the large bus width of modern memory
+interfaces.</p></li>
+<li><p>Data must be manually stashed to SRAM prior to being re-used, and
+managed so as to minimize shared memory bank conflicts upon
+retrieval.</p></li>
+<li><p>Computations must be partitioned and scheduled carefully, both
+across and within Streaming Multiprocessors (SMs), so as to promote
+instruction/thread-level parallelism and leverage special-purpose ALUs
+(e.g., tensor cores).</p></li>
+</ul>
+<p>即</p>
+<ul>
+<li>合并访问 (Memory Coalescing)</li>
+<li>避免 Bank Conflict (Avoiding Shared Memory Bank Conflicts)</li>
+<li>提升计算效率 (Maximizing Computational Efficiency)</li>
+</ul>
+<p><img src="/images/112/gpu-architecture.svg" width="80%"></p>
+<p>Triton 简化了 CUDA
+编程的底层优化，通过自动化的方式减少开发者的负担，但同时保留了一些高层次的算法决策，例如
+SM
+任务调度和平铺策略，供开发者灵活调整。这种设计既提高了编程效率，又确保了对复杂算法的适用性。</p>
+<p>Triton 通过对 blocks（尺寸为 2
+的幂的小数组）的操作来公开实例内并行性，而不是单指令、多线程 (SIMT)
+执行模型。通过这样做，Triton 有效地抽象了与 CUDA
+线程块内的并发性相关的所有问题（例如，内存合并、共享内存同步/冲突、张量核心调度）。</p>
+<p>在标准 CUDA 实现中，Softmax
+归一化需要显式管理线程之间的同步（如多线程并行计算同一行的指数值和总和）。Triton
+则通过将计算任务划分为每个 kernel
+处理一行，避免了线程同步的复杂性，大大降低了代码实现难度，同时保持高性能。</p>
+<p><strong>The bottom line here is not that Triton is inherently better,
+but that it simplifies the development of specialized kernels that can
+be much faster than those found in general-purpose
+libraries.</strong></p>
+<p>The good performance of Triton comes from a modular system
+architecture centered around Triton-IR, an LLVM-based intermediate
+representation in which multi-dimensional blocks of values are
+first-class citizens.</p>
+<p>总之， Triton
+的核心理念是基于分块的编程范式可以促进神经网络的高性能计算核心的构建。CUDA
+编写属于传统的 “单程序，多数据” GPU
+执行模型，在线程的细粒度上进行编程，Triton
+是在分块的细粒度上进行编程。</p>
+<p>跟着教程走：https://triton-lang.org/main/getting-started/tutorials/index.html</p>
+<p><a
+href="https://blog.csdn.net/kebijuelun/article/details/136343258">OpenAI
+Triton 入门教程</a></p>
+<p>triton
+在循环中是逐块进行计算的。这种方法的一个关键优势是，它导致了块结构的迭代空间，相较于现有的DSL，为程序员在实现稀疏操作时提供了更多的灵活性，同时允许编译器为数据局部性和并行性进行积极的优化。</p>
+<h3 id="triton.jit">triton.jit</h3>
+<p>triton.jit 是 Triton 框架中的一个装饰器，用于将 Python 函数
+JIT（即时）编译为高性能的 GPU 内核。</p>
+<ol type="1">
+<li><p>JIT 编译：</p>
+<ul>
+<li>使用 Triton 编译器将被装饰的函数编译为 GPU 内核代码。</li>
+<li>编译后的内核在 GPU 上运行，利用 GPU 的并行计算能力实现高性能。</li>
+</ul></li>
+<li><p>隐式转换：</p>
+<ul>
+<li>当调用一个使用 triton.jit 编译的函数时，传入的参数如果具有
+.data_ptr() 方法（如 PyTorch 张量）和 .dtype
+属性，会自动被转换为指针。</li>
+<li>这使得与 PyTorch 等框架的张量交互更加方便。</li>
+</ul></li>
+<li><p>限制环境：</p>
+<ul>
+<li>JIT 编译后的函数在 GPU 上运行，不能直接访问普通的 Python
+对象或标准库。</li>
+<li>仅能使用以下资源：</li>
+<li>Python 的基本类型（如 int、float）。</li>
+<li>Triton 包中的内置函数。</li>
+<li>函数的参数。</li>
+<li>其他被 JIT 编译的函数。</li>
+</ul></li>
+</ol>
+<h3 id="triton.autotune">triton.autotune</h3>
+<p>triton.autotune 是一个装饰器，用于为 triton.jit 编译的函数添加
+自动调优
+功能。它通过评估多个配置（configs），选择最优的内核配置以获得最佳性能。</p>
+<p>核心功能</p>
+<ol type="1">
+<li>自动配置选择：
+<ul>
+<li>提供多个候选配置（configs），triton.autotune
+会自动评估这些配置的性能。</li>
+<li>适用于 GPU 上的高性能计算，能够动态调整块大小（如
+BLOCK_SIZE）、线程数等关键参数。</li>
+</ul></li>
+<li>动态适应输入：
+<ul>
+<li>通过 key 参数指定，当输入参数发生变化时，重新评估配置的性能。</li>
+</ul></li>
+<li>安全优化：
+<ul>
+<li>通过 reset_to_zero 和 restore_value
+确保多次内核调用不会造成副作用。</li>
+</ul></li>
+<li>性能输出：
+<ul>
+<li>如果设置环境变量 TRITON_PRINT_AUTOTUNING=1，Triton
+会打印调优过程的日志，包括时间消耗和最佳配置。</li>
+</ul></li>
+</ol>
+<h3 id="triton.heuristics">triton.heuristics</h3>
+<p>triton.heuristics 是 Triton 提供的装饰器，用于动态计算 meta-parameter
+的值。这对于以下情况非常有用：</p>
+<ol type="1">
+<li><p>自动调优代价高昂：在一些情况下，使用 triton.autotune
+进行全面的自动调优可能会非常耗时。</p></li>
+<li><p>自动调优不可用：某些情况下，输入特性使得自动调优不适用。</p></li>
+<li><p>动态计算 meta-parameter：</p>
+<ul>
+<li>根据输入参数动态推导内核中的 meta-parameter。</li>
+<li>避免硬编码或繁琐的手动配置。</li>
+<li>例如：根据张量大小动态设置块大小 BLOCK_SIZE。</li>
+</ul></li>
+<li><p>替代部分自动调优：</p>
+<ul>
+<li>相比 triton.autotune 的多次配置测试，triton.heuristics
+通过计算直接生成最优或次优的 meta-parameter 值。</li>
+</ul></li>
+</ol>
+<p>主要看一下 <code>Matrix Multiplication</code> 这个代码:</p>
+<p>实现一个高性能的 FP16 矩阵乘法内核，其性能可以与 NVIDIA 的 cuBLAS 或
+AMD 的 rocBLAS
+相媲美。这些库是由硬件厂商提供的优化矩阵操作库，但它们通常是闭源的，不易定制。通过本教程，用户可以学习如何自行实现高性能矩阵乘法，同时能够轻松扩展或调整以适应特殊需求，例如深度学习中的自定义操作。</p>
+<h2 id="关键学习点">关键学习点</h2>
+<ol type="1">
+<li>块级矩阵乘法（Block-level Matrix Multiplications）：
+<ul>
+<li>通过将矩阵分成小块，逐块进行操作，以提升性能和内存利用率。</li>
+<li>这种分块操作可以显著提升 GPU 的计算效率。</li>
+</ul></li>
+<li>多维指针运算（Multi-dimensional Pointer Arithmetic）：
+<ul>
+<li>学习如何通过指针运算访问矩阵中的子块（block）。</li>
+<li>对于行优先（row-major）存储的矩阵，需要通过复杂的指针偏移计算每个块的位置。</li>
+</ul></li>
+<li>程序重排序以提高 L2 缓存命中率（Program Re-ordering for Improved L2
+Cache Hit Rate）：
+<ul>
+<li>通过改变程序块的执行顺序（如按列优先或分组的方式执行），可以提高 L2
+缓存的命中率。</li>
+<li>这种优化减少了从全局内存中加载数据的次数，从而显著提高性能。</li>
+</ul></li>
+<li>自动性能调优（Automatic Performance Tuning）：
+<ul>
+<li>利用 Triton
+提供的自动调优工具，为特定的硬件配置选择最佳参数（如块大小、并行线程数等）。</li>
+<li>自动调优使得代码可以在不同的硬件平台上实现接近最优的性能。</li>
+</ul></li>
+</ol>
+<p><a
+href="https://triton-lang.org/main/python-api/triton.language.html">triton.language</a>里面能用的函数是一些基础款，也够用了，几乎没有学习成本</p>
+<p>Triton的优势： 可以直接控制 SRAM(onchip, shared memory) 和 HBM(global
+memory) GPU memory</p>
+<p>学着学着不对劲，还是先学LLVM吧。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>LLM</tag>
+        <tag>HPC</tag>
+        <tag>Tech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>113_tensorflow实现量化softmax算子</title>
+    <url>/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</url>
+    <content><![CDATA[<p>研究了一下 tensorflow 实现 int8 量化的 softmax 算子</p>
+<span id="more"></span>
+<p>以这个算子为例： <img src=/images/114/softmax.png width=50% />
+<img src=/images/114/node.png width=50% /></p>
+<p>首先要计算一些参数</p>
+<p>在 <code>CalculateSoftmaxParams</code> 函数中，</p>
+<p>先确保了2个参数： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">TF_LITE_ENSURE_EQ(context, output-&gt;params.zero_point, <span class="number">-128</span>);</span><br><span class="line">TF_LITE_ENSURE(context, output-&gt;params.scale == <span class="number">1.f</span> / <span class="number">256</span>);</span><br></pre></td></tr></table></figure> 看来量化的softmax算子的输出 tensor 的
+<code>scale</code> 和 <code>zero point</code> 是固定的.</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>tensorflow</tag>
+        <tag>softmax</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mac M1 安装 Tensorflow</title>
+    <url>/2024/11/22/113_MacM1_tensorflow/</url>
+    <content><![CDATA[<p>近期在Mac M1上使用tensorflow，发现不能用了。报错：</p>
+<p><code>The TensorFlow library was compiled to use AVX instructions, but these aren't available on your machine.</code></p>
+<span id="more"></span>
+<ul>
+<li><p>尝试使用conda重新安装，报错如上；</p></li>
+<li><p>docker搭建x86环境安装，报错非法指令；</p></li>
+</ul>
+<p><a
+href="https://tensorflow.google.cn/install/source?hl=zh-cn">官网</a>说是从1.6版本以后，预编译二进制文件将使用AVX指令，导致有的CPU无法执行。</p>
+<p>很烦人，以至于我都开始搜电脑主机准备搭建一个Ubuntu了。好在后来找到了解决方式：</p>
+<h1 id="删除现有conda">删除现有conda</h1>
+<h2 id="检查-conda-安装路径">1. 检查 Conda 安装路径</h2>
+<p>通常，Conda 安装在以下路径之一：~/anaconda3 或 ~/miniconda3</p>
+<p>如果不确定路径，可以运行以下命令来确认安装位置：</p>
+<p><code>which conda</code> 或 <code>conda info</code></p>
+<p>在输出中查找 base environment 的路径。</p>
+<h2 id="删除-conda-文件">2. 删除 Conda 文件</h2>
+<h3 id="删除安装目录">1. 删除安装目录：</h3>
+<p><code>rm -rf ~/anaconda3</code> <code>rm -rf ~/miniconda3</code></p>
+<p>根据实际路径选择其中一个。</p>
+<h3 id="清理环境变量">2. 清理环境变量：</h3>
+<p>打开终端，编辑 ~/.zshrc（Mac 默认终端）或 ~/.bashrc 文件：</p>
+<p><code>nano ~/.zshrc</code></p>
+<p>删除与 Conda 相关的内容（例如 PATH 环境变量中的 anaconda3/bin 或
+miniconda3/bin）。</p>
+<h3 id="刷新环境变量">3. 刷新环境变量：</h3>
+<p><code>source ~/.zshrc</code></p>
+<h2 id="删除-conda-配置文件">3. 删除 Conda 配置文件</h2>
+<p>无论在哪个平台，Conda 的配置文件通常位于：</p>
+<p><code>~/.condarc</code></p>
+<p>删除该文件：</p>
+<p><code>rm ~/.condarc</code></p>
+<h2 id="检查是否完全删除">4. 检查是否完全删除</h2>
+<p>运行以下命令，确认 Conda 已被删除：</p>
+<p><code>conda --version</code></p>
+<p>如果显示 command not found，则已完全删除。</p>
+<h1 id="安装miniforge">安装Miniforge</h1>
+<p>在 Mac M1/M2 等 Apple Silicon 上安装 TensorFlow
+需要一些特殊的步骤，因为默认的 TensorFlow 版本可能不支持 ARM 架构。</p>
+<h2 id="步骤-1-安装-miniforge推荐">步骤 1: 安装 Miniforge（推荐）</h2>
+<p>Miniforge 是 Conda 的轻量级版本，可以自动适配 Apple Silicon
+架构。</p>
+<p>1.1 下载 Miniforge</p>
+<p>在终端中运行以下命令以下载并安装 Miniforge：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">curl -L -O https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh</span><br><span class="line">bash Miniforge3-MacOSX-arm64.sh</span><br></pre></td></tr></table></figure>
+<p>按照提示完成安装。</p>
+<p>1.2 激活环境</p>
+<p>运行以下命令以激活 Conda 环境：</p>
+<p><code>source ~/miniforge3/bin/activate</code></p>
+<h2 id="步骤-2-创建新环境并安装-tensorflow">步骤 2: 创建新环境并安装
+TensorFlow</h2>
+<h3 id="创建一个新的环境">1. 创建一个新的环境：</h3>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda create -n tensorflow_env python=3.10 -y</span><br><span class="line">conda activate tensorflow_env</span><br></pre></td></tr></table></figure>
+<h3 id="安装-tensorflow-for-macos">2. 安装 TensorFlow for macOS:</h3>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda install -c apple tensorflow-deps</span><br><span class="line">python -m pip install tensorflow-macos</span><br><span class="line">python -m pip install tensorflow-metal</span><br></pre></td></tr></table></figure>
+<p>说明： • tensorflow-macos 是为 macOS 专门优化的 TensorFlow 版本。 •
+tensorflow-metal 是用于加速 M1/M2 上 GPU 的插件。</p>
+<h2 id="步骤-3-测试安装">步骤 3: 测试安装</h2>
+<p>运行以下 Python 脚本以测试安装是否成功：</p>
+<p><code>import tensorflow as tf</code></p>
+<h1 id="检查-tensorflow-是否可用">检查 TensorFlow 是否可用</h1>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;TensorFlow Version:&quot;</span>, tf.__version__)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Is GPU available:&quot;</span>, tf.config.list_physical_devices(<span class="string">&#x27;GPU&#x27;</span>))</span><br></pre></td></tr></table></figure>
+<p>如果输出类似以下内容，则安装成功：</p>
+<blockquote>
+<p>TensorFlow Version: 2.x.x</p>
+</blockquote>
+<blockquote>
+<p>Is GPU available: [PhysicalDevice(name='/physical_device:GPU:0',
+device_type='GPU')]</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Mac</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>树莓派Zero实验</title>
+    <url>/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</url>
+    <content><![CDATA[<p>做一些在树莓派<code>zero w</code>
+上面的实验，这里记录一下整体流程。</p>
+<span id="more"></span>
+<h1 id="准备工作">准备工作</h1>
+<p>在 <a href="https://www.raspberrypi.com/software/">官网</a> 下载
+<code>Raspberry Pi Imager</code> 安装 <code>Raspberry Pi OS</code>。</p>
+<p>下载
+<code>operating system image</code>，考虑到其较低的硬件配置（1GHz
+单核处理器和 512MB 内存），选择使用了 <strong>Raspberry Pi OS
+(Legacy)</strong>，这是 A stable legacy version of Raspberry Pi OS
+Bullseye，具体信息是：</p>
+<pre><code>  Raspberry Pi OS (Legacy) Lite
+  Release date: October 22nd 2024
+  System: 32-bit
+  Kernel version: 6.1
+  Debian version: 11 (bullseye)
+  Size: 366MB
+  Show SHA256 file integrity hash:
+  45dd65d579ec2b106a1e3181032144406eab61df892fcd2da8d83382fa4f7e51</code></pre>
+<p>烧录过程参照<a
+href="https://www.raspberrypi.com/documentation/computers/getting-started.html">官网教程</a>一步一步走就好了。</p>
+<p>然而没能连上网（猜测在烧录工具里设置的 wifi
+密码保存是乱码），于是在Boot目录中创建名为
+<code>wpa_supplicant.conf</code> 文件。</p>
+<p>将下面内容直接粘贴进去</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">country=CN</span><br><span class="line">ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev</span><br><span class="line">update_config=1</span><br><span class="line"></span><br><span class="line">network=&#123;</span><br><span class="line">   ssid=&quot;power_cube&quot;</span><br><span class="line">   psk=&quot;22222222&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>Angry IP Scanner</code>
+软件扫描了一下，确定了树莓派连接wifi后的IP，顺利开始 ssh
+连接开发之旅。</p>
+<h1 id="树莓派zero-w">树莓派zero w</h1>
+<p>https://www.raspberrypi.com/products/raspberry-pi-zero-w/</p>
+<p>树莓派 Zero 是树莓派系列中小尺寸高性价比的卡片式开发主板。树莓派 Zero
+采用的是 ARM11 内核的 BCM2835 处理器，经济适用。树莓派 Zero W 是在 Zero
+原版的基础上板载无线网卡，支持蓝牙和 WiFi 功能，Zero WH 是在 Zero W
+的基础上加焊了 40PIN 排针，方便用户的调试和使用。</p>
+<p>主要功能特性有：</p>
+<pre><code>  802.11 b/g/n wireless LAN
+  Bluetooth 4.1
+  Bluetooth Low Energy (BLE)
+  1GHz, single-core CPU
+  512MB RAM
+  Mini HDMI® port and micro USB On-The-Go (OTG) port
+  Micro USB power
+  HAT-compatible 40-pin header
+  Composite video and reset headers
+  CSI camera connector</code></pre>
+<h2 id="架构信息">架构信息</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pi@raspberrypi:~ $ uname -m</span><br><span class="line">armv6l</span><br></pre></td></tr></table></figure>
+<ul>
+<li>armv6l：表示 ARMv6 架构（通常是树莓派 Zero、Zero W）。</li>
+<li>armv7l：表示 ARMv7 架构（树莓派 2）。</li>
+<li>aarch64 或 armv8：表示 64 位的 ARMv8 架构（树莓派 3、树莓派
+4，如果运行的是 64 位操作系统）。</li>
+</ul>
+<h2 id="cpu-信息">CPU 信息</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pi@raspberrypi:~ $ cat /proc/cpuinfo</span><br><span class="line">processor	: 0</span><br><span class="line">model name	: ARMv6-compatible processor rev 7 (v6l)</span><br><span class="line">BogoMIPS	: 697.95</span><br><span class="line">Features	: half thumb fastmult vfp edsp java tls </span><br><span class="line">CPU implementer	: 0x41</span><br><span class="line">CPU architecture: 7</span><br><span class="line">CPU variant	: 0x0</span><br><span class="line">CPU part	: 0xb76</span><br><span class="line">CPU revision	: 7</span><br><span class="line"></span><br><span class="line">Hardware	: BCM2835</span><br><span class="line">Revision	: 9000c1</span><br><span class="line">Serial		: 000000008caea6be</span><br><span class="line">Model		: Raspberry Pi Zero W Rev 1.1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>half：半精度浮点运算支持（16 位浮点数）。</li>
+<li>thumb：支持 Thumb 16 位压缩指令集，节省代码空间。</li>
+<li>fastmult：支持快速整数乘法运算，提升性能。</li>
+<li>vfp：支持向量浮点运算硬件，加速浮点计算。</li>
+<li>edsp：增强的 DSP 指令集，用于加速数字信号处理。</li>
+<li>java：支持 Jazelle 指令集扩展，用于加速 Java 字节码执行。</li>
+<li>tls：支持线程本地存储，用于多线程编程。</li>
+</ul>
+<p>这些特性使得 ARMv6 处理器在树莓派 Zero W
+上能够兼具浮点计算、数字信号处理和节省内存空间的能力，适合嵌入式和轻量级的多任务应用。</p>
+<h2 id="主频">主频</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pi@raspberrypi:~ $ vcgencmd measure_clock arm</span><br><span class="line">frequency(48)=700000000</span><br></pre></td></tr></table></figure>
+<p>当前是700MHz，实验了一下，当CPU推理模型时,会变成
+<code>1 GHz</code>，如<a
+href="https://forums.raspberrypi.com/viewtopic.php?t=127934">文档</a>所说：
+&gt; It runs at 700MHz when idle and 1000MHz when busy (the core is
+above 50% utilised).</p>
+<h2 id="温度">温度</h2>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vcgencmd measure_temp</span><br></pre></td></tr></table></figure>
+<p>如果温度接近或超过 80°C，说明需要更好的散热。</p>
+<h1 id="交叉编译">交叉编译</h1>
+<p>树莓派 Zero W 使用 BCM2835 芯片，架构为 ARMv6，因此需要 ARMv6
+兼容的交叉编译工具链。</p>
+<p>我实验了官网的<a
+href="https://github.com/raspberrypi/tools">交叉编译链接</a></p>
+<ul>
+<li><p><strong>路径</strong>：<code>tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/</code></p></li>
+<li><p><code>arm-linux-gnueabihf-gcc</code>（ARMv6 兼容的 GCC
+编译器）</p></li>
+<li><p><code>arm-linux-gnueabihf-g++</code>（ARMv6 兼容的 G++
+编译器）</p></li>
+</ul>
+<p>配置了树莓派的交叉编译链，编译报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.../gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-gcc: cannot execute binary file</span><br></pre></td></tr></table></figure>
+<p>这是因为arm-linux-gnueabihf-gcc 是针对 Linux 系统的二进制文件，macOS
+的架构不支持直接运行此工具链。</p>
+<p>于是在mac上装一个docker</p>
+<pre><code>  docker version
+  Client:
+  Version:           27.3.1
+  API version:       1.47
+  Go version:        go1.22.7
+  Git commit:        ce12230
+  Built:             Fri Sep 20 11:38:18 2024
+  OS/Arch:           darwin/arm64
+  Context:           default</code></pre>
+<p>启动一个 Linux 容器，并挂载项目目录：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker run --platform linux/amd64 -it -v /Users/zhaodongyu/Projects:/Projects --name aidget ubuntu:20.04 /bin/bash</span><br><span class="line">docker start aidget</span><br><span class="line">docker <span class="built_in">exec</span> -it aidget /bin/bash</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这会在 Docker 容器中将您的项目目录挂载到 /Projects。</p>
+<p>注意，一定要加 <code>--platform linux/amd64</code>! 我是 MAC M1
+电脑，这个选项可以强制 Docker 使用 x86-64 模拟环境。不然会报错
+<code>rosetta error: failed to open elf at /lib64/ld-linux-x86-64.so.2</code>。（被这个问题恶心了很久）</p>
+<p>经过实验，官方的交叉编译链编译出的可执行程序在树莓派
+<code>zero w</code> 上运行是有问题的。</p>
+<p>参考<a
+href="https://forums.raspberrypi.com/viewtopic.php?t=336678">官方交流文档</a>在<a
+href="https://github.com/tttapa/docker-arm-cross-toolchain?tab=readme-ov-file">这里</a>
+下载<a
+href="https://github.com/tttapa/docker-arm-cross-toolchain/releases/latest/download/x-tools-armv6-rpi-linux-gnueabihf-gcc12.tar.xz">1.0.0
+交叉编译链</a>。</p>
+<ul>
+<li>Target triplet:armv6-rpi-linux-gnueabihf</li>
+<li>GCC 12.4</li>
+</ul>
+<blockquote>
+<p>ABI BREAK: the armv6-rpi-linux-gnueabihf toolchain is now built using
+-march=armv6 instead of -march=armv6kz to provide compatibility with the
+ARMv6 version of Raspberry Pi OS. This may affect the ABI, so you are
+advised to recompile all code and dependencies after upgrading. (See
+tttapa/RPi-Cross-Cpp-Development#4 (comment) for more information.)</p>
+</blockquote>
+<p>下载后解压：</p>
+<p><code>tar -xf x-tools-aarch64-rpi3-linux-gnu-armv6-rpi-linux-gnueabihf-gcc12.tar.xz</code></p>
+<p>在容器中安装相关工具：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">apt update</span><br><span class="line">apt install make</span><br><span class="line">apt install -y binutils</span><br><span class="line"></span><br><span class="line"><span class="comment"># apt install -y gcc-arm-linux-gnueabihf</span></span><br></pre></td></tr></table></figure>
+<p>这些标志的含义如下：</p>
+<ul>
+<li>-march=armv6：指定 ARMv6 架构，适用于树莓派 Zero 和 Pi 1。</li>
+<li>-mfloat-abi=hard：使用硬件浮点 ABI。</li>
+<li>-mfpu=vfp：指定使用 VFP（Vector Floating Point）浮点单元。</li>
+<li>-marm：强制使用 ARM 指令集，而非 Thumb 指令集。</li>
+</ul>
+<h1 id="软件信息">软件信息</h1>
+<p>树莓派的gcc版本(bullseye)：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pi@raspberrypi:~ $ gcc --version</span><br><span class="line">gcc (Raspbian 10.2.1-6+rpi1) 10.2.1 20210110</span><br><span class="line">Copyright (C) 2020 Free Software Foundation, Inc.</span><br><span class="line">This is free software; see the source for copying conditions.  There is NO</span><br><span class="line">warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span><br></pre></td></tr></table></figure>
+<h1 id="加速">加速？</h1>
+<p>处理器性能：BCM2835 使用的是 1GHz 的单核 ARM11 处理器，架构为
+ARMv6，比现代 ARM 处理器（ARMv7、ARMv8
+等）落后，缺少现代处理器中的许多优化指令集（如 NEON SIMD 指令）。</p>
+<p>由于 CMSIS-NN 主要优化的是 ARM Cortex-M 系列处理器，对 ARMv6
+并没有专门的加速支持。然而，CMSIS-NN
+的优化策略（如量化、卷积优化、循环展开和指令调度）可以为 ARMv6
+上的神经网络推理提供启发。</p>
+<h1 id="section">2024-11-17</h1>
+<p><a
+href="https://github.com/mit-han-lab/tinyengine">tinyengine</a>是个很好的推理框架，我想跟它
+PK 推理数据，经过一番移植遇到各种各样的问题，包括且不限于 <a
+href="https://github.com/mit-han-lab/tinyengine/issues/43">get_kernel_buffer
+undefined</a>, arm cortex-M7/M4
+cores，针对性做了一些加速算子，移植起来确实需要些精力，给他改得算子性能差了的话又胜之不武，于是放弃。如果能够
+PK，这一定是一个强有力的对手！</p>
+<p>我发现它使用tf_convertor.parseOperatorInfo()解析模型要比我用flatbuffer解析简洁很多，我也要优化一下我的转换脚本。</p>
+<p>tf_convertor.parseOperatorInfo() 是 TensorFlow 提供的 Python
+API，简化了对 TFLite 模型的操作和解析，提供高级封装，方便直接读取 TFLite
+模型中的算子信息。</p>
+<p>直接解析 FlatBuffer，TFLite 模型的文件格式是 FlatBuffer
+二进制文件，直接解析可以获取所有模型信息，包括 TensorFlow
+工具链不支持的部分。</p>
+<p>对比总结</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>特性</th>
+<th>tf_convertor.parseOperatorInfo()</th>
+<th>解析 FlatBuffer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>开发难度</td>
+<td>简单，高度封装</td>
+<td>高，需解析 FlatBuffer 结构</td>
+</tr>
+<tr class="even">
+<td>灵活性</td>
+<td>较低，依赖 TensorFlow 提供的功能</td>
+<td>高，可访问底层和自定义信息</td>
+</tr>
+<tr class="odd">
+<td>性能</td>
+<td>较低，依赖 TensorFlow 工具链运行</td>
+<td>高，直接操作二进制数据</td>
+</tr>
+<tr class="even">
+<td>依赖</td>
+<td>TensorFlow 工具链</td>
+<td>FlatBuffer 库，无需 TensorFlow</td>
+</tr>
+<tr class="odd">
+<td>适用场景</td>
+<td>快速开发、标准模型解析</td>
+<td>需要深度分析或轻量化项目</td>
+</tr>
+</tbody>
+</table>
+<p>既然项目是要让大家使用，使用 tf_convertor.parseOperatorInfo()
+快速获取基本信息确实是更好的选择，决定改成这种方式，如果这种方式搞不定，再换成解析
+FlatBuffer。</p>
+<p>本来想用tinyengine的几个tflite作为实验模型，既然也用不了这个框架，那还是改用tflite的一些公开模型吧。所以PK的主力对象又换成了tflite
+for micro（没什么挑战）</p>
+<h1 id="搭建tflm">搭建TFLM</h1>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd Projects/RaspberryPi/tflm</span><br><span class="line">git clone https://github.com/tensorflow/tflite-micro.git</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>commit b23864944c0bc6c2603408754fd2b9b3dbaa862d</p>
+</blockquote>
+<p>在<code>tflite-micro/tensorflow/lite/micro/tools/make/targets/</code>目录下新建<code>rpi_zero_w_makefile.inc</code></p>
+<p>内容为：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">TARGET_TOOLCHAIN_PREFIX := ~/x-tools/armv6-rpi-linux-gnueabihf/bin/armv6-rpi-linux-gnueabihf-</span><br><span class="line"></span><br><span class="line">CXXFLAGS += $(FLAGS_GCC)</span><br><span class="line">CCFLAGS += $(FLAGS_GCC)</span><br><span class="line"></span><br><span class="line">PLATFORM_FLAGS = \</span><br><span class="line">  -DTF_LITE_MCU_DEBUG_LOG \</span><br><span class="line">  -mfloat-abi=hard \</span><br><span class="line">  -mfpu=vfp \</span><br><span class="line">  -funsigned-char \</span><br><span class="line">  -mlittle-endian \</span><br><span class="line">  -Wno-type-limits \</span><br><span class="line">  -Wno-unused-private-field \</span><br><span class="line">  -fomit-frame-pointer \</span><br><span class="line">  -MD \</span><br><span class="line">  -march=armv6 \</span><br><span class="line">  -marm</span><br><span class="line"></span><br><span class="line">ifneq ($(PIC),)</span><br><span class="line">  PLATFORM_FLAGS += -fpic</span><br><span class="line">endif</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Common + C/C++ flags</span></span><br><span class="line">CXXFLAGS += $(PLATFORM_FLAGS)</span><br><span class="line">CCFLAGS += $(PLATFORM_FLAGS)</span><br><span class="line"></span><br><span class="line">CC := $(TARGET_TOOLCHAIN_PREFIX)gcc</span><br><span class="line">CXX := $(TARGET_TOOLCHAIN_PREFIX)g++</span><br><span class="line">AR := $(TARGET_TOOLCHAIN_PREFIX)ar</span><br></pre></td></tr></table></figure>
+<p>编译静态库：</p>
+<p><code>make -f tensorflow/lite/micro/tools/make/Makefile TARGET=rpi_zero_w microlite</code></p>
+<p>得到静态库：</p>
+<p><code>x-tools/armv6-rpi-linux-gnueabihf/bin/armv6-rpi-linux-gnueabihf-ar: creating gen/rpi_zero_w_x86_64_default_gcc/lib/libtensorflow-microlite.a</code></p>
+<p>为了公平竞争，编译<code>BUILD_TYPE := release</code>版本,编译时没什么问题，运行时会遇到报错:</p>
+<blockquote>
+<p>undefined reference to `MicroPrintf(char const*, ...)'</p>
+</blockquote>
+<p>include/tensorflow/lite/micro/micro_mutable_op_resolver.h里面关于MicroPrintf的代码注释掉即可编译。</p>
+<h1 id="数据分析">数据分析</h1>
+<h2 id="lenet-5-模型">lenet-5 模型</h2>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pi@raspberrypi:~/lenet5 $ size empty </span><br><span class="line">   text	   data	    bss	    dec	    hex	filename</span><br><span class="line">   2191	    340	      4	   2535	    9e7	empty</span><br><span class="line">pi@raspberrypi:~/lenet5 $ size tfml_default </span><br><span class="line">   text	   data	    bss	    dec	    hex	filename</span><br><span class="line"> 117353	 252116	     16	 369485	  5a34d	tfml_default</span><br><span class="line">pi@raspberrypi:~/lenet5 $ size tfml_release </span><br><span class="line">   text	   data	    bss	    dec	    hex	filename</span><br><span class="line">  85925	 252100	     12	 338037	  52875	tfml_release</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>filename</th>
+<th style="text-align: right;">text</th>
+<th style="text-align: right;">data</th>
+<th style="text-align: right;">bss</th>
+<th style="text-align: right;">dec</th>
+<th style="text-align: right;">invoke time</th>
+<th>heap(B)</th>
+<th>stack(B)</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>empty</td>
+<td style="text-align: right;">2191</td>
+<td style="text-align: right;">340</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2535</td>
+<td style="text-align: right;"></td>
+<td>27368</td>
+<td>2292</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>tfml_default</td>
+<td style="text-align: right;">117353</td>
+<td style="text-align: right;">252116</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">369485</td>
+<td style="text-align: right;"></td>
+<td>67880</td>
+<td>42464</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>tfml_release</td>
+<td style="text-align: right;">85925</td>
+<td style="text-align: right;">252100</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">338037</td>
+<td style="text-align: right;"></td>
+<td>67880</td>
+<td>42464</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>aidget</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td style="text-align: right;">x</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>tfml_default</td>
+<td style="text-align: right;">115162</td>
+<td style="text-align: right;">251776</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">18.37 ms</td>
+<td>40512</td>
+<td>40172</td>
+<td>-empty</td>
+</tr>
+<tr class="even">
+<td>tfml_release</td>
+<td style="text-align: right;">83734</td>
+<td style="text-align: right;">251416</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">17.11 ms</td>
+<td>40512</td>
+<td>40172</td>
+<td>-empty</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>text
+<ul>
+<li>表示代码段（.text）的大小。</li>
+<li>包含程序的可执行指令。</li>
+<li>较大时，说明程序包含更多功能或逻辑。</li>
+</ul></li>
+<li>data
+<ul>
+<li>表示已初始化全局和静态变量的大小。</li>
+<li>包含变量的初始值。</li>
+</ul></li>
+<li>bss
+<ul>
+<li>表示未初始化或默认初始化为零的全局和静态变量的大小。</li>
+<li>仅分配内存，不包含实际数据。</li>
+</ul></li>
+<li>dec
+<ul>
+<li>总大小（text + data + bss），以字节为单位。</li>
+</ul></li>
+<li>hex
+<ul>
+<li>dec 的十六进制表示。</li>
+</ul></li>
+</ul>
+<h3 id="速度测试">速度测试</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pi@raspberrypi:~/lenet5 $ ./tfml_release </span><br><span class="line">Time taken: 17.111680108 seconds</span><br><span class="line">output = 0.100160</span><br><span class="line">pi@raspberrypi:~/lenet5 $ ./tfml_default </span><br><span class="line">Time taken: 18.373274514 seconds</span><br><span class="line">output = 0.100160</span><br></pre></td></tr></table></figure>
+<h3 id="heap测试">heap测试</h3>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ valgrind --tool=massif --stacks=yes --massif-out-file=massif_output_empty.out ./empty </span><br><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ valgrind --tool=massif --stacks=yes --massif-out-file=massif_output_tfml_default.out ./tfml_default_1</span><br><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ valgrind --tool=massif --stacks=yes --massif-out-file=massif_output_tfml_release.out ./tfml_release_1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pi@raspberrypi:~/lenet5 $ ms_print massif_output_empty.out </span><br><span class="line">pi@raspberrypi:~/lenet5 $ ms_print massif_output_tfml_default.out </span><br><span class="line">pi@raspberrypi:~/lenet5 $ ms_print massif_output_tfml_release.out </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Node CONV_2D (number 0) invoke time: 11.220000</span><br><span class="line">Node TANH (number 1) invoke time: 1.351000</span><br><span class="line">Node MUL (number 2) invoke time: 0.506000</span><br><span class="line">Node ADD (number 3) invoke time: 0.387000</span><br><span class="line">Node MAX_POOL_2D (number 4) invoke time: 0.294000</span><br><span class="line">Node CONV_2D (number 5) invoke time: 5.136000</span><br><span class="line">Node TANH (number 6) invoke time: 0.469000</span><br><span class="line">Node MUL (number 7) invoke time: 0.178000</span><br><span class="line">Node ADD (number 8) invoke time: 0.128000</span><br><span class="line">Node MAX_POOL_2D (number 9) invoke time: 0.100000</span><br><span class="line">Node RESHAPE (number 10) invoke time: 0.013000</span><br><span class="line">Node FULLY_CONNECTED (number 11) invoke time: 1.234000</span><br><span class="line">Node TANH (number 12) invoke time: 0.049000</span><br><span class="line">Node FULLY_CONNECTED (number 13) invoke time: 0.272000</span><br><span class="line">Node TANH (number 14) invoke time: 0.038000</span><br><span class="line">Node FULLY_CONNECTED (number 15) invoke time: 0.038000</span><br><span class="line">Node SOFTMAX (number 16) invoke time: 0.013000</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr class="header">
+<th>index</th>
+<th>operator</th>
+<th>tflm</th>
+<th>aidget</th>
+<th>aidget</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>CONV_2D</td>
+<td>11.22</td>
+<td>14.502</td>
+<td>6.038</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>TANH</td>
+<td>1.351</td>
+<td>2.725</td>
+<td>0.334</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>MUL</td>
+<td>0.506</td>
+<td>0.269</td>
+<td>0.193</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>ADD</td>
+<td>0.387</td>
+<td>2.725</td>
+<td>0.176</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>MAX_POOL_2D</td>
+<td>0.294</td>
+<td>1.114</td>
+<td>0.496</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>CONV_2D</td>
+<td>5.136</td>
+<td>11.357</td>
+<td>5.152</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>TANH</td>
+<td>0.469</td>
+<td>0.857</td>
+<td>0.119</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>MUL</td>
+<td>0.178</td>
+<td>0.094</td>
+<td>0.066</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td>ADD</td>
+<td>0.128</td>
+<td>0.092</td>
+<td>0.059</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td>MAX_POOL_2D</td>
+<td>0.100</td>
+<td>0.155</td>
+<td>0.161</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td>RESHAPE</td>
+<td>0.013</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>11</td>
+<td>FULLY_CONNECTED</td>
+<td>1.234</td>
+<td>3.805</td>
+<td>1.163</td>
+</tr>
+<tr class="odd">
+<td>12</td>
+<td>TANH</td>
+<td>0.049</td>
+<td>0.075</td>
+<td>0.013</td>
+</tr>
+<tr class="even">
+<td>13</td>
+<td>FULLY_CONNECTED</td>
+<td>0.272</td>
+<td>0.385</td>
+<td>0.251</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td>TANH</td>
+<td>0.038</td>
+<td>0.059</td>
+<td>0.011</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td>FULLY_CONNECTED</td>
+<td>0.038</td>
+<td>0.036</td>
+<td>0.027</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>SOFTMAX</td>
+<td>0.013</td>
+<td>0.010</td>
+<td>0.006</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+        <tag>Raspberry</tag>
       </tags>
   </entry>
 </search>
