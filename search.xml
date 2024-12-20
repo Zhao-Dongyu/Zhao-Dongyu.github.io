@@ -507,13 +507,13 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in 1st place in Duos
 </td>
 <td>
-222/250
+239/250
 </td>
 <td>
 Finish in top 2 in Duos
 </td>
 <td>
-320/1000
+351/1000
 </td>
 </tr>
 <tr>
@@ -1068,6 +1068,34 @@ The Little Bot That Could<br>(Completed 2023/07/08)
 Passive. After each Refresh, give a minion in Bob's Tavern Taunt,
 Windfury, Reborn, or Divine Shield.<br>Finish in 1st place as Enhance-o
 Mechano
+</td>
+</tr>
+<tr>
+<td>
+Exarch Othaar
+</td>
+<td>
+<img src="">
+</td>
+<td>
+Astronomical!
+</td>
+<td>
+<br>Finish in 1st place as Exarch Othaar
+</td>
+</tr>
+<tr>
+<td>
+<b>Farseer Nobundo</b>
+</td>
+<td>
+<img src="">
+</td>
+<td>
+Out of This World!<br>(Completed 2024/12/07)
+</td>
+<td>
+<br>Finish in 1st place as Farseer Nobundo
 </td>
 </tr>
 <tr>
@@ -2325,6 +2353,20 @@ Phenomental Cosmic Powers<br>(Completed 2023/05/27)
 <td>
 If you have two copies of a minion, find the third. ( (Wish, Wishes)
 left!)<br>Finish in 1st place as Zephrys the Great
+</td>
+</tr>
+<tr>
+<td>
+Zerek, Master Cloner
+</td>
+<td>
+<img src="">
+</td>
+<td>
+Master Cloner
+</td>
+<td>
+<br>Finish in 1st place as Zerek, Master Cloner
 </td>
 </tr>
 </table>
@@ -5357,26 +5399,93 @@ href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
     <url>/2024/10/31/106_ComfyUI/</url>
     <content><![CDATA[<p>开始学习 ComfyUI，学学文生图相关的知识</p>
 <span id="more"></span>
+<h1 id="教程">教程</h1>
+<p><a
+href="https://comfyanonymous.github.io/ComfyUI_tutorial_vn/">ComfyUI
+官方教程</a></p>
 <p><a
 href="https://zhuanlan.zhihu.com/p/525106459">由浅入深了解Diffusion
 Model</a></p>
 <p><a
 href="https://blog.csdn.net/weixin_37863729/article/details/141216314?ops_request_misc=%257B%2522request%255Fid%2522%253A%25228A8AF038-A51B-412A-B9CC-2615FB38F564%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=8A8AF038-A51B-412A-B9CC-2615FB38F564&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_click~default-2-141216314-null-null.142%5Ev100%5Epc_search_result_base6&amp;utm_term=comfyui&amp;spm=1018.2226.3001.4187">从零开始教你玩转ComfyUI-保姆级部署教程-手把手带你ComfyUI工作流搭建</a></p>
-<p>https://comfyanonymous.github.io/ComfyUI_tutorial_vn/</p>
 <p>ComfyUI 是节点式的Stable Diffusion用户界面。</p>
-<p>节点式就是每个功能被拆解成独立的模块，模块之间由线相连，用于传递信息。这种形式呈现出清晰的工作流，并且允许根据需求来自由搭建工作流。</p>
-<p>conda create --name ComfyUI conda init bash conda activate
-ComfyUI</p>
-<p>git clone https://github.com/comfyanonymous/ComfyUI cd ComfyUI pip
-install -r requirements.txt</p>
-<p>下载模型 wget -P ~/Projects/ComfyUI/models/checkpoints
-https://hf-mirror.com/LarryAIDraw/v1-5-pruned-emaonly/resolve/main/v1-5-pruned-emaonly.ckpt</p>
-<p>os.environ['CUDA_VISIBLE_DEVICES'] 设置了一个环境变量，用于限制哪些
-GPU 设备对程序可见。这个变量在程序启动时确定，并且通常在设置后会影响如
-TensorFlow 和 PyTorch 等深度学习框架，使它们只看到特定的 GPU。
-os.environ['CUDA_VISIBLE_DEVICES'] 必须在任何与 torch 或 CUDA
-相关的模块加载之前设置。如果 torch 已经初始化了 CUDA
-设备，然后再设置这个环境变量，那么它将不会生效。</p>
+<ul>
+<li>节点式就是每个功能被拆解成独立的模块，模块之间由线相连，用于传递信息。这种形式呈现出清晰的工作流，并且允许根据需求来自由搭建工作流。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/miniforge3/bin/activate</span><br><span class="line">conda create --name ComfyUI</span><br><span class="line">conda init bash</span><br><span class="line">conda activate ComfyUI</span><br><span class="line"></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/comfyanonymous/ComfyUI</span><br><span class="line"><span class="built_in">cd</span> ComfyUI</span><br><span class="line">pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
+<p>由于PyTorch 通常支持 Python 3.8、3.9、3.10（部分支持 3.11）。
+报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ERROR: Could not find a version that satisfies the requirement torch (from versions: none)</span><br><span class="line">ERROR: No matching distribution found for torch</span><br></pre></td></tr></table></figure>
+<p>于是安装3.10</p>
+<p><code>conda install python=3.10</code></p>
+<p>下载模型
+<code>wget -P ~/Projects/ComfyUI/models/checkpoints https://hf-mirror.com/LarryAIDraw/v1-5-pruned-emaonly/resolve/main/v1-5-pruned-emaonly.ckpt</code></p>
+<ul>
+<li>os.environ['CUDA_VISIBLE_DEVICES']
+<ul>
+<li>设置了一个环境变量，用于限制哪些 GPU
+设备对程序可见。这个变量在程序启动时确定，并且通常在设置后会影响如
+TensorFlow 和 PyTorch 等深度学习框架，使它们只看到特定的 GPU。</li>
+<li>必须在任何与 torch 或 CUDA 相关的模块加载之前设置。如果 torch
+已经初始化了 CUDA 设备，然后再设置这个环境变量，那么它将不会生效。</li>
+</ul></li>
+</ul>
+<p>启动： <code>python main.py</code></p>
+<h1 id="qa">Q&amp;A</h1>
+<h2 id="stable-diffusion-和-pixel-diffusion-的区别">Stable Diffusion 和
+Pixel Diffusion 的区别？</h2>
+<p>Stable Diffusion 和 Pixel Diffusion 都是基于扩散模型（Diffusion
+Models）的图像生成方法，但它们有一些关键的区别，特别是在
+<strong>处理图像的方式</strong> 和 <strong>训练策略</strong> 上。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>特性</th>
+<th>Stable Diffusion</th>
+<th>Pixel Diffusion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>噪声添加</td>
+<td>先在潜在空间添加噪声，后再通过反向去噪生成图像。</td>
+<td>直接在图像的像素空间上添加噪声并去噪。</td>
+</tr>
+<tr class="even">
+<td>潜在空间</td>
+<td>使用VAE将图像转换为潜在空间，在潜在空间中进行扩散操作。</td>
+<td>不使用潜在空间，直接在像素空间中进行操作。</td>
+</tr>
+<tr class="odd">
+<td>生成效率</td>
+<td>更高效，因为操作在潜在空间进行，减少了计算复杂度。</td>
+<td>可能较低效，因为需要处理原始图像像素，计算需求更大。</td>
+</tr>
+<tr class="even">
+<td>计算资源需求</td>
+<td>需要较少的计算资源，适合生成较高分辨率的图像。</td>
+<td>需要更多的计算资源，尤其在生成高分辨率图像时。</td>
+</tr>
+<tr class="odd">
+<td>应用领域</td>
+<td>艺术创作、文本到图像生成、游戏开发等。</td>
+<td>主要用于更精细的像素级图像生成任务。</td>
+</tr>
+<tr class="even">
+<td>生成质量</td>
+<td>生成质量高，能够生成非常细致的图像，特别适合生成艺术风格图像。</td>
+<td>可能在一些细节处理上表现更好，但计算开销较大。</td>
+</tr>
+</tbody>
+</table>
+<p>简而言之，Stable Diffusion 更侧重于在潜在空间中进行高效的图像生成，而
+Pixel Diffusion
+则注重更精细的像素级处理，适合那些需要直接操作图像像素的应用。</p>
 ]]></content>
       <categories>
         <category>技术</category>
@@ -6056,7 +6165,82 @@ memory) GPU memory</p>
 <p>首先要计算一些参数</p>
 <p>在 <code>CalculateSoftmaxParams</code> 函数中，</p>
 <p>先确保了2个参数： <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">TF_LITE_ENSURE_EQ(context, output-&gt;params.zero_point, <span class="number">-128</span>);</span><br><span class="line">TF_LITE_ENSURE(context, output-&gt;params.scale == <span class="number">1.f</span> / <span class="number">256</span>);</span><br></pre></td></tr></table></figure> 看来量化的softmax算子的输出 tensor 的
-<code>scale</code> 和 <code>zero point</code> 是固定的.</p>
+<code>scale</code> 和 <code>zero point</code> 是固定的。</p>
+<p>然后是函数 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">tflite::PreprocessSoftmaxScaling(</span><br><span class="line">    static_cast&lt;<span class="type">double</span>&gt;(params-&gt;beta),</span><br><span class="line">    static_cast&lt;<span class="type">double</span>&gt;(input-&gt;params.scale), kScaledDiffIntegerBits,</span><br><span class="line">    &amp;op_data-&gt;input_multiplier, &amp;input_left_shift);</span><br></pre></td></tr></table></figure></p>
+<p>由于使用的是 Double-rounding(文末附了Single-Rounding 和
+Double-Rounding的区别)</p>
+<p><code>const double max_real_multiplier = (1LL &lt;&lt; 31) - 1.0;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const double input_beta_real_multiplier =</span><br><span class="line">    std::min&lt;double&gt;(beta * input_scale * (1 &lt;&lt; (31 - input_integer_bits)),</span><br><span class="line">                    max_real_multiplier);</span><br></pre></td></tr></table></figure>
+<p>其中，</p>
+<ul>
+<li>beta: 1.000000
+<ul>
+<li>Used even when beta defaults to 1.0.</li>
+<li>即使 beta 被设置为默认值 1.0，它不会被忽略，而是仍然参与计算。</li>
+</ul></li>
+<li>input_scale: 0.091732</li>
+<li>input_integer_bits: 5
+<ul>
+<li>static const int kScaledDiffIntegerBits = 5;</li>
+<li>这是设置的固定值</li>
+</ul></li>
+<li>max_real_multiplier: 2147483647.000000
+<ul>
+<li>使用的是 Double-rounding</li>
+<li>const double max_real_multiplier = (1LL &lt;&lt; 31) - 1.0;</li>
+</ul></li>
+</ul>
+<p>得到 <code>input_beta_real_multiplier: 6156025.000000</code></p>
+<p>然后是函数 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">QuantizeMultiplierGreaterThanOne(input_beta_real_multiplier,</span><br><span class="line">                                 quantized_multiplier, left_shift);</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (double_multiplier == <span class="number">0.</span>) &#123;</span><br><span class="line">  *quantized_multiplier = <span class="number">0</span>;</span><br><span class="line">  *shift = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">const</span> <span class="type">double</span> q = <span class="built_in">std</span>::<span class="built_in">frexp</span>(double_multiplier, shift);</span><br><span class="line"><span class="keyword">auto</span> q_fixed = static_cast&lt;<span class="type">int64_t</span>&gt;(TfLiteRound(q * (<span class="number">1LL</span> &lt;&lt; <span class="number">31</span>)));</span><br><span class="line">  <span class="keyword">if</span> (q_fixed == (<span class="number">1LL</span> &lt;&lt; <span class="number">31</span>)) &#123;</span><br><span class="line">  q_fixed /= <span class="number">2</span>;</span><br><span class="line">  ++*shift;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (*shift &lt; <span class="number">-31</span>) &#123;</span><br><span class="line">  *shift = <span class="number">0</span>;</span><br><span class="line">  q_fixed = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">*quantized_multiplier = static_cast&lt;<span class="type">int32_t</span>&gt;(q_fixed);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>计算结果是</p>
+<ul>
+<li>quantized_multiplier = 1575942400</li>
+<li>left_shift = 23</li>
+</ul>
+<p>然后是函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">op_data-&gt;diff_min =</span><br><span class="line">    -1.0 * tflite::CalculateInputRadius(kScaledDiffIntegerBits,</span><br><span class="line">                                        op_data-&gt;input_left_shift);</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">double</span> max_input_rescaled =</span><br><span class="line">    <span class="number">1.0</span> * ((<span class="number">1</span> &lt;&lt; input_integer_bits) - <span class="number">1</span>) *</span><br><span class="line">    (<span class="number">1LL</span> &lt;&lt; (total_signed_bits - input_integer_bits)) /</span><br><span class="line">    (<span class="number">1LL</span> &lt;&lt; input_left_shift);</span><br><span class="line"><span class="comment">// Tighten bound using floor.  Suppose that we could use the exact value.</span></span><br><span class="line"><span class="comment">// After scaling the difference, the result would be at the maximum.  Thus we</span></span><br><span class="line"><span class="comment">// must ensure that our value has lower magnitude.</span></span><br><span class="line"><span class="keyword">return</span> static_cast&lt;<span class="type">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">floor</span>(max_input_rescaled));</span><br></pre></td></tr></table></figure>
+<p>通过 floor
+操作对边界进行收紧，使计算结果不会超过允许的最大值或最小值。
+假设可以使用精确的浮点数值进行计算。如果直接使用精确值进行放缩（scaling），计算结果可能正好达到边界值（如最大值
+127）。但是实际计算中，任何额外的误差都可能导致结果超出边界。因此，为了避免超出范围，我们需要保证数值的绝对值低于或等于边界值。使用
+floor 是一种方法，可以确保数值朝着更小的方向调整，从而满足边界要求。</p>
+<p>通过向下取整，确保计算结果不会超出规定的范围，从而避免数值的溢出问题。</p>
+<p>input_integer_bits = 5 input_left_shift = 23 total_signed_bits =
+31</p>
+<p>op_data-&gt;diff_min = -248 op_data-&gt;input_left_shift = 23
+op_data-&gt;input_multiplier = 1575942400</p>
+<p>在 TensorFlow 的量化运算中，double-rounding 和 single-rounding
+是处理整数运算中舍入过程的两种策略。它们在计算中间结果和最终结果时的处理方式不同，对精度和性能有一定影响。</p>
+<ol type="1">
+<li>Single-Rounding (单次舍入)</li>
+</ol>
+<p>单次舍入是在完成量化运算后，直接对结果进行一次舍入操作。 • 过程： •
+直接将运算的中间结果（通常是乘法后的积）除以一个缩放因子，并进行一次舍入操作。
+•
+用于快速实现，但在一些边界情况（比如舍入时丢失低位信息）下可能会有轻微的误差。</p>
+<ol start="2" type="1">
+<li>Double-Rounding (双次舍入)</li>
+</ol>
+<p>双次舍入是一个更精确的舍入策略，通过两次独立的舍入操作，减少了舍入误差。
+• 过程： 1.
+首先对乘法结果进行一次初步舍入，保留更多的有效位（通常在中间的高精度计算中使用）。
+2. 再根据目标量化范围对初步舍入后的结果进行二次舍入。</p>
+<ul>
+<li>Single-Rounding：
+<ul>
+<li>通常在硬件限制较多（如嵌入式设备）的 TensorFlow Lite Micro
+中实现。</li>
+<li>适合性能优先的场景。</li>
+</ul></li>
+<li>Double-Rounding：
+<ul>
+<li>用于更高精度要求的 TensorFlow Lite 和 TensorFlow
+图层之间的累积计算。</li>
+<li>对浮点到定点转换中的精度保留尤为重要。</li>
+</ul></li>
+</ul>
 ]]></content>
       <categories>
         <category>技术</category>

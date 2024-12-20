@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-12-02T09:09:00.291Z</updated>
+  <updated>2024-12-02T10:10:33.310Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/"/>
     <id>http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</id>
     <published>2024-12-01T16:00:00.000Z</published>
-    <updated>2024-12-02T09:09:00.291Z</updated>
+    <updated>2024-12-02T10:10:33.310Z</updated>
     
     
     <summary type="html">&lt;p&gt;研究了一下 tensorflow 实现 int8 量化的 softmax 算子&lt;/p&gt;</summary>
@@ -211,7 +211,7 @@ and performance.&lt;/p&gt;</summary>
     <link href="http://example.com/2024/10/31/106_ComfyUI/"/>
     <id>http://example.com/2024/10/31/106_ComfyUI/</id>
     <published>2024-10-30T16:00:00.000Z</published>
-    <updated>2024-11-05T02:57:46.292Z</updated>
+    <updated>2024-12-20T03:02:47.340Z</updated>
     
     
     <summary type="html">&lt;p&gt;开始学习 ComfyUI，学学文生图相关的知识&lt;/p&gt;</summary>
@@ -438,7 +438,7 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <link href="http://example.com/2023/07/09/100_Battlegrounds/"/>
     <id>http://example.com/2023/07/09/100_Battlegrounds/</id>
     <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2024-11-30T13:18:02.762Z</updated>
+    <updated>2024-12-20T03:13:39.298Z</updated>
     
     
     <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
