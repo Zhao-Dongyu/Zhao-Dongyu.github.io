@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2024-12-02T10:10:33.310Z</updated>
+  <updated>2025-01-07T10:00:06.733Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,38 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>115_Video_Generative</title>
+    <link href="http://example.com/2025/01/07/115_Video_Generative/"/>
+    <id>http://example.com/2025/01/07/115_Video_Generative/</id>
+    <published>2025-01-07T01:49:10.000Z</published>
+    <updated>2025-01-07T10:00:06.733Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;学习研究文生视频&lt;/p&gt;
+&lt;p&gt;Effective scaling strategy
+将计算资源需求减少最多5倍，同时实现预期的模型性能。&lt;/p&gt;
+&lt;p&gt;13 billion parameters 130亿参数 pre-training it on</summary>
+        
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="T2V" scheme="http://example.com/tags/T2V/"/>
+    
+  </entry>
   
   <entry>
     <title>113_tensorflow实现量化softmax算子</title>
@@ -473,28 +505,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
     
     <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>FasterTransformer</title>
-    <link href="http://example.com/2023/07/06/83_FasterTransformer/"/>
-    <id>http://example.com/2023/07/06/83_FasterTransformer/</id>
-    <published>2023-07-06T09:21:08.000Z</published>
-    <updated>2024-09-27T08:41:27.717Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;记录一下部署大模型的经历&lt;/p&gt;
-&lt;p&gt;【更新中】&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
     
   </entry>
   
