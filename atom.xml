@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-01-09T10:07:44.620Z</updated>
+  <updated>2025-01-21T07:34:20.338Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2025/01/07/115_Video_Generative/"/>
     <id>http://example.com/2025/01/07/115_Video_Generative/</id>
     <published>2025-01-07T01:49:10.000Z</published>
-    <updated>2025-01-09T10:07:44.620Z</updated>
+    <updated>2025-01-21T07:34:20.338Z</updated>
     
     
       
@@ -119,7 +119,7 @@ href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p
     <link href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
     <id>http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
     <published>2024-11-13T16:00:00.000Z</published>
-    <updated>2024-11-28T05:24:03.120Z</updated>
+    <updated>2025-01-19T08:18:15.917Z</updated>
     
     
     <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt;
