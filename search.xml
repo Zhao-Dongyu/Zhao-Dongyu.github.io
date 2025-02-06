@@ -513,7 +513,7 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in top 2 in Duos
 </td>
 <td>
-387/1000
+390/1000
 </td>
 </tr>
 <tr>
@@ -7186,7 +7186,10 @@ href="https://github.com/welltop-cn/ComfyUI-TeaCache">ComfyUI-TeaCache</a></p>
 href="https://github.com/amao2001/ganloss-latent-space">ganloss-latent-space</a></p>
 <p><a href="https://github.com/ali-vilab/TeaCache">TeaCache技术</a> <a
 href="https://arxiv.org/pdf/2411.19108">paper</a></p>
-<p><img src="/images/adas/1.png" width="80%"></p>
+<p><img src="/images/115/Teacache.png" width="80%"></p>
+<p>Uniform Cache: 均匀的缓存技术 - 毫无重点 - 没有优化的技术</p>
+<p>TeaCache: 非均匀 多次重用 输出取决于输入，输入变化很小 -&gt;
+输出变化可以接受，重用缓存，提高缓存效率</p>
 ]]></content>
       <categories>
         <category>技术</category>
