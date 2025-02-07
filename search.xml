@@ -222,7 +222,7 @@ href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/3.flw_bandwid
 <li><a
 href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/4.vlw_bandwidth_test">4.vlw_bandwidth_test</a></li>
 </ul>
-<p><img src=/images/sgemm/prepare/imgs/memory_bandwidth_test.png width=70% /></p>
+<p><img src=/images/sgemm/pics/memory_bandwidth_test.png width=70% /></p>
 <h2 id="roofline模型">roofline模型</h2>
 <p><a href="https://en.wikipedia.org/wiki/Roofline_model">Roofline</a>
 提出了使用
@@ -2446,7 +2446,7 @@ href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/3.flw_bandwid
 <li><a
 href="https://github.com/Zhao-Dongyu/sgemm_riscv/tree/main/prepare/4.vlw_bandwidth_test">4.vlw_bandwidth_test</a></li>
 </ul>
-<p><img src=/images/sgemm/prepare/imgs/memory_bandwidth_test.png width=70% /></p>
+<p><img src=/images/sgemm/pics/memory_bandwidth_test.png width=70% /></p>
 <h2 id="roofline-model">Roofline Model</h2>
 <p><a href="https://en.wikipedia.org/wiki/Roofline_model">Roofline</a>
 proposes a method for quantitative analysis using "Operational
@@ -7198,6 +7198,29 @@ href="https://arxiv.org/pdf/2411.19108">paper</a></p>
         <tag>LLM</tag>
         <tag>Tech</tag>
         <tag>T2V</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>116_learning_records</title>
+    <url>/2025/02/07/116_learning_records/</url>
+    <content><![CDATA[<p>扎实基础，系统学习。</p>
+<span id="more"></span>
+<h3 id="how-to-learn-deep-learning-framework"><a
+href="https://github.com/BBuf/how-to-learn-deep-learning-framework?tab=readme-ov-file">how-to-learn-deep-learning-framework</a></h3>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/486360176">一文读懂 PyTorch
+显存管理机制</a></li>
+<li><a
+href="https://zhuanlan.zhihu.com/p/527143823">PyTorch显存分配原理——以BERT，GPT为例</a></li>
+</ul>
+<h3 id="how-to-optim-algorithm-in-cuda"><a
+href="https://github.com/BBuf/how-to-optim-algorithm-in-cuda?tab=readme-ov-file">how-to-optim-algorithm-in-cuda</a></h3>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
       </tags>
   </entry>
 </search>

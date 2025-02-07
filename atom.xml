@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-01-22T03:27:20.650Z</updated>
+  <updated>2025-02-07T02:37:00.578Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,25 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>116_learning_records</title>
+    <link href="http://example.com/2025/02/07/116_learning_records/"/>
+    <id>http://example.com/2025/02/07/116_learning_records/</id>
+    <published>2025-02-07T01:51:10.000Z</published>
+    <updated>2025-02-07T02:37:00.578Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;扎实基础，系统学习。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
   
   <entry>
     <title>115_Video_Generative</title>
@@ -351,7 +370,7 @@ kernel的反量化。&lt;/p&gt;</summary>
     <link href="http://example.com/2024/02/26/102_sgemm_riscv_cn/"/>
     <id>http://example.com/2024/02/26/102_sgemm_riscv_cn/</id>
     <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2024-10-14T06:08:55.544Z</updated>
+    <updated>2025-02-07T05:59:38.880Z</updated>
     
     
     <summary type="html">&lt;p&gt;本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。&lt;/p&gt;</summary>
@@ -374,7 +393,7 @@ kernel的反量化。&lt;/p&gt;</summary>
     <link href="http://example.com/2024/02/26/103_sgemm_riscv_en/"/>
     <id>http://example.com/2024/02/26/103_sgemm_riscv_en/</id>
     <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2024-10-14T06:11:14.904Z</updated>
+    <updated>2025-02-07T06:00:03.420Z</updated>
     
     
     <summary type="html">&lt;p&gt;This project records the process of optimizing SGEMM
@@ -486,25 +505,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="Battlegrounds" scheme="http://example.com/tags/Battlegrounds/"/>
     
     <category term="game" scheme="http://example.com/tags/game/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Final Cut study notes</title>
-    <link href="http://example.com/2023/07/08/75_Final-cut-study-notes/"/>
-    <id>http://example.com/2023/07/08/75_Final-cut-study-notes/</id>
-    <published>2023-07-07T16:04:56.000Z</published>
-    <updated>2024-09-27T08:41:27.715Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;学习Final Cut Pro的笔记，提高生产力。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="finalcut" scheme="http://example.com/tags/finalcut/"/>
-    
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
     
   </entry>
   
