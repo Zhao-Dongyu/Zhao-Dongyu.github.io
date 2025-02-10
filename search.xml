@@ -7217,6 +7217,10 @@ href="https://zhuanlan.zhihu.com/p/527143823">PyTorch显存分配原理——以
 href="https://github.com/BBuf/how-to-optim-algorithm-in-cuda?tab=readme-ov-file">how-to-optim-algorithm-in-cuda</a></h3>
 <p>接下来要花时间学习这个
 [gpu-mode/lectures][https://github.com/gpu-mode/lectures]</p>
+<h3 id="moe">MOE</h3>
+<p><img src="/images/116/MOE.png" width="80%"></p>
+<p><a href="https://zhuanlan.zhihu.com/p/19117825360">MoE
+大模型负载均衡</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
