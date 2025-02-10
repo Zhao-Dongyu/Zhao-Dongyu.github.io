@@ -7221,6 +7221,20 @@ href="https://github.com/BBuf/how-to-optim-algorithm-in-cuda?tab=readme-ov-file"
 <p><img src="/images/116/MOE.png" width="80%"></p>
 <p><a href="https://zhuanlan.zhihu.com/p/19117825360">MoE
 大模型负载均衡</a></p>
+<blockquote>
+<p>从 GShard 到 DeepSeek-V3，我们不难发现负载均衡已经成为 MoE
+模型能否取得成功的关键因素之一。 - GShard 提出了 top-2 gating
+和容量限制的雏形； - Switch 用 top-1 gating
+证明了简单路由也能支撑大规模； - GLaM 强调能效；DeepSpeed-MoE
+则兼顾了训练和推理； - ST-MoE 用 z-loss 解决稳定性； - Mixtral
+强调路由的时间局部性； - OpenMoE 暴露了末端 token 掉队等问题； - JetMoE
+尝试 dropless； - DeepSeekMoE 做了细粒度拆分和共享专家； -
+最后，DeepSeek-V3 又带来了更“轻量级”的偏置调节策略。</p>
+</blockquote>
+<blockquote>
+<p>主要启示：负载均衡永远在动态平衡——过度干预会损害模型本身的学习目标，完全无视则会出现专家闲置或拥堵。往后我们大概率会看到更多
+HPC 技巧与更灵活的 gating 机制，以及更多针对推理部署的优化。</p>
+</blockquote>
 ]]></content>
       <categories>
         <category>技术</category>
