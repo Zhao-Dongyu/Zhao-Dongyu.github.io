@@ -513,7 +513,7 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in top 2 in Duos
 </td>
 <td>
-390/1000
+411/1000
 </td>
 </tr>
 <tr>
@@ -7215,6 +7215,8 @@ href="https://zhuanlan.zhihu.com/p/527143823">PyTorch显存分配原理——以
 </ul>
 <h3 id="how-to-optim-algorithm-in-cuda"><a
 href="https://github.com/BBuf/how-to-optim-algorithm-in-cuda?tab=readme-ov-file">how-to-optim-algorithm-in-cuda</a></h3>
+<p>接下来要花时间学习这个
+[gpu-mode/lectures][https://github.com/gpu-mode/lectures]</p>
 ]]></content>
       <categories>
         <category>技术</category>
