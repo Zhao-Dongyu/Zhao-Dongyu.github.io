@@ -7217,6 +7217,16 @@ href="https://zhuanlan.zhihu.com/p/527143823">PyTorch显存分配原理——以
 href="https://github.com/BBuf/how-to-optim-algorithm-in-cuda?tab=readme-ov-file">how-to-optim-algorithm-in-cuda</a></h3>
 <p>接下来要花时间学习这个
 [gpu-mode/lectures][https://github.com/gpu-mode/lectures]</p>
+<h2 id="deepseek">Deepseek</h2>
+<p><a href="https://arxiv.org/pdf/2412.19437v1">技术报告</a> -
+Multi-head Latent Attention (MLA) for efficient inference</p>
+<pre><code>[Deepseek-v2: A strong, economical, and efficient mixture-of-experts language model.](https://arxiv.org/abs/2405.04434)</code></pre>
+<ul>
+<li><p>DeepSeekMoE for cost-effective training</p>
+<p><a href="https://arxiv.org/abs/2401.06066">DeepSeekMoE: Towards
+Ultimate Expert Specialization in Mixture-of-Experts Language
+Models</a></p></li>
+</ul>
 <h3 id="moe">MOE</h3>
 <p><img src="/images/116/MOE.png" width="80%"></p>
 <p><a href="https://zhuanlan.zhihu.com/p/19117825360">MoE
