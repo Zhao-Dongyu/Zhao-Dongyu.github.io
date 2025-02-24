@@ -28,7 +28,7 @@
 <meta property="og:description" content="今天Deepseek开源 FlashMLA，之前看过很多MLA相关知识了，很好的学习 Cuda 加速的机会，实践学习记录一下。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
-<meta property="article:modified_time" content="2025-02-24T06:29:10.551Z">
+<meta property="article:modified_time" content="2025-02-24T06:32:49.194Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
@@ -237,7 +237,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2025-02-24 13:45:13 / Modified: 14:29:10" itemprop="dateCreated datePublished" datetime="2025-02-24T13:45:13+08:00">2025-02-24</time>
+              <time title="Created: 2025-02-24 13:45:13 / Modified: 14:32:49" itemprop="dateCreated datePublished" datetime="2025-02-24T13:45:13+08:00">2025-02-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -328,18 +328,18 @@ update 一下)</p>
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: center;">Batch Size (b)</th>
-<th style="text-align: center;">MTP (s_q)</th>
+<th style="text-align: center;">b</th>
+<th style="text-align: center;">s_q</th>
 <th style="text-align: center;">mean_sk</th>
 <th style="text-align: center;">h_q</th>
-<th style="text-align: center;">Key/Value Heads (h_kv)</th>
-<th style="text-align: center;">Dim (d)</th>
+<th style="text-align: center;">h_kv</th>
+<th style="text-align: center;">d</th>
 <th style="text-align: center;">dv</th>
 <th style="text-align: center;">Causal</th>
 <th style="text-align: center;">Varlen</th>
-<th style="text-align: center;">Warmup (n_warmup)</th>
-<th style="text-align: center;">Repeat (n_repeat)</th>
-<th style="text-align: center;">Time (ms)</th>
+<th style="text-align: center;">n_warmup</th>
+<th style="text-align: center;">n_repeat</th>
+<th style="text-align: center;">ms</th>
 <th style="text-align: center;">TFLOPS</th>
 <th style="text-align: center;">GB/s</th>
 </tr>
@@ -868,7 +868,9 @@ update 一下)</p>
 <h1 id="学习分析">学习分析</h1>
 <p>以 <code>b = 128</code>, <code>s = 4096</code>,
 <code>h_q = 32</code>(TP=4), <code>s_q = 1</code>,
-<code>varlen = False</code> 为例：</p>
+<code>varlen = False</code>
+为例，进入<code>tests/test_flash_mla.py</code> 的
+<code>test_flash_mla()</code> 函数：</p>
 
     </div>
 

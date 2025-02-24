@@ -7311,18 +7311,18 @@ update 一下)</p>
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: center;">Batch Size (b)</th>
-<th style="text-align: center;">MTP (s_q)</th>
+<th style="text-align: center;">b</th>
+<th style="text-align: center;">s_q</th>
 <th style="text-align: center;">mean_sk</th>
 <th style="text-align: center;">h_q</th>
-<th style="text-align: center;">Key/Value Heads (h_kv)</th>
-<th style="text-align: center;">Dim (d)</th>
+<th style="text-align: center;">h_kv</th>
+<th style="text-align: center;">d</th>
 <th style="text-align: center;">dv</th>
 <th style="text-align: center;">Causal</th>
 <th style="text-align: center;">Varlen</th>
-<th style="text-align: center;">Warmup (n_warmup)</th>
-<th style="text-align: center;">Repeat (n_repeat)</th>
-<th style="text-align: center;">Time (ms)</th>
+<th style="text-align: center;">n_warmup</th>
+<th style="text-align: center;">n_repeat</th>
+<th style="text-align: center;">ms</th>
 <th style="text-align: center;">TFLOPS</th>
 <th style="text-align: center;">GB/s</th>
 </tr>
@@ -7851,7 +7851,9 @@ update 一下)</p>
 <h1 id="学习分析">学习分析</h1>
 <p>以 <code>b = 128</code>, <code>s = 4096</code>,
 <code>h_q = 32</code>(TP=4), <code>s_q = 1</code>,
-<code>varlen = False</code> 为例：</p>
+<code>varlen = False</code>
+为例，进入<code>tests/test_flash_mla.py</code> 的
+<code>test_flash_mla()</code> 函数：</p>
 ]]></content>
       <categories>
         <category>技术</category>
