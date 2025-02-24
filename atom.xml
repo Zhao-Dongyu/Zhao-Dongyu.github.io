@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-02-21T03:08:54.426Z</updated>
+  <updated>2025-02-24T06:02:48.533Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>117_FlashMLA</title>
+    <link href="http://example.com/2025/02/24/117-FlashMLA/"/>
+    <id>http://example.com/2025/02/24/117-FlashMLA/</id>
+    <published>2025-02-24T05:45:13.000Z</published>
+    <updated>2025-02-24T06:02:48.533Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天Deepseek开源 &lt;a
+href=&quot;https://github.com/deepseek-ai/FlashMLA&quot;&gt;FlashMLA&lt;/a&gt;，之前看过很多MLA相关知识了，很好的学习
+Cuda 加速的机会，实践学习记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
   
   <entry>
     <title>116_learning_records</title>
@@ -481,30 +502,6 @@ href=&quot;https://mp.weixin.qq.com/s/cNCfhqoNB2wIC-5lAzIR3w&quot;&gt;视频：�
     <category term="ingress" scheme="http://example.com/tags/ingress/"/>
     
     <category term="Homogeneous" scheme="http://example.com/tags/Homogeneous/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Battlegrounds</title>
-    <link href="http://example.com/2023/07/09/100_Battlegrounds/"/>
-    <id>http://example.com/2023/07/09/100_Battlegrounds/</id>
-    <published>2023-07-08T18:04:51.000Z</published>
-    <updated>2025-02-10T05:34:30.679Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;Set up a flag: the completion progress reaches 100%&lt;/p&gt;
-&lt;p&gt;Now at &lt;strong&gt;99%&lt;/strong&gt;&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="游戏" scheme="http://example.com/categories/%E6%B8%B8%E6%88%8F/"/>
-    
-    
-    <category term="Hearthstone" scheme="http://example.com/tags/Hearthstone/"/>
-    
-    <category term="Battlegrounds" scheme="http://example.com/tags/Battlegrounds/"/>
-    
-    <category term="game" scheme="http://example.com/tags/game/"/>
     
   </entry>
   
