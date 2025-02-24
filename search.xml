@@ -7274,7 +7274,7 @@ Cuda 加速的机会，实践学习记录一下。</p>
 <p>FlashMLA is an efficient MLA decoding kernel for Hopper GPUs,
 optimized for variable-length sequences serving.</p>
 </blockquote>
-<p>实验平台选择 Hopper 结构的 GPU。</p>
+<p>所以实验平台选择 Hopper 结构的 GPU。</p>
 <details>
 <summary>
 实验平台信息
