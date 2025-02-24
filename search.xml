@@ -7292,22 +7292,19 @@ update 一下)</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># python setup.py install</span></span><br><span class="line">running install</span><br><span class="line">/usr/local/lib/python3<span class="number">.10</span>/dist-packages/setuptools/_distutils/cmd.py:<span class="number">79</span>: SetuptoolsDeprecationWarning: setup.py install <span class="keyword">is</span> deprecated.</span><br><span class="line">!!</span><br><span class="line"></span><br><span class="line">        ********************************************************************************</span><br><span class="line">        Please avoid running ``setup.py`` directly.</span><br><span class="line">        Instead, use pypa/build, pypa/installer <span class="keyword">or</span> other</span><br><span class="line">        standards-based tools.</span><br><span class="line"></span><br><span class="line">        See https://blog.ganssle.io/articles/<span class="number">2021</span>/<span class="number">10</span>/setup-py-deprecated.html <span class="keyword">for</span> details.</span><br><span class="line">        ********************************************************************************</span><br><span class="line"></span><br><span class="line">!!</span><br><span class="line">  self.initialize_options()</span><br><span class="line">/usr/local/lib/python3<span class="number">.10</span>/dist-packages/setuptools/_distutils/cmd.py:<span class="number">79</span>: EasyInstallDeprecationWarning: easy_install command <span class="keyword">is</span> deprecated.</span><br><span class="line">!!</span><br><span class="line"></span><br><span class="line">        ********************************************************************************</span><br><span class="line">        Please avoid running ``setup.py`` <span class="keyword">and</span> ``easy_install``.</span><br><span class="line">        Instead, use pypa/build, pypa/installer <span class="keyword">or</span> other</span><br><span class="line">        standards-based tools.</span><br><span class="line"></span><br><span class="line">        See https://github.com/pypa/setuptools/issues/<span class="number">917</span> <span class="keyword">for</span> details.</span><br><span class="line">        ********************************************************************************</span><br><span class="line"></span><br><span class="line">!!</span><br><span class="line">  self.initialize_options()</span><br><span class="line">running bdist_egg</span><br><span class="line">running egg_info</span><br><span class="line">creating flash_mla.egg-info</span><br><span class="line">writing flash_mla.egg-info/PKG-INFO</span><br><span class="line">writing dependency_links to flash_mla.egg-info/dependency_links.txt</span><br><span class="line">writing top-level names to flash_mla.egg-info/top_level.txt</span><br><span class="line">writing manifest file <span class="string">&#x27;flash_mla.egg-info/SOURCES.txt&#x27;</span></span><br><span class="line">adding license file <span class="string">&#x27;LICENSE&#x27;</span></span><br><span class="line">writing manifest file <span class="string">&#x27;flash_mla.egg-info/SOURCES.txt&#x27;</span></span><br><span class="line">installing library code to build/bdist.linux-x86_64/egg</span><br><span class="line">running install_lib</span><br><span class="line">running build_py</span><br><span class="line">creating build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla</span><br><span class="line">copying flash_mla/__init__.py -&gt; build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla</span><br><span class="line">copying flash_mla/flash_mla_interface.py -&gt; build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla</span><br><span class="line">running build_ext</span><br><span class="line">/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/utils/cpp_extension.py:<span class="number">426</span>: UserWarning: There are no x86_64-linux-gnu-g++ version bounds defined <span class="keyword">for</span> CUDA version <span class="number">12.4</span></span><br><span class="line">  warnings.warn(<span class="string">f&#x27;There are no <span class="subst">&#123;compiler_name&#125;</span> version bounds defined for CUDA version <span class="subst">&#123;cuda_str_version&#125;</span>&#x27;</span>)</span><br><span class="line">building <span class="string">&#x27;flash_mla_cuda&#x27;</span> extension</span><br><span class="line">creating /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc</span><br><span class="line">Emitting ninja build file /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/build.ninja...</span><br><span class="line">Compiling objects...</span><br><span class="line">Allowing ninja to <span class="built_in">set</span> a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)</span><br><span class="line">[<span class="number">1</span>/<span class="number">2</span>] c++ -MMD -MF /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_api.o.d -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=<span class="built_in">format</span>-security -g -fwrapv -O2 -fPIC -I/data/private/zhaodongyu/FlashMLA/csrc -I/data/private/zhaodongyu/FlashMLA/csrc/cutlass/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/TH -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3<span class="number">.10</span> -c -c /data/private/zhaodongyu/FlashMLA/csrc/flash_api.cpp -o /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_api.o -O3 -std=c++<span class="number">17</span> -DNDEBUG -Wno-deprecated-declarations -DTORCH_API_INCLUDE_EXTENSION_H <span class="string">&#x27;-DPYBIND11_COMPILER_TYPE=&quot;_gcc&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_STDLIB=&quot;_libstdcpp&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_BUILD_ABI=&quot;_cxxabi1011&quot;&#x27;</span> -DTORCH_EXTENSION_NAME=flash_mla_cuda -D_GLIBCXX_USE_CXX11_ABI=<span class="number">0</span></span><br><span class="line">[<span class="number">2</span>/<span class="number">2</span>] /usr/local/cuda/<span class="built_in">bin</span>/nvcc --generate-dependencies-<span class="keyword">with</span>-<span class="built_in">compile</span> --dependency-output /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_fwd_mla_bf16_sm90.o.d -I/data/private/zhaodongyu/FlashMLA/csrc -I/data/private/zhaodongyu/FlashMLA/csrc/cutlass/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/TH -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3<span class="number">.10</span> -c -c /data/private/zhaodongyu/FlashMLA/csrc/flash_fwd_mla_bf16_sm90.cu -o /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_fwd_mla_bf16_sm90.o -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options <span class="string">&#x27;&#x27;</span><span class="string">&quot;&#x27;&quot;</span><span class="string">&#x27;-fPIC&#x27;</span><span class="string">&quot;&#x27;&quot;</span><span class="string">&#x27;&#x27;</span> -O3 -std=c++<span class="number">17</span> -DNDEBUG -D_USE_MATH_DEFINES -Wno-deprecated-declarations -U__CUDA_NO_HALF_OPERATORS__ -U__CUDA_NO_HALF_CONVERSIONS__ -U__CUDA_NO_HALF2_OPERATORS__ -U__CUDA_NO_BFLOAT16_CONVERSIONS__ --expt-relaxed-constexpr --expt-extended-<span class="keyword">lambda</span> --use_fast_math --ptxas-options=-v,--register-usage-level=<span class="number">10</span> -gencode arch=compute_90a,code=sm_90a --threads <span class="number">32</span> -DTORCH_API_INCLUDE_EXTENSION_H <span class="string">&#x27;-DPYBIND11_COMPILER_TYPE=&quot;_gcc&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_STDLIB=&quot;_libstdcpp&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_BUILD_ABI=&quot;_cxxabi1011&quot;&#x27;</span> -DTORCH_EXTENSION_NAME=flash_mla_cuda -D_GLIBCXX_USE_CXX11_ABI=<span class="number">0</span></span><br><span class="line">ptxas info    : <span class="number">192</span> <span class="built_in">bytes</span> gmem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi160EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi160EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">640</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi128EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi128EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">512</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi96EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi96EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">384</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi64EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi64EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">256</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi32EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi32EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">128</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb0ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb0ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">104</span> <span class="built_in">bytes</span> stack frame, <span class="number">112</span> <span class="built_in">bytes</span> spill stores, <span class="number">124</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">255</span> registers, <span class="number">104</span> <span class="built_in">bytes</span> cumulative stack size</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb1ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb1ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">104</span> <span class="built_in">bytes</span> stack frame, <span class="number">116</span> <span class="built_in">bytes</span> spill stores, <span class="number">136</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">255</span> registers, <span class="number">104</span> <span class="built_in">bytes</span> cumulative stack size</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_Z23get_mla_metadata_kernel19Mla_metadata_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _Z23get_mla_metadata_kernel19Mla_metadata_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">32</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">32768</span> <span class="built_in">bytes</span> smem</span><br><span class="line">x86_64-linux-gnu-g++ -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=<span class="built_in">format</span>-security -g -fwrapv -O2 -shared -Wl,-O1 -Wl,-Bsymbolic-functions /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_api.o /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_fwd_mla_bf16_sm90.o -L/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/lib -L/usr/local/cuda/lib64 -L/usr/lib/x86_64-linux-gnu -lc10 -ltorch -ltorch_cpu -ltorch_python -lcudart -lc10_cuda -ltorch_cuda -o build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla_cuda.cpython-<span class="number">310</span>-x86_64-linux-gnu.so</span><br><span class="line">creating build/bdist.linux-x86_64/egg</span><br><span class="line">creating build/bdist.linux-x86_64/egg/flash_mla</span><br><span class="line">copying build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla/__init__.py -&gt; build/bdist.linux-x86_64/egg/flash_mla</span><br><span class="line">copying build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla/flash_mla_interface.py -&gt; build/bdist.linux-x86_64/egg/flash_mla</span><br><span class="line">copying build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla_cuda.cpython-<span class="number">310</span>-x86_64-linux-gnu.so -&gt; build/bdist.linux-x86_64/egg</span><br><span class="line">byte-compiling build/bdist.linux-x86_64/egg/flash_mla/__init__.py to __init__.cpython-<span class="number">310.</span>pyc</span><br><span class="line">byte-compiling build/bdist.linux-x86_64/egg/flash_mla/flash_mla_interface.py to flash_mla_interface.cpython-<span class="number">310.</span>pyc</span><br><span class="line">creating stub loader <span class="keyword">for</span> flash_mla_cuda.cpython-<span class="number">310</span>-x86_64-linux-gnu.so</span><br><span class="line">byte-compiling build/bdist.linux-x86_64/egg/flash_mla_cuda.py to flash_mla_cuda.cpython-<span class="number">310.</span>pyc</span><br><span class="line">creating build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/PKG-INFO -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/SOURCES.txt -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/dependency_links.txt -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/top_level.txt -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">writing build/bdist.linux-x86_64/egg/EGG-INFO/native_libs.txt</span><br><span class="line">zip_safe flag <span class="keyword">not</span> <span class="built_in">set</span>; analyzing archive contents...</span><br><span class="line">__pycache__.flash_mla_cuda.cpython-<span class="number">310</span>: module references __file__</span><br><span class="line">creating dist</span><br><span class="line">creating <span class="string">&#x27;dist/flash_mla-1.0.0+bcb90f2-py3.10-linux-x86_64.egg&#x27;</span> <span class="keyword">and</span> adding <span class="string">&#x27;build/bdist.linux-x86_64/egg&#x27;</span> to it</span><br><span class="line">removing <span class="string">&#x27;build/bdist.linux-x86_64/egg&#x27;</span> (<span class="keyword">and</span> everything under it)</span><br><span class="line">Processing flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg</span><br><span class="line">creating /usr/local/lib/python3<span class="number">.10</span>/dist-packages/flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg</span><br><span class="line">Extracting flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg to /usr/local/lib/python3<span class="number">.10</span>/dist-packages</span><br><span class="line">Adding flash-mla <span class="number">1.0</span><span class="number">.0</span>+bcb90f2 to easy-install.pth file</span><br><span class="line"></span><br><span class="line">Installed /usr/local/lib/python3<span class="number">.10</span>/dist-packages/flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg</span><br><span class="line">Processing dependencies <span class="keyword">for</span> flash-mla==<span class="number">1.0</span><span class="number">.0</span>+bcb90f2</span><br><span class="line">Finished processing dependencies <span class="keyword">for</span> flash-mla==<span class="number">1.0</span><span class="number">.0</span>+bcb90f2</span><br></pre></td></tr></table></figure>
 </details>
 <h1 id="测试结果">测试结果</h1>
-<table style="width:100%;">
+<table>
 <colgroup>
+<col style="width: 9%" />
+<col style="width: 6%" />
+<col style="width: 12%" />
 <col style="width: 6%" />
 <col style="width: 8%" />
-<col style="width: 13%" />
-<col style="width: 5%" />
-<col style="width: 11%" />
-<col style="width: 4%" />
+<col style="width: 9%" />
 <col style="width: 8%" />
-<col style="width: 4%" />
-<col style="width: 4%" />
-<col style="width: 8%" />
-<col style="width: 8%" />
-<col style="width: 5%" />
-<col style="width: 4%" />
-<col style="width: 3%" />
+<col style="width: 10%" />
+<col style="width: 9%" />
+<col style="width: 10%" />
+<col style="width: 9%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -7320,9 +7317,6 @@ update 一下)</p>
 <th style="text-align: center;">dv</th>
 <th style="text-align: center;">Causal</th>
 <th style="text-align: center;">Varlen</th>
-<th style="text-align: center;">n_warmup</th>
-<th style="text-align: center;">n_repeat</th>
-<th style="text-align: center;">ms</th>
 <th style="text-align: center;">TFLOPS</th>
 <th style="text-align: center;">GB/s</th>
 </tr>
@@ -7338,10 +7332,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">36</td>
-<td style="text-align: center;">144</td>
 <td style="text-align: center;">0.609</td>
-<td style="text-align: center;">30</td>
 <td style="text-align: center;">998</td>
 </tr>
 <tr class="even">
@@ -7354,10 +7345,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">140</td>
 <td style="text-align: center;">0.634</td>
-<td style="text-align: center;">29</td>
 <td style="text-align: center;">965</td>
 </tr>
 <tr class="odd">
@@ -7370,10 +7358,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">36</td>
-<td style="text-align: center;">145</td>
 <td style="text-align: center;">0.610</td>
-<td style="text-align: center;">60</td>
 <td style="text-align: center;">1004</td>
 </tr>
 <tr class="even">
@@ -7386,10 +7371,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">140</td>
 <td style="text-align: center;">0.634</td>
-<td style="text-align: center;">60</td>
 <td style="text-align: center;">1001</td>
 </tr>
 <tr class="odd">
@@ -7402,10 +7384,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">36</td>
-<td style="text-align: center;">145</td>
 <td style="text-align: center;">0.613</td>
-<td style="text-align: center;">60</td>
 <td style="text-align: center;">1000</td>
 </tr>
 <tr class="even">
@@ -7418,10 +7397,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">34</td>
-<td style="text-align: center;">138</td>
 <td style="text-align: center;">0.645</td>
-<td style="text-align: center;">59</td>
 <td style="text-align: center;">998</td>
 </tr>
 <tr class="odd">
@@ -7434,10 +7410,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">143</td>
 <td style="text-align: center;">0.618</td>
-<td style="text-align: center;">118</td>
 <td style="text-align: center;">1005</td>
 </tr>
 <tr class="even">
@@ -7450,10 +7423,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">143</td>
 <td style="text-align: center;">0.622</td>
-<td style="text-align: center;">117</td>
 <td style="text-align: center;">995</td>
 </tr>
 <tr class="odd">
@@ -7466,10 +7436,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">143</td>
 <td style="text-align: center;">0.621</td>
-<td style="text-align: center;">118</td>
 <td style="text-align: center;">1002</td>
 </tr>
 <tr class="even">
@@ -7482,10 +7449,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">35</td>
-<td style="text-align: center;">141</td>
 <td style="text-align: center;">0.631</td>
-<td style="text-align: center;">113</td>
 <td style="text-align: center;">965</td>
 </tr>
 <tr class="odd">
@@ -7498,10 +7462,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">79</td>
 <td style="text-align: center;">1.186</td>
-<td style="text-align: center;">123</td>
 <td style="text-align: center;">539</td>
 </tr>
 <tr class="even">
@@ -7514,10 +7475,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">18</td>
-<td style="text-align: center;">74</td>
 <td style="text-align: center;">1.261</td>
-<td style="text-align: center;">121</td>
 <td style="text-align: center;">528</td>
 </tr>
 <tr class="odd">
@@ -7530,10 +7488,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">79</td>
 <td style="text-align: center;">1.191</td>
-<td style="text-align: center;">123</td>
 <td style="text-align: center;">537</td>
 </tr>
 <tr class="even">
@@ -7546,10 +7501,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">76</td>
 <td style="text-align: center;">1.235</td>
-<td style="text-align: center;">120</td>
 <td style="text-align: center;">523</td>
 </tr>
 <tr class="odd">
@@ -7562,10 +7514,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">40</td>
 <td style="text-align: center;">2.394</td>
-<td style="text-align: center;">122</td>
 <td style="text-align: center;">282</td>
 </tr>
 <tr class="even">
@@ -7578,10 +7527,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: center;">38</td>
 <td style="text-align: center;">2.516</td>
-<td style="text-align: center;">120</td>
 <td style="text-align: center;">276</td>
 </tr>
 <tr class="odd">
@@ -7594,10 +7540,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">79</td>
 <td style="text-align: center;">1.175</td>
-<td style="text-align: center;">31</td>
 <td style="text-align: center;">1032</td>
 </tr>
 <tr class="even">
@@ -7610,10 +7553,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">78</td>
 <td style="text-align: center;">1.198</td>
-<td style="text-align: center;">30</td>
 <td style="text-align: center;">1012</td>
 </tr>
 <tr class="odd">
@@ -7626,10 +7566,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: center;">80</td>
 <td style="text-align: center;">1.173</td>
-<td style="text-align: center;">62</td>
 <td style="text-align: center;">1037</td>
 </tr>
 <tr class="even">
@@ -7642,10 +7579,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">18</td>
-<td style="text-align: center;">74</td>
 <td style="text-align: center;">1.271</td>
-<td style="text-align: center;">61</td>
 <td style="text-align: center;">1024</td>
 </tr>
 <tr class="odd">
@@ -7658,10 +7592,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">79</td>
 <td style="text-align: center;">1.178</td>
-<td style="text-align: center;">62</td>
 <td style="text-align: center;">1033</td>
 </tr>
 <tr class="even">
@@ -7674,10 +7605,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: center;">81</td>
 <td style="text-align: center;">1.147</td>
-<td style="text-align: center;">61</td>
 <td style="text-align: center;">1012</td>
 </tr>
 <tr class="odd">
@@ -7690,10 +7618,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">79</td>
 <td style="text-align: center;">1.183</td>
-<td style="text-align: center;">123</td>
 <td style="text-align: center;">1036</td>
 </tr>
 <tr class="even">
@@ -7706,10 +7631,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: center;">81</td>
 <td style="text-align: center;">1.151</td>
-<td style="text-align: center;">121</td>
 <td style="text-align: center;">1017</td>
 </tr>
 <tr class="odd">
@@ -7722,10 +7644,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">19</td>
-<td style="text-align: center;">79</td>
 <td style="text-align: center;">1.190</td>
-<td style="text-align: center;">123</td>
 <td style="text-align: center;">1030</td>
 </tr>
 <tr class="even">
@@ -7738,10 +7657,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">20</td>
-<td style="text-align: center;">80</td>
 <td style="text-align: center;">1.162</td>
-<td style="text-align: center;">120</td>
 <td style="text-align: center;">1011</td>
 </tr>
 <tr class="odd">
@@ -7754,10 +7670,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">41</td>
 <td style="text-align: center;">2.305</td>
-<td style="text-align: center;">127</td>
 <td style="text-align: center;">539</td>
 </tr>
 <tr class="even">
@@ -7770,10 +7683,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">40</td>
 <td style="text-align: center;">2.408</td>
-<td style="text-align: center;">125</td>
 <td style="text-align: center;">532</td>
 </tr>
 <tr class="odd">
@@ -7786,10 +7696,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">10</td>
-<td style="text-align: center;">41</td>
 <td style="text-align: center;">2.314</td>
-<td style="text-align: center;">126</td>
 <td style="text-align: center;">537</td>
 </tr>
 <tr class="even">
@@ -7802,10 +7709,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">9</td>
-<td style="text-align: center;">38</td>
 <td style="text-align: center;">2.508</td>
-<td style="text-align: center;">125</td>
 <td style="text-align: center;">529</td>
 </tr>
 <tr class="odd">
@@ -7818,10 +7722,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">False</td>
-<td style="text-align: center;">5</td>
-<td style="text-align: center;">20</td>
 <td style="text-align: center;">4.698</td>
-<td style="text-align: center;">124</td>
 <td style="text-align: center;">272</td>
 </tr>
 <tr class="even">
@@ -7834,10 +7735,7 @@ update 一下)</p>
 <td style="text-align: center;">512</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">True</td>
-<td style="text-align: center;">5</td>
-<td style="text-align: center;">21</td>
 <td style="text-align: center;">4.648</td>
-<td style="text-align: center;">123</td>
 <td style="text-align: center;">270</td>
 </tr>
 </tbody>
