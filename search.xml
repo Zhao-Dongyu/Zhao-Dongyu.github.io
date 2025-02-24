@@ -7245,6 +7245,14 @@ Models</a></p></li>
 <p>主要启示：负载均衡永远在动态平衡——过度干预会损害模型本身的学习目标，完全无视则会出现专家闲置或拥堵。往后我们大概率会看到更多
 HPC 技巧与更灵活的 gating 机制，以及更多针对推理部署的优化。</p>
 </blockquote>
+<p>从<a
+href="https://m.okjike.com/originalPosts/67aaf2fe2d8ef3d9a00dd07e">这里</a>跳到小宇宙听了三小时的
+<a
+href="https://www.xiaoyuzhoufm.com/episode/67a1b697247d51713c868367">DeepSeek论文的逐句讲解</a>
+-
+接近3个小时的高密度输出，非常能杀脑细胞，但杀完之后分泌出来的内啡肽，也含量爆炸。</p>
+<p><a
+href="https://zhuanlan.zhihu.com/p/12302566679">大模型推理张量并行的4种模式</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
