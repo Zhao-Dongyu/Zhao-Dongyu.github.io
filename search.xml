@@ -7262,7 +7262,7 @@ href="https://zhuanlan.zhihu.com/p/12302566679">大模型推理张量并行的4�
       </tags>
   </entry>
   <entry>
-    <title>117_FlashMLA</title>
+    <title>FlashMLA</title>
     <url>/2025/02/24/117-FlashMLA/</url>
     <content><![CDATA[<p>今天Deepseek开源 <a
 href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a>，之前看过很多MLA相关知识了，很好的学习
