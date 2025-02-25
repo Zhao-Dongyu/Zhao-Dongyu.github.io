@@ -7790,6 +7790,8 @@ update 一下)</p>
 href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <h2 id="ref_mla">ref_mla</h2>
 <p>先看一下基础的实现：</p>
+<p>要实现的就是</p>
+<p>$ Attention(Q,K,V) = softmax() V $</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">ref_mla</span>():</span><br><span class="line">    out = torch.empty(b, s_q, h_q, dv, dtype=torch.float32) <span class="comment"># 初始化张量，用于存储结果</span></span><br><span class="line">    lse = torch.empty(b, h_q, s_q, dtype=torch.float32)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b): <span class="comment"># 逐 batch 计算</span></span><br><span class="line">        begin = i * max_seqlen_pad <span class="comment"># 计算 Key-Value 范围索引</span></span><br><span class="line">        end = begin + cache_seqlens[i]</span><br><span class="line">        O, LSE = scaled_dot_product_attention( <span class="comment"># 计算 注意力输出 和 softmax 归一化因子(logsumexp)</span></span><br><span class="line">            q[i].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_k.view(-<span class="number">1</span>, h_kv, d)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_v.view(-<span class="number">1</span>, h_kv, dv)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            h_q=h_q,</span><br><span class="line">            h_kv=h_kv,</span><br><span class="line">            is_causal=causal,</span><br><span class="line">        )</span><br><span class="line">        out[i] = O.transpose(<span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">        lse[i] = LSE</span><br><span class="line">    <span class="keyword">return</span> out, lse</span><br></pre></td></tr></table></figure>
 <p>out 维度 [b, s_q, h_q, dv]</p>
 <p>lse 维度 [b, h_q, s_q]</p>
@@ -7802,17 +7804,12 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 实现的是计算注意力权重</p>
 <ul>
 <li><p><strong>点积注意力计算公式</strong>：</p>
-<!-- $$\text{attn\_weight} = \frac{QK^T}{\sqrt{d_k}}$$ --></li>
+<p><span class="math display">\[\text{attn\_weight} =
+\frac{QK^T}{\sqrt{d_k}}\]</span></p>
+<p>其中 <span class="math inline">\(d_k\)</span> 是 <code>query</code>
+的最后一维大小，用于 <strong>缩放（Scaling）</strong>
+以防梯度爆炸。</p></li>
 </ul>
-<p>
-attn_weight = QK<sup>T</sup> / sqrt(d_k)
-</p>
-其中
-<p>
-d_k
-</p>
-<p>是 <code>query</code> 的最后一维大小，用于
-<strong>缩放（Scaling）</strong> 以防梯度爆炸。</p>
 ]]></content>
       <categories>
         <category>技术</category>
