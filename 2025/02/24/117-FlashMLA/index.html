@@ -28,7 +28,7 @@
 <meta property="og:description" content="今天Deepseek开源 FlashMLA，之前看过很多MLA相关知识了，很好的学习 Cuda 加速的机会，实践学习记录一下。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
-<meta property="article:modified_time" content="2025-02-24T08:45:23.269Z">
+<meta property="article:modified_time" content="2025-02-25T09:03:42.443Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
@@ -235,10 +235,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2025-02-24 13:45:13 / Modified: 16:45:23" itemprop="dateCreated datePublished" datetime="2025-02-24T13:45:13+08:00">2025-02-24</time>
+              <time title="Created: 2025-02-24 13:45:13" itemprop="dateCreated datePublished" datetime="2025-02-24T13:45:13+08:00">2025-02-24</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-02-25 17:03:42" itemprop="dateModified" datetime="2025-02-25T17:03:42+08:00">2025-02-25</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -262,14 +268,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>22k</span>
+              <span>23k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>20 mins.</span>
+              <span>21 mins.</span>
             </span>
 
         </div>
@@ -787,7 +793,7 @@ update 一下)</p>
 <code>test_flash_mla()</code> 函数。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">    cache_seqlens = torch.full((b,), mean_sk, dtype=torch.int32) <span class="comment"># 初始化一个长度为 b 的张量，每个 batch 样本的 key-value 序列长度均设为 mean_sk。</span></span><br><span class="line"><span class="keyword">if</span> varlen: <span class="comment"># 如果 varlen 为 True，则为每个样本生成一个服从正态分布 N(mean_sk, mean_sk/2) 的 key-value 序列长度，并确保 ≥ s_q（即 query 长度）。</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">        cache_seqlens[i] = <span class="built_in">max</span>(random.normalvariate(mean_sk, mean_sk / <span class="number">2</span>), s_q)</span><br><span class="line">total_seqlens = cache_seqlens.<span class="built_in">sum</span>().item()              <span class="comment"># batch 内所有 key-value 序列长度之和。     524288 = 4096 * 128</span></span><br><span class="line">mean_seqlens = cache_seqlens.<span class="built_in">float</span>().mean().<span class="built_in">int</span>().item()<span class="comment"># batch 内 key-value 序列的平均长度。       4096</span></span><br><span class="line">max_seqlen = cache_seqlens.<span class="built_in">max</span>().item()                 <span class="comment"># batch 内 key-value 序列的最大长度。       4096</span></span><br><span class="line">max_seqlen_pad = triton.cdiv(max_seqlen, <span class="number">256</span>) * <span class="number">256</span>     <span class="comment"># 对 max_seqlen 进行 256 对齐（向上取整）。   4096</span></span><br><span class="line"><span class="comment"># print(f&quot;&#123;total_seqlens=&#125;, &#123;mean_seqlens=&#125;, &#123;max_seqlen=&#125;&quot;)</span></span><br><span class="line"></span><br><span class="line">q = torch.randn(b, s_q, h_q, d)</span><br><span class="line">block_size = <span class="number">64</span> <span class="comment"># 设定块大小为 64（用于分块存储 key-value）。</span></span><br><span class="line">block_table = torch.arange(b * max_seqlen_pad // block_size, dtype=torch.int32).view(b, max_seqlen_pad // block_size) <span class="comment"># [128, 64] 64 = 4096 // 64</span></span><br><span class="line">blocked_k = torch.randn(block_table.numel(), block_size, h_kv, d) <span class="comment"># [8192, 64, 1, 576]</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">    blocked_k.view(b, max_seqlen_pad, h_kv, d)[i, cache_seqlens[i].item():] = <span class="built_in">float</span>(<span class="string">&quot;nan&quot;</span>)</span><br><span class="line">blocked_v = blocked_k[..., :dv] <span class="comment"># 取 blocked_k 的前 dv 维作为 value</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>从 key 张量中取前 dv 维作为 value，避免额外分配新的 blocked_v
-张量，提高内存效率。</p>
+张量，提高内存效率，提高数据局部性。</p>
 <p>在注意力计算中，key (K) 的维度 d 可能比 value (V) 的维度 dv
 更大：</p>
 <ul>
@@ -795,18 +801,30 @@ update 一下)</p>
 计算）。</li>
 <li>V 仅用于加权求和，所以 dv 可以小于 d，减少计算量。</li>
 </ul>
-<p>这样做的优化点</p>
+<p>在目前的例子中，</p>
 <ul>
-<li><p>节省内存：直接复用 blocked_k 的存储空间，不额外分配
-blocked_v。</p></li>
-<li><p>减少计算成本：只需取 blocked_k 的一部分作为
-blocked_v，而不是额外计算并存储 value。</p></li>
-<li><p>提高数据局部性：key 和 value
-共享内存，提高访问效率，减少数据复制的开销。</p></li>
+<li>blocked_k 维度 [8192, 64, 1, 576]</li>
+<li>blocked_v 维度 [8192, 64, 1, 512]</li>
 </ul>
+<p>其中，8192 = 128(batch) * 4096(max_seqlen_pad) // 64(block_size), 64
+为 block_size</p>
 <h2 id="ref_mla">ref_mla</h2>
 <p>先看一下基础的实现：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">ref_mla</span>():</span><br><span class="line">    out = torch.empty(b, s_q, h_q, dv, dtype=torch.float32) <span class="comment"># 初始化张量，用于存储结果</span></span><br><span class="line">    lse = torch.empty(b, h_q, s_q, dtype=torch.float32)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b): <span class="comment"># 逐 batch 计算</span></span><br><span class="line">        begin = i * max_seqlen_pad <span class="comment"># 计算 Key-Value 范围索引</span></span><br><span class="line">        end = begin + cache_seqlens[i]</span><br><span class="line">        O, LSE = scaled_dot_product_attention( <span class="comment"># 计算 注意力输出 和 softmax 归一化因子(logsumexp)</span></span><br><span class="line">            q[i].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_k.view(-<span class="number">1</span>, h_kv, d)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_v.view(-<span class="number">1</span>, h_kv, dv)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            h_q=h_q,</span><br><span class="line">            h_kv=h_kv,</span><br><span class="line">            is_causal=causal,</span><br><span class="line">        )</span><br><span class="line">        out[i] = O.transpose(<span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">        lse[i] = LSE</span><br><span class="line">    <span class="keyword">return</span> out, lse</span><br></pre></td></tr></table></figure>
+<p>out 维度 [b, s_q, h_q, dv]</p>
+<p>lse 维度 [b, h_q, s_q]</p>
+<p>只看一个batch</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">q[i].transpose(<span class="number">0</span>, <span class="number">1</span>).shape = torch.Size([<span class="number">32</span>, <span class="number">1</span>, <span class="number">576</span>])</span><br><span class="line">blocked_k.view(-<span class="number">1</span>, h_kv, d)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>).shape = torch.Size([<span class="number">1</span>, <span class="number">4096</span>, <span class="number">576</span>])</span><br><span class="line">blocked_v.view(-<span class="number">1</span>, h_kv, dv)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>).shape = torch.Size([<span class="number">1</span>, <span class="number">4096</span>, <span class="number">512</span>])</span><br><span class="line">h_q = <span class="number">32</span></span><br><span class="line">h_kv = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>接下来看 <code>scaled_dot_product_attention</code> 函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">scaled_dot_product_attention</span>(<span class="params">query, key, value, h_q, h_kv, is_causal=<span class="literal">False</span></span>):</span><br><span class="line">    query = query.<span class="built_in">float</span>() <span class="comment"># 之前是 bfloat16 格式，转为 float32 数据格式</span></span><br><span class="line">    key = key.<span class="built_in">float</span>()</span><br><span class="line">    value = value.<span class="built_in">float</span>()</span><br><span class="line">    key = key.repeat_interleave(h_q // h_kv, dim=<span class="number">0</span>) <span class="comment"># KV扩展，适用于多头注意力</span></span><br><span class="line">    value = value.repeat_interleave(h_q // h_kv, dim=<span class="number">0</span>) <span class="comment"># [1, 4096, 512] -&gt; [32, 4096, 512]</span></span><br><span class="line">    attn_weight = query @ key.transpose(-<span class="number">2</span>, -<span class="number">1</span>) / math.sqrt(query.size(-<span class="number">1</span>))</span><br><span class="line">    <span class="keyword">if</span> is_causal:</span><br><span class="line">        s_q = query.shape[-<span class="number">2</span>]</span><br><span class="line">        s_k = key.shape[-<span class="number">2</span>]</span><br><span class="line">        attn_bias = torch.zeros(s_q, s_k, dtype=query.dtype)</span><br><span class="line">        temp_mask = torch.ones(s_q, s_k, dtype=torch.<span class="built_in">bool</span>).tril(diagonal=s_k - s_q)</span><br><span class="line">        attn_bias.masked_fill_(temp_mask.logical_not(), <span class="built_in">float</span>(<span class="string">&quot;-inf&quot;</span>))</span><br><span class="line">        attn_bias.to(query.dtype)</span><br><span class="line">        attn_weight += attn_bias</span><br><span class="line">    lse = attn_weight.logsumexp(dim=-<span class="number">1</span>)</span><br><span class="line">    attn_weight = torch.softmax(attn_weight, dim=-<span class="number">1</span>, dtype=torch.float32)</span><br><span class="line">    <span class="keyword">return</span> attn_weight @ value, lse</span><br></pre></td></tr></table></figure>
+<p>其中，
+<code>attn_weight = query @ key.transpose(-2, -1) / math.sqrt(query.size(-1))</code>
+实现的是计算注意力权重</p>
+<ul>
+<li><strong>点积注意力计算公式</strong>： [ = ] 其中 ( d_k ) 是
+<code>query</code> 的最后一维大小，用于 <strong>缩放（Scaling）</strong>
+以防梯度爆炸。</li>
+</ul>
 
     </div>
 
@@ -997,13 +1015,13 @@ blocked_v，而不是额外计算并存储 value。</p></li>
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">176k</span>
+    <span title="Symbols count total">177k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">2:40</span>
+    <span title="Reading time total">2:41</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
