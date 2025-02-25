@@ -7815,11 +7815,16 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 </ul>
 <h2 id="flash_mla">flash_mla</h2>
 <p>实现 flash_mla 的是 <code>flash_mla_with_kvcache</code> 函数
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure> - q.shape = torch.Size([128, 1, 32, 576]) -
-blocked_k.shape = torch.Size([8192, 64, 1, 576]) - block_table.shape =
-torch.Size([128, 64]) - cache_seqlens.shape = torch.Size([128]) - dv =
-512 - tile_scheduler_metadata.shape = torch.Size([78, 8]) -
-num_splits.shape = torch.Size([129])</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>q.shape = torch.Size([128, 1, 32, 576])</li>
+<li>blocked_k.shape = torch.Size([8192, 64, 1, 576])</li>
+<li>block_table.shape = torch.Size([128, 64])</li>
+<li>cache_seqlens.shape = torch.Size([128])</li>
+<li>dv = 512</li>
+<li>tile_scheduler_metadata.shape = torch.Size([78, 8])</li>
+<li>num_splits.shape = torch.Size([129])</li>
+</ul>
 <p>在看这个函数之前，先看一下<code>get_mla_metadata</code>做了什么：</p>
 <p><code>tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</code></p>
 <p>输入：</p>
