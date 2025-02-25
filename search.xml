@@ -7812,6 +7812,14 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 的最后一维大小，用于 <strong>缩放（Scaling）</strong>
 以防梯度爆炸。</p></li>
 </ul>
+<h2 id="flash_mla">flash_mla</h2>
+<p>实现 flash_mla 的是 <code>flash_mla_with_kvcache</code> 函数
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure> - q.shape = torch.Size([128, 1, 32, 576]) -
+blocked_k.shape = torch.Size([8192, 64, 1, 576]) - block_table.shape =
+torch.Size([128, 64]) - cache_seqlens.shape = torch.Size([128]) - dv =
+512 - tile_scheduler_metadata.shape = torch.Size([78, 8]) -
+num_splits.shape = torch.Size([129])</p>
+<p>在看这个函数之前，先看一下<code>tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</code>做了什么：</p>
 ]]></content>
       <categories>
         <category>技术</category>
