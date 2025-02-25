@@ -7787,8 +7787,9 @@ update 一下)</p>
 为 block_size</p>
 <p>要实现的是如下计算:</p>
 <p><img src="/images/117/Attention.png" width="70%"></p>
-<p>图中V和K中的一部分是浅绿色，表示这部分共享相同的数据。将QK=P定义为gemm
-1，PV=O定义为gemm2。本图参考了<a
+<p>图中 V 和 K 中的一部分是浅绿色，表示这部分共享相同的数据。将
+<code>QK=P</code> 定义为<code>gemm 1</code>，<code>PV=O</code>
+定义为<code>gemm 2</code>。本图参考了<a
 href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <h2 id="ref_mla">ref_mla</h2>
 <p>先看一下基础的实现：</p>
@@ -7819,7 +7820,39 @@ blocked_k.shape = torch.Size([8192, 64, 1, 576]) - block_table.shape =
 torch.Size([128, 64]) - cache_seqlens.shape = torch.Size([128]) - dv =
 512 - tile_scheduler_metadata.shape = torch.Size([78, 8]) -
 num_splits.shape = torch.Size([129])</p>
-<p>在看这个函数之前，先看一下<code>tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</code>做了什么：</p>
+<p>在看这个函数之前，先看一下<code>get_mla_metadata</code>做了什么：</p>
+<p><code>tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</code></p>
+<p>输入：</p>
+<ul>
+<li>cache_seqlens
+<ul>
+<li>即 batch_size torch.Size([128])</li>
+</ul></li>
+<li>s_q * h_q // h_kv
+<ul>
+<li>num_heads_per_head_k = 1 * 32 // 1</li>
+</ul></li>
+<li>h_kv
+<ul>
+<li>num_heads_k = 1</li>
+</ul></li>
+</ul>
+<p>输出：</p>
+<ul>
+<li>tile_scheduler_metadata
+<ul>
+<li>torch.Size([78, 8])</li>
+<li>(num_sm_parts, TileSchedulerMetaDataSize)</li>
+</ul></li>
+<li>num_splits
+<ul>
+<li>orch.Size([129])</li>
+<li>batch_size + 1</li>
+</ul></li>
+</ul>
+<p>这个函数的实现位于flash_api.cpp，计算元数据用于GPU加速推理和计算，</p>
+<p><code>num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</code></p>
+<p>为 num_heads_k 个头部划分 SM 资源，确保计算负载均衡。</p>
 ]]></content>
       <categories>
         <category>技术</category>
