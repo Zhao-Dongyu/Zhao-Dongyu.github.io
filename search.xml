@@ -7825,7 +7825,9 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <li>tile_scheduler_metadata.shape = torch.Size([78, 8])</li>
 <li>num_splits.shape = torch.Size([129])</li>
 </ul>
-<p>在看这个函数之前，先看一下<code>get_mla_metadata</code>做了什么：</p>
+<p>其中用到了 <code>tile_scheduler_metadata</code> 和
+<code>num_splits</code>，所以在看 <code>flash_mla_with_kvcache</code>
+之前，先看一下<code>get_mla_metadata</code>做了什么：</p>
 <p><code>tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</code></p>
 <p>输入：</p>
 <ul>
@@ -7847,7 +7849,7 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <li>tile_scheduler_metadata
 <ul>
 <li>torch.Size([78, 8])</li>
-<li>(num_sm_parts, TileSchedulerMetaDataSize)</li>
+<li>(num_sm_parts, TileSchedulerMetaDataSize = 8)</li>
 </ul></li>
 <li>num_splits
 <ul>
@@ -7856,8 +7858,8 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 </ul></li>
 </ul>
 <p>这个函数的实现位于flash_api.cpp，计算元数据用于GPU加速推理和计算，</p>
-<p><code>num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</code></p>
 <p>为 num_heads_k 个头部划分 SM 资源，确保计算负载均衡。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</span><br><span class="line">     <span class="number">78</span>      =    <span class="number">78</span>    /      <span class="number">1</span>      / cutlass::ceil_div(         <span class="number">32</span>         ,     <span class="number">64</span>      )</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>技术</category>
