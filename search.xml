@@ -7802,11 +7802,17 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 实现的是计算注意力权重</p>
 <ul>
 <li><p><strong>点积注意力计算公式</strong>：</p>
-<p><span class="math display">\[\text{attn\_weight} =
-\frac{QK^T}{\sqrt{d_k}}\]</span></p>
-<p>其中 $ d_k $ 是 <code>query</code> 的最后一维大小，用于
-<strong>缩放（Scaling）</strong> 以防梯度爆炸。</p></li>
+<!-- $$\text{attn\_weight} = \frac{QK^T}{\sqrt{d_k}}$$ --></li>
 </ul>
+<p>
+attn_weight = QK<sup>T</sup> / sqrt(d_k)
+</p>
+其中
+<p>
+d_k
+</p>
+<p>是 <code>query</code> 的最后一维大小，用于
+<strong>缩放（Scaling）</strong> 以防梯度爆炸。</p>
 ]]></content>
       <categories>
         <category>技术</category>
