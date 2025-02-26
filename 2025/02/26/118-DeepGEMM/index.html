@@ -20,21 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="研究了一下 tensorflow 实现 int8 量化的 softmax 算子">
+  <meta name="description" content="今天Deepseek开源 FlashMLA，之前看过很多MLA相关知识了，很好的学习 Cuda 加速的机会，实践学习记录一下。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="113_tensorflow实现量化softmax算子">
-<meta property="og:url" content="http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/index.html">
+<meta property="og:title" content="FlashMLA">
+<meta property="og:url" content="http://example.com/2025/02/26/118-DeepGEMM/index.html">
 <meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
-<meta property="og:description" content="研究了一下 tensorflow 实现 int8 量化的 softmax 算子">
+<meta property="og:description" content="今天Deepseek开源 FlashMLA，之前看过很多MLA相关知识了，很好的学习 Cuda 加速的机会，实践学习记录一下。">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2024-12-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2024-12-02T10:10:33.310Z">
+<meta property="article:published_time" content="2025-02-26T05:49:13.000Z">
+<meta property="article:modified_time" content="2025-02-26T05:53:34.852Z">
 <meta property="article:author" content="Zhao Dongyu">
-<meta property="article:tag" content="tensorflow">
-<meta property="article:tag" content="softmax">
+<meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/">
+<link rel="canonical" href="http://example.com/2025/02/26/118-DeepGEMM/">
 
 
 <script id="page-configurations">
@@ -47,7 +46,7 @@
   };
 </script>
 
-  <title>113_tensorflow实现量化softmax算子 | Zhao Dongyu's Blog</title>
+  <title>FlashMLA | Zhao Dongyu's Blog</title>
   
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
     <script>
@@ -214,7 +213,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/26/118-DeepGEMM/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/zhaodongyu.jpg">
@@ -227,7 +226,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          113_tensorflow实现量化softmax算子
+          FlashMLA
         </h1>
 
         <div class="post-meta">
@@ -238,7 +237,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2024-12-02 00:00:00 / Modified: 18:10:33" itemprop="dateCreated datePublished" datetime="2024-12-02T00:00:00+08:00">2024-12-02</time>
+              <time title="Created: 2025-02-26 13:49:13 / Modified: 13:53:34" itemprop="dateCreated datePublished" datetime="2025-02-26T13:49:13+08:00">2025-02-26</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -263,14 +262,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3k</span>
+              <span>60</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>3 mins.</span>
+              <span>1 mins.</span>
             </span>
 
         </div>
@@ -282,89 +281,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>研究了一下 tensorflow 实现 int8 量化的 softmax 算子</p>
+        <p>今天Deepseek开源 <a
+target="_blank" rel="noopener" href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a>，之前看过很多MLA相关知识了，很好的学习
+Cuda 加速的机会，实践学习记录一下。</p>
 <span id="more"></span>
-<p>以这个算子为例： <img src=/images/114/softmax.png width=50% />
-<img src=/images/114/node.png width=50% /></p>
-<p>首先要计算一些参数</p>
-<p>在 <code>CalculateSoftmaxParams</code> 函数中，</p>
-<p>先确保了2个参数： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TF_LITE_ENSURE_EQ(context, output-&gt;params.zero_point, <span class="number">-128</span>);</span><br><span class="line">TF_LITE_ENSURE(context, output-&gt;params.scale == <span class="number">1.f</span> / <span class="number">256</span>);</span><br></pre></td></tr></table></figure> 看来量化的softmax算子的输出 tensor 的
-<code>scale</code> 和 <code>zero point</code> 是固定的。</p>
-<p>然后是函数 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tflite::PreprocessSoftmaxScaling(</span><br><span class="line">    static_cast&lt;<span class="type">double</span>&gt;(params-&gt;beta),</span><br><span class="line">    static_cast&lt;<span class="type">double</span>&gt;(input-&gt;params.scale), kScaledDiffIntegerBits,</span><br><span class="line">    &amp;op_data-&gt;input_multiplier, &amp;input_left_shift);</span><br></pre></td></tr></table></figure></p>
-<p>由于使用的是 Double-rounding(文末附了Single-Rounding 和
-Double-Rounding的区别)</p>
-<p><code>const double max_real_multiplier = (1LL &lt;&lt; 31) - 1.0;</code></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">const double input_beta_real_multiplier =</span><br><span class="line">    std::min&lt;double&gt;(beta * input_scale * (1 &lt;&lt; (31 - input_integer_bits)),</span><br><span class="line">                    max_real_multiplier);</span><br></pre></td></tr></table></figure>
-<p>其中，</p>
-<ul>
-<li>beta: 1.000000
-<ul>
-<li>Used even when beta defaults to 1.0.</li>
-<li>即使 beta 被设置为默认值 1.0，它不会被忽略，而是仍然参与计算。</li>
-</ul></li>
-<li>input_scale: 0.091732</li>
-<li>input_integer_bits: 5
-<ul>
-<li>static const int kScaledDiffIntegerBits = 5;</li>
-<li>这是设置的固定值</li>
-</ul></li>
-<li>max_real_multiplier: 2147483647.000000
-<ul>
-<li>使用的是 Double-rounding</li>
-<li>const double max_real_multiplier = (1LL &lt;&lt; 31) - 1.0;</li>
-</ul></li>
-</ul>
-<p>得到 <code>input_beta_real_multiplier: 6156025.000000</code></p>
-<p>然后是函数 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">QuantizeMultiplierGreaterThanOne(input_beta_real_multiplier,</span><br><span class="line">                                 quantized_multiplier, left_shift);</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (double_multiplier == <span class="number">0.</span>) &#123;</span><br><span class="line">  *quantized_multiplier = <span class="number">0</span>;</span><br><span class="line">  *shift = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">const</span> <span class="type">double</span> q = <span class="built_in">std</span>::<span class="built_in">frexp</span>(double_multiplier, shift);</span><br><span class="line"><span class="keyword">auto</span> q_fixed = static_cast&lt;<span class="type">int64_t</span>&gt;(TfLiteRound(q * (<span class="number">1LL</span> &lt;&lt; <span class="number">31</span>)));</span><br><span class="line">  <span class="keyword">if</span> (q_fixed == (<span class="number">1LL</span> &lt;&lt; <span class="number">31</span>)) &#123;</span><br><span class="line">  q_fixed /= <span class="number">2</span>;</span><br><span class="line">  ++*shift;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (*shift &lt; <span class="number">-31</span>) &#123;</span><br><span class="line">  *shift = <span class="number">0</span>;</span><br><span class="line">  q_fixed = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">*quantized_multiplier = static_cast&lt;<span class="type">int32_t</span>&gt;(q_fixed);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>计算结果是</p>
-<ul>
-<li>quantized_multiplier = 1575942400</li>
-<li>left_shift = 23</li>
-</ul>
-<p>然后是函数</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">op_data-&gt;diff_min =</span><br><span class="line">    -1.0 * tflite::CalculateInputRadius(kScaledDiffIntegerBits,</span><br><span class="line">                                        op_data-&gt;input_left_shift);</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">double</span> max_input_rescaled =</span><br><span class="line">    <span class="number">1.0</span> * ((<span class="number">1</span> &lt;&lt; input_integer_bits) - <span class="number">1</span>) *</span><br><span class="line">    (<span class="number">1LL</span> &lt;&lt; (total_signed_bits - input_integer_bits)) /</span><br><span class="line">    (<span class="number">1LL</span> &lt;&lt; input_left_shift);</span><br><span class="line"><span class="comment">// Tighten bound using floor.  Suppose that we could use the exact value.</span></span><br><span class="line"><span class="comment">// After scaling the difference, the result would be at the maximum.  Thus we</span></span><br><span class="line"><span class="comment">// must ensure that our value has lower magnitude.</span></span><br><span class="line"><span class="keyword">return</span> static_cast&lt;<span class="type">int</span>&gt;(<span class="built_in">std</span>::<span class="built_in">floor</span>(max_input_rescaled));</span><br></pre></td></tr></table></figure>
-<p>通过 floor
-操作对边界进行收紧，使计算结果不会超过允许的最大值或最小值。
-假设可以使用精确的浮点数值进行计算。如果直接使用精确值进行放缩（scaling），计算结果可能正好达到边界值（如最大值
-127）。但是实际计算中，任何额外的误差都可能导致结果超出边界。因此，为了避免超出范围，我们需要保证数值的绝对值低于或等于边界值。使用
-floor 是一种方法，可以确保数值朝着更小的方向调整，从而满足边界要求。</p>
-<p>通过向下取整，确保计算结果不会超出规定的范围，从而避免数值的溢出问题。</p>
-<p>input_integer_bits = 5 input_left_shift = 23 total_signed_bits =
-31</p>
-<p>op_data-&gt;diff_min = -248 op_data-&gt;input_left_shift = 23
-op_data-&gt;input_multiplier = 1575942400</p>
-<p>在 TensorFlow 的量化运算中，double-rounding 和 single-rounding
-是处理整数运算中舍入过程的两种策略。它们在计算中间结果和最终结果时的处理方式不同，对精度和性能有一定影响。</p>
-<ol type="1">
-<li>Single-Rounding (单次舍入)</li>
-</ol>
-<p>单次舍入是在完成量化运算后，直接对结果进行一次舍入操作。 • 过程： •
-直接将运算的中间结果（通常是乘法后的积）除以一个缩放因子，并进行一次舍入操作。
-•
-用于快速实现，但在一些边界情况（比如舍入时丢失低位信息）下可能会有轻微的误差。</p>
-<ol start="2" type="1">
-<li>Double-Rounding (双次舍入)</li>
-</ol>
-<p>双次舍入是一个更精确的舍入策略，通过两次独立的舍入操作，减少了舍入误差。
-• 过程： 1.
-首先对乘法结果进行一次初步舍入，保留更多的有效位（通常在中间的高精度计算中使用）。
-2. 再根据目标量化范围对初步舍入后的结果进行二次舍入。</p>
-<ul>
-<li>Single-Rounding：
-<ul>
-<li>通常在硬件限制较多（如嵌入式设备）的 TensorFlow Lite Micro
-中实现。</li>
-<li>适合性能优先的场景。</li>
-</ul></li>
-<li>Double-Rounding：
-<ul>
-<li>用于更高精度要求的 TensorFlow Lite 和 TensorFlow
-图层之间的累积计算。</li>
-<li>对浮点到定点转换中的精度保留尤为重要。</li>
-</ul></li>
-</ul>
 
     </div>
 
@@ -398,8 +318,7 @@ op_data-&gt;input_multiplier = 1575942400</p>
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/tensorflow/" rel="tag"># tensorflow</a>
-              <a href="/tags/softmax/" rel="tag"># softmax</a>
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
           </div>
 
         
@@ -408,13 +327,10 @@ op_data-&gt;input_multiplier = 1575942400</p>
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2024/11/22/113_MacM1_tensorflow/" rel="prev" title="Mac M1 安装 Tensorflow">
-      <i class="fa fa-chevron-left"></i> Mac M1 安装 Tensorflow
+    <a href="/2025/02/24/117-FlashMLA/" rel="prev" title="FlashMLA">
+      <i class="fa fa-chevron-left"></i> FlashMLA
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/01/07/115_Video_Generative/" rel="next" title="115_Video_Generative">
-      115_Video_Generative <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -656,7 +572,7 @@ NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
       repo        : 'zhao-dongyu.github.io',
       owner       : 'zhao-dongyu',
       admin       : ['zhao-dongyu'],
-      id          : '7fbaccc8e5808f8d647b546d07307bfb',
+      id          : '4fd42249ef9a9ade0928207e1f0c77ab',
         language: '',
       distractionFreeMode: true
     });

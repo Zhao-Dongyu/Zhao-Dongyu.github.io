@@ -8078,24 +8078,126 @@ n_split_idx + 1，有点像 Marlin 里面的slice_idx?</p>
 <p>回到主线，看<code>flash_mla_with_kvcache</code> 函数
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
 <ul>
-<li><p><code>q</code> = torch.Size([128, 1, 32, 576])</p></li>
-<li><p><code>blocked_k</code> = torch.Size([8192, 64, 1, 576])</p></li>
-<li><p><code>block_table</code> = torch.Size([128, 64])</p></li>
-<li><p><code>cache_seqlens</code> = torch.Size([128])</p></li>
-<li><p><code>dv</code> = 512</p></li>
-<li><p><code>tile_scheduler_metadata</code> = torch.Size([78,
-8])</p></li>
-<li><p><code>num_splits</code> = torch.Size([129])</p>
-<pre><code>  q: (batch_size, seq_len_q, num_heads_q, head_dim).
-  k_cache: (num_blocks, page_block_size, num_heads_k, head_dim).
-  block_table: (batch_size, max_num_blocks_per_seq), torch.int32.
-  cache_seqlens: (batch_size), torch.int32.
-  head_dim_v: Head_dim of v.
-  tile_scheduler_metadata: (num_sm_parts, TileSchedulerMetaDataSize), torch.int32, return by get_mla_metadata.
-  num_splits: (batch_size + 1), torch.int32, return by get_mla_metadata.
-  softmax_scale: float. The scaling of QK^T before applying softmax. Default to 1 / sqrt(head_dim).
-  causal: bool. Whether to apply causal attention mask.</code></pre></li>
+<li><code>q</code> = torch.Size([128, 1, 32, 576]) (batch_size,
+seq_len_q, num_heads_q, head_dim)</li>
+<li><code>blocked_k</code> = torch.Size([8192, 64, 1, 576]) (num_blocks,
+page_block_size, num_heads_k, head_dim)</li>
+<li><code>block_table</code> = torch.Size([128, 64]) (batch_size,
+max_num_blocks_per_seq), torch.int32</li>
+<li><code>cache_seqlens</code> = torch.Size([128]) (batch_size),
+torch.int32</li>
+<li><code>dv</code> = 512 Head_dim of v</li>
+<li><code>tile_scheduler_metadata</code> = torch.Size([78, 8])
+(num_sm_parts, TileSchedulerMetaDataSize), torch.int32</li>
+<li><code>num_splits</code> = torch.Size([129]) (batch_size + 1),
+torch.int32</li>
 </ul>
+<p>在flash_api.cpp里，<code>mha_fwd_kvcache_mla</code> -&gt;
+<code>run_mha_fwd_splitkv_mla</code> -&gt;
+<code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Kernel_traits, <span class="keyword">typename</span> SharedStorage&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">run_flash_splitkv_fwd_mla</span><span class="params">(Flash_fwd_mla_params &amp;params, cudaStream_t stream)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">FLASH_ASSERT</span>(params.page_block_size == Kernel_traits::kBlockN);</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> num_m_block = cute::<span class="built_in">ceil_div</span>(params.seqlen_q, Kernel_traits::kBlockM);</span><br><span class="line">    <span class="built_in">BOOL_SWITCH</span>(params.is_causal, Is_causal, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> kernel = &amp;flash::flash_fwd_splitkv_mla_kernel&lt;Kernel_traits, Is_causal, SharedStorage&gt;;</span><br><span class="line">        <span class="keyword">constexpr</span> <span class="type">size_t</span> smem_size = <span class="built_in">sizeof</span>(SharedStorage);</span><br><span class="line">        <span class="built_in">CHECK_CUDA</span>(<span class="built_in">cudaFuncSetAttribute</span>(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));</span><br><span class="line">        kernel&lt;&lt;&lt;<span class="built_in">dim3</span>(num_m_block, params.h, params.num_sm_parts), Kernel_traits::kNThreads, smem_size, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line"></span><br><span class="line">    <span class="function">dim3 <span class="title">grid_combine</span><span class="params">(params.b * params.h * params.seqlen_q)</span></span>;</span><br><span class="line">    <span class="built_in">MLA_NUM_SPLITS_SWITCH</span>(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">                <span class="keyword">typename</span> Kernel_traits::Element, <span class="keyword">typename</span> Kernel_traits::ElementAccum, <span class="keyword">typename</span> Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">        combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过
+<code>num_m_block = cute::ceil_div(params.seqlen_q, Kernel_traits::kBlockM);</code>
+计算在 M 维度上所需要的块数， 可知是在M方向切分 block，在seqlen方向进行
+n_block 的loop。其中，blockM=64，blockN=64。</p>
+<p>在我的例子中，h_q(即 params.seqlen_q) = 32，计算出来的 num_m_block =
+1.</p>
+<p><code>flash_fwd_splitkv_mla_kernel</code> 这个内核函数会根据
+Kernel_traits 和 Is_causal 的值进行特化。</p>
+<p>smem_size: 计算共享内存的大小，SharedStorage
+是一个用于存储共享数据的结构体，大小通过 sizeof 获取。然后通过 调用
+<code>cudaFuncSetAttribute</code>
+函数为内核设置最大动态共享内存的大小。</p>
+<p>smem_size = 230400 (224KB)</p>
+<ul>
+<li>smem_q: 73728
+<ul>
+<li>存放输入Q</li>
+<li>576 * 64 * 2B / 1024 = 72 KB</li>
+</ul></li>
+<li>smem_k: 73728 * 2 = 147456 (Double buffer)
+<ul>
+<li>存放输入K（包含部分V）</li>
+<li>64 * 576 * 2B * 2 / 1024 = 144KB</li>
+</ul></li>
+<li>smem_p: 8192
+<ul>
+<li>用于存放 gemm 1 的结果，用于 <code>wg 1</code> 和 <code>wg 2</code>
+之间的数据中转</li>
+<li>2 x 2 x 128 x 8 x 2B / 1024 = 8KB</li>
+</ul></li>
+<li>smem_scale: 1024</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Data Center GPU</strong></th>
+<th>NVIDIA V100</th>
+<th>NVIDIA A100</th>
+<th>NVIDIA H100</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPU architecture</td>
+<td>NVIDIA Volta</td>
+<td>NVIDIA Ampere</td>
+<td>NVIDIA Hopper</td>
+</tr>
+<tr class="even">
+<td>Compute capability</td>
+<td>7.0</td>
+<td>8.0</td>
+<td>9.0</td>
+</tr>
+<tr class="odd">
+<td>Shared memory size / SM</td>
+<td>Configurable up to 96 KB</td>
+<td>Configurable up to 164 KB</td>
+<td>Configurable up to 228 KB</td>
+</tr>
+</tbody>
+</table>
+<p><a
+href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-depth/">表格数据来源</a></p>
+<p>kernel&lt;&lt;&lt;...&gt;&gt;&gt;: 启动 CUDA 核函数，设置其 grid size
+和 block size。</p>
+<ul>
+<li>dim3(num_m_block, params.h, params.num_sm_parts) 是执行的 grid 大小
+<ul>
+<li>dim3(1, num_heads = 1, 78)</li>
+</ul></li>
+<li>Kernel_traits::kNThreads 是每个线程块中的线程数量
+<ul>
+<li>256</li>
+</ul></li>
+<li>smem_size 是共享内存大小
+<ul>
+<li>230400</li>
+</ul></li>
+<li>stream 是 CUDA 流</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>FlashMLA</title>
+    <url>/2025/02/26/118-DeepGEMM/</url>
+    <content><![CDATA[<p>今天Deepseek开源 <a
+href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a>，之前看过很多MLA相关知识了，很好的学习
+Cuda 加速的机会，实践学习记录一下。</p>
+<span id="more"></span>
 ]]></content>
       <categories>
         <category>技术</category>
