@@ -8077,21 +8077,57 @@ n_split_idx + 1，有点像 Marlin 里面的slice_idx?</p>
 <h3 id="flash_mla_with_kvcache">flash_mla_with_kvcache</h3>
 <p>回到主线，看<code>flash_mla_with_kvcache</code> 函数
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li><code>q</code> = torch.Size([128, 1, 32, 576]) (batch_size,
-seq_len_q, num_heads_q, head_dim)</li>
-<li><code>blocked_k</code> = torch.Size([8192, 64, 1, 576]) (num_blocks,
-page_block_size, num_heads_k, head_dim)</li>
-<li><code>block_table</code> = torch.Size([128, 64]) (batch_size,
-max_num_blocks_per_seq), torch.int32</li>
-<li><code>cache_seqlens</code> = torch.Size([128]) (batch_size),
-torch.int32</li>
-<li><code>dv</code> = 512 Head_dim of v</li>
-<li><code>tile_scheduler_metadata</code> = torch.Size([78, 8])
-(num_sm_parts, TileSchedulerMetaDataSize), torch.int32</li>
-<li><code>num_splits</code> = torch.Size([129]) (batch_size + 1),
-torch.int32</li>
-</ul>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>shape(value)</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>q</code></td>
+<td>[128, 1, 32, 576]</td>
+<td>(batch_size, seq_len_q, num_heads_q, head_dim)</td>
+</tr>
+<tr class="even">
+<td><code>blocked_k</code></td>
+<td>[8192, 64, 1, 576]</td>
+<td>(num_blocks, page_block_size, num_heads_k, head_dim)</td>
+</tr>
+<tr class="odd">
+<td><code>block_table</code></td>
+<td>[128, 64]</td>
+<td>(batch_size, max_num_blocks_per_seq), torch.int32</td>
+</tr>
+<tr class="even">
+<td><code>cache_seqlens</code></td>
+<td>[128]</td>
+<td>(batch_size), torch.int32</td>
+</tr>
+<tr class="odd">
+<td><code>dv</code></td>
+<td>512</td>
+<td>Head_dim of v</td>
+</tr>
+<tr class="even">
+<td><code>tile_scheduler_metadata</code></td>
+<td>[78, 8]</td>
+<td>(num_sm_parts, TileSchedulerMetaDataSize), torch.int32</td>
+</tr>
+<tr class="odd">
+<td><code>num_splits</code></td>
+<td>[129]</td>
+<td>(batch_size + 1), torch.int32</td>
+</tr>
+</tbody>
+</table>
 <p>在flash_api.cpp里，<code>mha_fwd_kvcache_mla</code> -&gt;
 <code>run_mha_fwd_splitkv_mla</code> -&gt;
 <code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel。</p>
@@ -8137,35 +8173,38 @@ Kernel_traits 和 Is_causal 的值进行特化。</p>
 </colgroup>
 <thead>
 <tr class="header">
-<th><strong>Data Center GPU</strong></th>
-<th>NVIDIA V100</th>
-<th>NVIDIA A100</th>
-<th>NVIDIA H100</th>
+<th style="text-align: center;"><strong>Data Center GPU</strong></th>
+<th style="text-align: center;">NVIDIA V100</th>
+<th style="text-align: center;">NVIDIA A100</th>
+<th style="text-align: center;">NVIDIA H100</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>GPU architecture</td>
-<td>NVIDIA Volta</td>
-<td>NVIDIA Ampere</td>
-<td>NVIDIA Hopper</td>
+<td style="text-align: center;">GPU architecture</td>
+<td style="text-align: center;">NVIDIA Volta</td>
+<td style="text-align: center;">NVIDIA Ampere</td>
+<td style="text-align: center;">NVIDIA Hopper</td>
 </tr>
 <tr class="even">
-<td>Compute capability</td>
-<td>7.0</td>
-<td>8.0</td>
-<td>9.0</td>
+<td style="text-align: center;">Compute capability</td>
+<td style="text-align: center;">7.0</td>
+<td style="text-align: center;">8.0</td>
+<td style="text-align: center;">9.0</td>
 </tr>
 <tr class="odd">
-<td>Shared memory size / SM</td>
-<td>Configurable up to 96 KB</td>
-<td>Configurable up to 164 KB</td>
-<td>Configurable up to 228 KB</td>
+<td style="text-align: center;">Shared memory size / SM</td>
+<td style="text-align: center;">Configurable up to 96 KB</td>
+<td style="text-align: center;">Configurable up to 164 KB</td>
+<td style="text-align: center;">Configurable up to <strong>228
+KB</strong></td>
 </tr>
 </tbody>
 </table>
 <p><a
 href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-depth/">表格数据来源</a></p>
+<p>这么看的话，确实只有 Hopper 架构的卡能完美跑这个算法了。</p>
+<hr />
 <p>kernel&lt;&lt;&lt;...&gt;&gt;&gt;: 启动 CUDA 核函数，设置其 grid size
 和 block size。</p>
 <ul>
