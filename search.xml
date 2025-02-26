@@ -7864,13 +7864,201 @@ TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是�
 对齐。</p>
 <ul>
 <li>tile_scheduler_metadata0[0] = now_idx;</li>
-<li>tile_scheduler_metadata0[1] = now_block * block_size_n;</li>
+<li>tile_scheduler_metadata0[1] = now_block * block_size_n; (static
+constexpr int block_size_n = 64;)</li>
 <li>tile_scheduler_metadata0[2] = now_block &gt; 0 ? now_idx : now_idx -
 1;</li>
 <li>tile_scheduler_metadata0[3] = now_block &gt; 0 ? now_block *
 block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <li>tile_scheduler_metadata1 = now_n_split_idx;</li>
 </ul>
+<p>打印 <code>tile_scheduler_metadata</code> 看一下：</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>begin_idx</th>
+<th>begin_seqlen</th>
+<th>end_idx</th>
+<th>end_seqlen</th>
+<th>n_split_idx</th>
+<th>unused</th>
+<th>unused</th>
+<th>unused</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>2880</td>
+<td>3</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>1344</td>
+<td>4</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>0</td>
+<td>6</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>2880</td>
+<td>8</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>1344</td>
+<td>9</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td>0</td>
+<td>11</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>11</td>
+<td>2880</td>
+<td>13</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>1344</td>
+<td>14</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td>0</td>
+<td>16</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td>2880</td>
+<td>18</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>123</td>
+<td>1344</td>
+<td>124</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>125</td>
+<td>0</td>
+<td>126</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>126</td>
+<td>2880</td>
+<td>127</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>128</td>
+<td>0</td>
+<td>127</td>
+<td>4096</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
 <blockquote>
 <p>decoding phase每个batch 的cache seqlen
 都是不定长且动态范围很大，为了平衡不同batch 之间k seqlen 并行的thread
