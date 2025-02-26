@@ -7814,21 +7814,10 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 以防梯度爆炸。</p></li>
 </ul>
 <h2 id="flash_mla">flash_mla</h2>
-<p>实现 flash_mla 的是 <code>flash_mla_with_kvcache</code> 函数
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>q.shape = torch.Size([128, 1, 32, 576])</li>
-<li>blocked_k.shape = torch.Size([8192, 64, 1, 576])</li>
-<li>block_table.shape = torch.Size([128, 64])</li>
-<li>cache_seqlens.shape = torch.Size([128])</li>
-<li>dv = 512</li>
-<li>tile_scheduler_metadata.shape = torch.Size([78, 8])</li>
-<li>num_splits.shape = torch.Size([129])</li>
-</ul>
-<p>其中用到了 <code>tile_scheduler_metadata</code> 和
-<code>num_splits</code>，所以在看 <code>flash_mla_with_kvcache</code>
-之前，先看一下<code>get_mla_metadata</code>做了什么：</p>
-<p><code>tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</code></p>
+<p>实现 flash_mla 的是 <code>flash_mla_with_kvcache</code> 函数,
+其中用到了 <code>tile_scheduler_metadata</code> 和
+<code>num_splits</code>，所以先看一下<code>get_mla_metadata</code>做了什么：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</span><br></pre></td></tr></table></figure>
 <p>输入：</p>
 <ul>
 <li>cache_seqlens
@@ -7850,16 +7839,71 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <ul>
 <li>torch.Size([78, 8])</li>
 <li>(num_sm_parts, TileSchedulerMetaDataSize = 8)</li>
+<li></li>
 </ul></li>
 <li>num_splits
 <ul>
 <li>orch.Size([129])</li>
 <li>batch_size + 1</li>
+<li>记录第batch_id 的batch在k seqlen 被拆分了几个thread block</li>
 </ul></li>
 </ul>
+<h3 id="get_mla_metadata">get_mla_metadata</h3>
 <p>这个函数的实现位于flash_api.cpp，计算元数据用于GPU加速推理和计算，</p>
 <p>为 num_heads_k 个头部划分 SM 资源，确保计算负载均衡。</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</span><br><span class="line">     <span class="number">78</span>      =    <span class="number">78</span>    /      <span class="number">1</span>      / cutlass::ceil_div(         <span class="number">32</span>         ,     <span class="number">64</span>      )</span><br></pre></td></tr></table></figure>
+<p><code>num_sm_parts</code>为在k seqlen 维度并行的thread
+block数目（类似flash decoding），撑满wave 的并行度，提高GPU的利用率。
+--from <a
+href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a></p>
+<p>具体计算在 csrc/flash_fwd_mla_kernel.h 的
+<code>get_mla_metadata_func</code>函数的
+<code>get_mla_metadata_kernel</code>.</p>
+<p>计算的 tile_scheduler_metadata 的其中一个维度虽然是
+TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是为了 16B
+对齐。</p>
+<ul>
+<li>tile_scheduler_metadata0[0] = now_idx;</li>
+<li>tile_scheduler_metadata0[1] = now_block * block_size_n;</li>
+<li>tile_scheduler_metadata0[2] = now_block &gt; 0 ? now_idx : now_idx -
+1;</li>
+<li>tile_scheduler_metadata0[3] = now_block &gt; 0 ? now_block *
+block_size_n : seqlens_k_ptr[now_idx - 1];</li>
+<li>tile_scheduler_metadata1 = now_n_split_idx;</li>
+</ul>
+<blockquote>
+<p>decoding phase每个batch 的cache seqlen
+都是不定长且动态范围很大，为了平衡不同batch 之间k seqlen 并行的thread
+block之间的负载，让所有batch的cache seqlen
+的总和均分num_sm_parts（类似streamk gemm的思想），这样在k seqlen
+并行的thread block 可能会处理多个batch的partial MLA result，需要meta
+data 记录每个thread block开始和结束的batch idx
+对应meta0/2，以及开始batch 的开始seq len id 和结束batch的结束seq len
+id对应meta data1/3 <a
+href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a></p>
+</blockquote>
+<h3 id="flash_mla_with_kvcache">flash_mla_with_kvcache</h3>
+<p>回到主线，看<code>flash_mla_with_kvcache</code> 函数
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p><code>q</code> = torch.Size([128, 1, 32, 576])</p></li>
+<li><p><code>blocked_k</code> = torch.Size([8192, 64, 1, 576])</p></li>
+<li><p><code>block_table</code> = torch.Size([128, 64])</p></li>
+<li><p><code>cache_seqlens</code> = torch.Size([128])</p></li>
+<li><p><code>dv</code> = 512</p></li>
+<li><p><code>tile_scheduler_metadata</code> = torch.Size([78,
+8])</p></li>
+<li><p><code>num_splits</code> = torch.Size([129])</p>
+<pre><code>  q: (batch_size, seq_len_q, num_heads_q, head_dim).
+  k_cache: (num_blocks, page_block_size, num_heads_k, head_dim).
+  block_table: (batch_size, max_num_blocks_per_seq), torch.int32.
+  cache_seqlens: (batch_size), torch.int32.
+  head_dim_v: Head_dim of v.
+  tile_scheduler_metadata: (num_sm_parts, TileSchedulerMetaDataSize), torch.int32, return by get_mla_metadata.
+  num_splits: (batch_size + 1), torch.int32, return by get_mla_metadata.
+  softmax_scale: float. The scaling of QK^T before applying softmax. Default to 1 / sqrt(head_dim).
+  causal: bool. Whether to apply causal attention mask.</code></pre></li>
+</ul>
 ]]></content>
       <categories>
         <category>技术</category>
