@@ -7900,16 +7900,16 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <tr class="odd">
 <td>0</td>
 <td>0</td>
-<td>1</td>
-<td>2880</td>
+<td><strong>1</strong></td>
+<td><strong>2880</strong></td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
 <tr class="even">
-<td>1</td>
-<td>2880</td>
+<td><strong>1</strong></td>
+<td><strong>2880</strong></td>
 <td>3</td>
 <td>1344</td>
 <td>1</td>
@@ -8059,17 +8059,21 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>decoding phase每个batch 的cache seqlen
-都是不定长且动态范围很大，为了平衡不同batch 之间k seqlen 并行的thread
-block之间的负载，让所有batch的cache seqlen
-的总和均分num_sm_parts（类似streamk gemm的思想），这样在k seqlen
-并行的thread block 可能会处理多个batch的partial MLA result，需要meta
-data 记录每个thread block开始和结束的batch idx
-对应meta0/2，以及开始batch 的开始seq len id 和结束batch的结束seq len
-id对应meta data1/3 <a
-href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a></p>
-</blockquote>
+<p>可以看到metadata记录了每个thread block的开始和结束信息，这一行的
+end_idx 和 end_seqlen就是下一行的 begin_idx 和
+begin_seqlen。这里有点像之前看的 Marlin gemm 算子的 streamK
+的思想，进行了任务的分割，实现不同 patch 的 k seqlen 并行的thread
+block之间的负载均衡。</p>
+<p>其中 n_split_idx 需要结合源码才能理解它的意思：</p>
+<p>初始<code>payload = cutlass::ceil_div(total_num_blocks, num_sm_parts) + fixed_overhead_num_blocks;</code></p>
+<p>这是每个 SM 部分
+需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是固定的额外任务块开销。</p>
+<p>在这里我的计算结果是 ceil(8832 / 78) + 5 = 119</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">[num_sm_parts 0][idx 0]remain_payload = 119, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 0][idx 1]remain_payload = 50, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">此时 50 &lt; 64 + 5, 所以要 n_split_idx + 1</span></span><br><span class="line">[num_sm_parts 1][idx 1]remain_payload = 119, now_remain_blocks = 19, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 1][idx 2]remain_payload = 95, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 1][idx 3]remain_payload = 26, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">此时 26 &lt; 64 + 5, 所以要 n_split_idx + 1</span></span><br><span class="line">[num_sm_parts 2][idx 3]remain_payload = 119, now_remain_blocks = 43, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 2][idx 4]remain_payload = 71, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 2][idx 5]remain_payload = 2, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br></pre></td></tr></table></figure>
+<p>也就是说，这里分了 78
+个sm_parts，在这个例子里，每个sm_parts会处理多个batch，如果有一个batch没处理完，就要
+n_split_idx + 1，有点像 Marlin 里面的slice_idx?</p>
+<p><img src="/images/marlin/1_stripe.png" width="50%"></p>
 <h3 id="flash_mla_with_kvcache">flash_mla_with_kvcache</h3>
 <p>回到主线，看<code>flash_mla_with_kvcache</code> 函数
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
