@@ -28,9 +28,10 @@
 <meta property="og:description" content="今天Deepseek开源 FlashMLA，之前看过很多MLA相关知识了，很好的学习 Cuda 加速的机会，实践学习记录一下。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/117/Attention.png">
+<meta property="og:image" content="http://example.com/images/117/metadata.png">
 <meta property="og:image" content="http://example.com/images/marlin/1_stripe.png">
 <meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
-<meta property="article:modified_time" content="2025-02-26T09:43:12.135Z">
+<meta property="article:modified_time" content="2025-02-27T05:45:39.988Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
@@ -246,7 +247,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-02-26 17:43:12" itemprop="dateModified" datetime="2025-02-26T17:43:12+08:00">2025-02-26</time>
+                <time title="Modified: 2025-02-27 13:45:39" itemprop="dateModified" datetime="2025-02-27T13:45:39+08:00">2025-02-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -271,14 +272,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>29k</span>
+              <span>30k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>26 mins.</span>
+              <span>27 mins.</span>
             </span>
 
         </div>
@@ -865,7 +866,6 @@ target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">L
 <ul>
 <li>torch.Size([78, 8])</li>
 <li>(num_sm_parts, TileSchedulerMetaDataSize = 8)</li>
-<li></li>
 </ul></li>
 <li>num_splits
 <ul>
@@ -879,15 +879,15 @@ target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">L
 <p>为 num_heads_k 个头部划分 SM 资源，确保计算负载均衡。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</span><br><span class="line">     <span class="number">78</span>      =    <span class="number">78</span>    /      <span class="number">1</span>      / cutlass::ceil_div(         <span class="number">32</span>         ,     <span class="number">64</span>      )</span><br></pre></td></tr></table></figure>
 <p><code>num_sm_parts</code>为在k seqlen 维度并行的thread
-block数目（类似flash decoding），撑满wave 的并行度，提高GPU的利用率。
+block数目（类似flash decoding），撑满 wave 的并行度，提高GPU的利用率。
 --from <a
 target="_blank" rel="noopener" href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a></p>
 <p>具体计算在 csrc/flash_fwd_mla_kernel.h 的
 <code>get_mla_metadata_func</code>函数的
 <code>get_mla_metadata_kernel</code>.</p>
 <p>计算的 tile_scheduler_metadata 的其中一个维度虽然是
-TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是为了 16B
-对齐。</p>
+TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是为了
+int4(16B) 对齐。</p>
 <ul>
 <li>tile_scheduler_metadata0[0] = now_idx;</li>
 <li>tile_scheduler_metadata0[1] = now_block * block_size_n; (static
@@ -899,19 +899,21 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <li>tile_scheduler_metadata1 = now_n_split_idx;</li>
 </ul>
 <p>打印 <code>tile_scheduler_metadata</code> 看一下：</p>
-<table>
+<table style="width:100%;">
 <colgroup>
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
 </colgroup>
 <thead>
 <tr class="header">
+<th>sm</th>
 <th>begin_idx</th>
 <th>begin_seqlen</th>
 <th>end_idx</th>
@@ -926,6 +928,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <tr class="odd">
 <td>0</td>
 <td>0</td>
+<td>0</td>
 <td><strong>1</strong></td>
 <td><strong>2880</strong></td>
 <td>0</td>
@@ -934,6 +937,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>1</td>
 <td><strong>1</strong></td>
 <td><strong>2880</strong></td>
 <td>3</td>
@@ -944,6 +948,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>2</td>
 <td>3</td>
 <td>1344</td>
 <td>4</td>
@@ -954,6 +959,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>3</td>
 <td>5</td>
 <td>0</td>
 <td>6</td>
@@ -964,6 +970,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>4</td>
 <td>6</td>
 <td>2880</td>
 <td>8</td>
@@ -974,6 +981,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>5</td>
 <td>8</td>
 <td>1344</td>
 <td>9</td>
@@ -984,6 +992,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>6</td>
 <td>10</td>
 <td>0</td>
 <td>11</td>
@@ -994,6 +1003,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>7</td>
 <td>11</td>
 <td>2880</td>
 <td>13</td>
@@ -1004,6 +1014,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>8</td>
 <td>13</td>
 <td>1344</td>
 <td>14</td>
@@ -1014,6 +1025,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>9</td>
 <td>15</td>
 <td>0</td>
 <td>16</td>
@@ -1024,6 +1036,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>10</td>
 <td>16</td>
 <td>2880</td>
 <td>18</td>
@@ -1039,11 +1052,13 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>...</td>
 <td>...</td>
 <td>...</td>
+<td>...</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>74</td>
 <td>123</td>
 <td>1344</td>
 <td>124</td>
@@ -1054,6 +1069,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>75</td>
 <td>125</td>
 <td>0</td>
 <td>126</td>
@@ -1064,6 +1080,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="odd">
+<td>76</td>
 <td>126</td>
 <td>2880</td>
 <td>127</td>
@@ -1074,6 +1091,7 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 </tr>
 <tr class="even">
+<td>77</td>
 <td>128</td>
 <td>0</td>
 <td>127</td>
@@ -1095,10 +1113,72 @@ block之间的负载均衡。</p>
 <p>这是每个 SM 部分
 需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是固定的额外任务块开销。</p>
 <p>在这里我的计算结果是 ceil(8832 / 78) + 5 = 119</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[num_sm_parts 0][idx 0]remain_payload = 119, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 0][idx 1]remain_payload = 50, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">此时 50 &lt; 64 + 5, 所以要 n_split_idx + 1</span></span><br><span class="line">[num_sm_parts 1][idx 1]remain_payload = 119, now_remain_blocks = 19, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 1][idx 2]remain_payload = 95, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 1][idx 3]remain_payload = 26, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">此时 26 &lt; 64 + 5, 所以要 n_split_idx + 1</span></span><br><span class="line">[num_sm_parts 2][idx 3]remain_payload = 119, now_remain_blocks = 43, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 2][idx 4]remain_payload = 71, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br><span class="line">[num_sm_parts 2][idx 5]remain_payload = 2, now_remain_blocks = 64, fixed_overhead_num_blocks = 5</span><br></pre></td></tr></table></figure>
+<p>第 0 个sm：</p>
+<ul>
+<li><p>now_inx = 0 --&gt; <strong>begin_idx = 0</strong></p></li>
+<li><p>now_block = 0 --&gt; <strong>begin_seqlen = 0 * 64 =
+0</strong></p></li>
+<li><p><strong>n_split_idx = 0</strong></p></li>
+<li><p>进入while：</p>
+<ul>
+<li>now_blocks = 0， num_blocks = 64 --&gt; now_remain_blocks = 64</li>
+<li>remain_payload = 119 VS now_remain_blocks +
+fixed_overhead_num_blocks = 69
+<ul>
+<li>足够覆盖，还有剩余 50 --&gt; cum_num_splits + 1 (累积拆分数量)</li>
+</ul></li>
+<li>remain_payload = 50 VS now_remain_blocks + fixed_overhead_num_blocks
+= 69
+<ul>
+<li>不够，now_block = remain_payload - fixed_overhead_num_blocks =
+45</li>
+<li>now_n_split_idx++ (这一行需要多一个sm来处理)</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>第 1 个sm：</p>
+<ul>
+<li><p>now_inx = 1 --&gt; <strong>begin_idx = 1</strong></p></li>
+<li><p>now_block = 45 --&gt; <strong>begin_seqlen = 45 * 64 =
+2880</strong></p></li>
+<li><p><strong>n_split_idx =
+1</strong>（代表这是在处理拆分后的第1部分）</p></li>
+<li><p>进入while：</p>
+<ul>
+<li>now_blocks = 45， num_blocks = 64 --&gt; now_remain_blocks = 19
+（上一次的还有19个block没处理完）</li>
+<li>remain_payload = 119 VS now_remain_blocks +
+fixed_overhead_num_blocks = 24
+<ul>
+<li>足够覆盖，还有剩余 95 --&gt; cum_num_splits + 1 (累积拆分数量)</li>
+</ul></li>
+<li>remain_payload = 95 VS now_remain_blocks + fixed_overhead_num_blocks
+= 69
+<ul>
+<li>足够覆盖，还有剩余 26 --&gt; cum_num_splits + 1 (累积拆分数量)</li>
+</ul></li>
+<li>remain_payload = 26 VS now_remain_blocks + fixed_overhead_num_blocks
+= 69
+<ul>
+<li>不够，now_block = remain_payload - fixed_overhead_num_blocks =
+21</li>
+<li>now_n_split_idx++ (这一行需要多一个sm来处理)</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>第 2 个sm：</p>
+<ul>
+<li><p>now_inx = 2 --&gt; <strong>begin_idx = 1</strong></p></li>
+<li><p>now_block = 21 --&gt; <strong>begin_seqlen = 21 * 64 =
+1344</strong></p></li>
+<li><p><strong>n_split_idx =
+1</strong>（代表这是在处理拆分后的第1部分）</p></li>
+</ul>
+<p>……</p>
+<p><img src="/images/117/metadata.png" width="100%"></p>
 <p>也就是说，这里分了 78
 个sm_parts，在这个例子里，每个sm_parts会处理多个batch，如果有一个batch没处理完，就要
-n_split_idx + 1，有点像 Marlin 里面的slice_idx?</p>
+n_split_idx + 1，有点像 Marlin 里面的slice_idx 参数的意思?</p>
 <p><img src="/images/marlin/1_stripe.png" width="50%"></p>
 <h3 id="flash_mla_with_kvcache">flash_mla_with_kvcache</h3>
 <p>回到主线，看<code>flash_mla_with_kvcache</code> 函数
@@ -1158,18 +1238,23 @@ n_split_idx + 1，有点像 Marlin 里面的slice_idx?</p>
 <code>run_mha_fwd_splitkv_mla</code> -&gt;
 <code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Kernel_traits, <span class="keyword">typename</span> SharedStorage&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">run_flash_splitkv_fwd_mla</span><span class="params">(Flash_fwd_mla_params &amp;params, cudaStream_t stream)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">FLASH_ASSERT</span>(params.page_block_size == Kernel_traits::kBlockN);</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> num_m_block = cute::<span class="built_in">ceil_div</span>(params.seqlen_q, Kernel_traits::kBlockM);</span><br><span class="line">    <span class="built_in">BOOL_SWITCH</span>(params.is_causal, Is_causal, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> kernel = &amp;flash::flash_fwd_splitkv_mla_kernel&lt;Kernel_traits, Is_causal, SharedStorage&gt;;</span><br><span class="line">        <span class="keyword">constexpr</span> <span class="type">size_t</span> smem_size = <span class="built_in">sizeof</span>(SharedStorage);</span><br><span class="line">        <span class="built_in">CHECK_CUDA</span>(<span class="built_in">cudaFuncSetAttribute</span>(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));</span><br><span class="line">        kernel&lt;&lt;&lt;<span class="built_in">dim3</span>(num_m_block, params.h, params.num_sm_parts), Kernel_traits::kNThreads, smem_size, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line"></span><br><span class="line">    <span class="function">dim3 <span class="title">grid_combine</span><span class="params">(params.b * params.h * params.seqlen_q)</span></span>;</span><br><span class="line">    <span class="built_in">MLA_NUM_SPLITS_SWITCH</span>(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">                <span class="keyword">typename</span> Kernel_traits::Element, <span class="keyword">typename</span> Kernel_traits::ElementAccum, <span class="keyword">typename</span> Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">        combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>通过
+<p>逐句解析：</p>
+<ol type="1">
+<li>通过
 <code>num_m_block = cute::ceil_div(params.seqlen_q, Kernel_traits::kBlockM);</code>
-计算在 M 维度上所需要的块数， 可知是在M方向切分 block，在seqlen方向进行
-n_block 的loop。其中，blockM=64，blockN=64。</p>
+计算在 M 维度上所需要的块数， 计算是在M方向切分 block，在 seq len
+方向进行 n_block 的loop。其中，blockM=64，blockN=64。</li>
+</ol>
 <p>在我的例子中，h_q(即 params.seqlen_q) = 32，计算出来的 num_m_block =
 1.</p>
-<p><code>flash_fwd_splitkv_mla_kernel</code> 这个内核函数会根据
-Kernel_traits 和 Is_causal 的值进行特化。</p>
-<p>smem_size: 计算共享内存的大小，SharedStorage
+<ol start="2" type="1">
+<li><p><code>flash_fwd_splitkv_mla_kernel</code> 这个内核函数会根据
+Kernel_traits 和 Is_causal 的值进行特化。</p></li>
+<li><p>smem_size: 计算共享内存的大小，SharedStorage
 是一个用于存储共享数据的结构体，大小通过 sizeof 获取。然后通过 调用
 <code>cudaFuncSetAttribute</code>
-函数为内核设置最大动态共享内存的大小。</p>
+函数为内核设置最大动态共享内存的大小。</p></li>
+</ol>
 <p>smem_size = 230400 (224KB)</p>
 <ul>
 <li>smem_q: 73728
@@ -1229,10 +1314,12 @@ KB</strong></td>
 </table>
 <p><a
 target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-depth/">表格数据来源</a></p>
-<p>这么看的话，确实只有 Hopper 架构的卡能完美跑这个算法了。</p>
-<hr />
-<p>kernel&lt;&lt;&lt;...&gt;&gt;&gt;: 启动 CUDA 核函数，设置其 grid size
-和 block size。</p>
+<p>这么看的话，确实只有 <strong>Hopper
+架构</strong>的卡能完美跑这个算法了。</p>
+<ol start="4" type="1">
+<li>kernel&lt;&lt;&lt;...&gt;&gt;&gt;: 启动 CUDA 核函数
+<code>kernel</code>，设置其 grid size 和 block size。</li>
+</ol>
 <ul>
 <li>dim3(num_m_block, params.h, params.num_sm_parts) 是执行的 grid 大小
 <ul>
@@ -1248,6 +1335,31 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
 </ul></li>
 <li>stream 是 CUDA 流</li>
 </ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MLA_NUM_SPLITS_SWITCH(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">    <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">            typename Kernel_traits::Element, typename Kernel_traits::ElementAccum, typename Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">    combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<ol start="5" type="1">
+<li>因为 params.num_sm_parts 是 78，所以在
+<code>MLA_NUM_SPLITS_SWITCH</code> 中会将 <code>kMaxSplits</code> 设置为
+96。</li>
+</ol>
+<p>启动 CUDA 核函数 <code>combine_kernel</code>，</p>
+<ul>
+<li>combine_kernel&lt;&lt;&lt;grid_combine, 128, 0, stream&gt;&gt;&gt;
+<ul>
+<li>grid_combine: 是一个一维的 dim3 类型，表示合并内核的网格大小。</li>
+<li>只给出一个数字时，CUDA 会默认将它映射到 x 维度，并将 y 和 z
+维度设置为 1</li>
+<li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 = 4096, 1,
+1)</li>
+<li>这个 combine_kernel 没有分配额外的动态共享内存</li>
+</ul></li>
+</ul>
+<h3 id="flash_fwd_splitkv_mla_kernel">flash_fwd_splitkv_mla_kernel</h3>
+<ul>
+<li>dim3(num_m_block, params.h, params.num_sm_parts)</li>
+<li>dim3(1, num_heads = 1, 78)</li>
+</ul>
+<h3
+id="flash_fwd_splitkv_mla_combine_kernel">flash_fwd_splitkv_mla_combine_kernel</h3>
 
     </div>
 
@@ -1356,7 +1468,7 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.</span> <span class="nav-text">实验平台</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">测试结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ref_mla"><span class="nav-number">4.1.</span> <span class="nav-text">ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flash_mla"><span class="nav-number">4.2.</span> <span class="nav-text">flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get_mla_metadata"><span class="nav-number">4.2.1.</span> <span class="nav-text">get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_mla_with_kvcache"><span class="nav-number">4.2.2.</span> <span class="nav-text">flash_mla_with_kvcache</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.</span> <span class="nav-text">实验平台</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">测试结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ref_mla"><span class="nav-number">4.1.</span> <span class="nav-text">ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flash_mla"><span class="nav-number">4.2.</span> <span class="nav-text">flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get_mla_metadata"><span class="nav-number">4.2.1.</span> <span class="nav-text">get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_mla_with_kvcache"><span class="nav-number">4.2.2.</span> <span class="nav-text">flash_mla_with_kvcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_kernel"><span class="nav-number">4.2.3.</span> <span class="nav-text">flash_fwd_splitkv_mla_kernel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_combine_kernel"><span class="nav-number">4.2.4.</span> <span class="nav-text">flash_fwd_splitkv_mla_combine_kernel</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1441,13 +1553,13 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">183k</span>
+    <span title="Symbols count total">185k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">2:47</span>
+    <span title="Reading time total">2:48</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
