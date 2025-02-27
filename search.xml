@@ -7768,7 +7768,7 @@ update 一下)</p>
 </ul>
 <p>进入<code>tests/test_flash_mla.py</code> 的
 <code>test_flash_mla()</code> 函数。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">    cache_seqlens = torch.full((b,), mean_sk, dtype=torch.int32) <span class="comment"># 初始化一个长度为 b 的张量，每个 batch 样本的 key-value 序列长度均设为 mean_sk。</span></span><br><span class="line"><span class="keyword">if</span> varlen: <span class="comment"># 如果 varlen 为 True，则为每个样本生成一个服从正态分布 N(mean_sk, mean_sk/2) 的 key-value 序列长度，并确保 ≥ s_q（即 query 长度）。</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">        cache_seqlens[i] = <span class="built_in">max</span>(random.normalvariate(mean_sk, mean_sk / <span class="number">2</span>), s_q)</span><br><span class="line">total_seqlens = cache_seqlens.<span class="built_in">sum</span>().item()              <span class="comment"># batch 内所有 key-value 序列长度之和。     524288 = 4096 * 128</span></span><br><span class="line">mean_seqlens = cache_seqlens.<span class="built_in">float</span>().mean().<span class="built_in">int</span>().item()<span class="comment"># batch 内 key-value 序列的平均长度。       4096</span></span><br><span class="line">max_seqlen = cache_seqlens.<span class="built_in">max</span>().item()                 <span class="comment"># batch 内 key-value 序列的最大长度。       4096</span></span><br><span class="line">max_seqlen_pad = triton.cdiv(max_seqlen, <span class="number">256</span>) * <span class="number">256</span>     <span class="comment"># 对 max_seqlen 进行 256 对齐（向上取整）。   4096</span></span><br><span class="line"><span class="comment"># print(f&quot;&#123;total_seqlens=&#125;, &#123;mean_seqlens=&#125;, &#123;max_seqlen=&#125;&quot;)</span></span><br><span class="line"></span><br><span class="line">q = torch.randn(b, s_q, h_q, d)</span><br><span class="line">block_size = <span class="number">64</span> <span class="comment"># 设定块大小为 64（用于分块存储 key-value）。</span></span><br><span class="line">block_table = torch.arange(b * max_seqlen_pad // block_size, dtype=torch.int32).view(b, max_seqlen_pad // block_size) <span class="comment"># [128, 64] 64 = 4096 // 64</span></span><br><span class="line">blocked_k = torch.randn(block_table.numel(), block_size, h_kv, d) <span class="comment"># [8192, 64, 1, 576]</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">    blocked_k.view(b, max_seqlen_pad, h_kv, d)[i, cache_seqlens[i].item():] = <span class="built_in">float</span>(<span class="string">&quot;nan&quot;</span>)</span><br><span class="line">blocked_v = blocked_k[..., :dv] <span class="comment"># 取 blocked_k 的前 dv 维作为 value</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">cache_seqlens = torch.full((b,), mean_sk, dtype=torch.int32) <span class="comment"># 初始化一个长度为 b 的张量，每个 batch 样本的 key-value 序列长度均设为 mean_sk。</span></span><br><span class="line"><span class="keyword">if</span> varlen: <span class="comment"># 如果 varlen 为 True，则为每个样本生成一个服从正态分布 N(mean_sk, mean_sk/2) 的 key-value 序列长度，并确保 ≥ s_q（即 query 长度）。</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">        cache_seqlens[i] = <span class="built_in">max</span>(random.normalvariate(mean_sk, mean_sk / <span class="number">2</span>), s_q)</span><br><span class="line">total_seqlens = cache_seqlens.<span class="built_in">sum</span>().item()              <span class="comment"># batch 内所有 key-value 序列长度之和。     524288 = 4096 * 128</span></span><br><span class="line">mean_seqlens = cache_seqlens.<span class="built_in">float</span>().mean().<span class="built_in">int</span>().item()<span class="comment"># batch 内 key-value 序列的平均长度。       4096</span></span><br><span class="line">max_seqlen = cache_seqlens.<span class="built_in">max</span>().item()                 <span class="comment"># batch 内 key-value 序列的最大长度。       4096</span></span><br><span class="line">max_seqlen_pad = triton.cdiv(max_seqlen, <span class="number">256</span>) * <span class="number">256</span>     <span class="comment"># 对 max_seqlen 进行 256 对齐（向上取整）。   4096</span></span><br><span class="line"><span class="comment"># print(f&quot;&#123;total_seqlens=&#125;, &#123;mean_seqlens=&#125;, &#123;max_seqlen=&#125;&quot;)</span></span><br><span class="line"></span><br><span class="line">q = torch.randn(b, s_q, h_q, d)</span><br><span class="line">block_size = <span class="number">64</span> <span class="comment"># 设定块大小为 64（用于分块存储 key-value）。</span></span><br><span class="line">block_table = torch.arange(b * max_seqlen_pad // block_size, dtype=torch.int32).view(b, max_seqlen_pad // block_size) <span class="comment"># [128, 64] 64 = 4096 // 64</span></span><br><span class="line">blocked_k = torch.randn(block_table.numel(), block_size, h_kv, d) <span class="comment"># [8192, 64, 1, 576]</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">    blocked_k.view(b, max_seqlen_pad, h_kv, d)[i, cache_seqlens[i].item():] = <span class="built_in">float</span>(<span class="string">&quot;nan&quot;</span>)</span><br><span class="line">blocked_v = blocked_k[..., :dv] <span class="comment"># 取 blocked_k 的前 dv 维作为 value</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>从 key 张量中取前 dv 维作为 value，避免额外分配新的 blocked_v
 张量，提高内存效率，提高数据局部性。</p>
 <p>在注意力计算中，key (K) 的维度 d 可能比 value (V) 的维度 dv
@@ -7817,6 +7817,7 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <p>实现 flash_mla 的是 <code>flash_mla_with_kvcache</code> 函数,
 其中用到了 <code>tile_scheduler_metadata</code> 和
 <code>num_splits</code>，所以先看一下<code>get_mla_metadata</code>做了什么：</p>
+<h3 id="get_mla_metadata">get_mla_metadata</h3>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</span><br></pre></td></tr></table></figure>
 <p>输入：</p>
 <ul>
@@ -7847,7 +7848,6 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <li>记录第batch_id 的batch在k seqlen 被拆分了几个thread block</li>
 </ul></li>
 </ul>
-<h3 id="get_mla_metadata">get_mla_metadata</h3>
 <p>这个函数的实现位于flash_api.cpp，计算元数据用于GPU加速推理和计算，</p>
 <p>为 num_heads_k 个头部划分 SM 资源，确保计算负载均衡。</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</span><br><span class="line">     <span class="number">78</span>      =    <span class="number">78</span>    /      <span class="number">1</span>      / cutlass::ceil_div(         <span class="number">32</span>         ,     <span class="number">64</span>      )</span><br></pre></td></tr></table></figure>
@@ -7858,7 +7858,7 @@ href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a
 <p>具体计算在 csrc/flash_fwd_mla_kernel.h 的
 <code>get_mla_metadata_func</code>函数的
 <code>get_mla_metadata_kernel</code>.</p>
-<p>计算的 tile_scheduler_metadata 的其中一个维度虽然是
+<p>tile_scheduler_metadata 的其中一个维度虽然是
 TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是为了
 int4(16B) 对齐。</p>
 <ul>
@@ -8084,7 +8084,8 @@ block之间的负载均衡。</p>
 <p>其中 n_split_idx 结合源码理解它的意思：</p>
 <p>初始<code>payload = cutlass::ceil_div(total_num_blocks, num_sm_parts) + fixed_overhead_num_blocks;</code></p>
 <p>这是每个 SM 部分
-需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是固定的额外任务块开销。</p>
+需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是5，用途是
+（待补充） 。</p>
 <p>在这里我的计算结果是 ceil(8832 / 78) + 5 = 119</p>
 <p>第 0 个sm：</p>
 <ul>
@@ -8105,7 +8106,7 @@ fixed_overhead_num_blocks = 69
 <ul>
 <li>不够，now_block = remain_payload - fixed_overhead_num_blocks =
 45</li>
-<li>now_n_split_idx++ (这一行需要多一个sm来处理)</li>
+<li>now_n_split_idx++ (这一行需要多拆一次)</li>
 </ul></li>
 </ul></li>
 </ul>
@@ -8135,7 +8136,7 @@ fixed_overhead_num_blocks = 24
 <ul>
 <li>不够，now_block = remain_payload - fixed_overhead_num_blocks =
 21</li>
-<li>now_n_split_idx++ (这一行需要多一个sm来处理)</li>
+<li>now_n_split_idx++ (这一行需要多拆一次)</li>
 </ul></li>
 </ul></li>
 </ul>
@@ -8149,7 +8150,7 @@ fixed_overhead_num_blocks = 24
 </ul>
 <p>……</p>
 <p>也就是说，这里分了 78
-个sm_parts，在这个例子里，每个sm_parts会处理多个batch，如果有一个batch没处理完，就要
+个sm_parts，在这个例子里，每个sm_parts会处理多行，如果有一行没处理完，就要
 n_split_idx + 1，有点像 Marlin 里面的slice_idx 参数的意思?</p>
 <p><img src="/images/marlin/1_stripe.png" width="50%"></p>
 <h3 id="flash_mla_with_kvcache">flash_mla_with_kvcache</h3>
@@ -8227,7 +8228,7 @@ Kernel_traits 和 Is_causal 的值进行特化。</p></li>
 <code>cudaFuncSetAttribute</code>
 函数为内核设置最大动态共享内存的大小。</p></li>
 </ol>
-<p>smem_size = 230400 (224KB)</p>
+<p>这里值得仔细算一下：smem_size = 230400 (224KB)</p>
 <ul>
 <li>smem_q: 73728
 <ul>
@@ -8320,16 +8321,56 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 <li>grid_combine: 是一个一维的 dim3 类型，表示合并内核的网格大小。</li>
 <li>只给出一个数字时，CUDA 会默认将它映射到 x 维度，并将 y 和 z
 维度设置为 1</li>
-<li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 = 4096, 1,
-1)</li>
+<li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 =
+<strong>4096</strong>, <strong>1</strong>, <strong>1</strong>)</li>
 <li>这个 combine_kernel 没有分配额外的动态共享内存</li>
 </ul></li>
 </ul>
+<p>接下来看这两个kernel。</p>
 <h3 id="flash_fwd_splitkv_mla_kernel">flash_fwd_splitkv_mla_kernel</h3>
 <ul>
 <li>dim3(num_m_block, params.h, params.num_sm_parts)</li>
 <li>dim3(1, num_heads = 1, 78)</li>
 </ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll 1</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> batch_id = begin_idx; batch_id &lt;= end_idx; ++batch_id) &#123;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> n_split_idx = batch_id == begin_idx ? begin_n_split_idx : <span class="number">0</span>;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> seqlen_k = __ldg(params.cu_seqlens_k + batch_id);</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> n_block_min = batch_id == begin_idx ? begin_seqlen / kBlockN : <span class="number">0</span>;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> n_block_max = batch_id == end_idx ? cute::ceil_div(end_seqlen, kBlockN) : cute::ceil_div(seqlen_k, kBlockN);</span><br><span class="line">        <span class="type">const</span> <span class="type">bool</span> NoSplit = n_block_min == <span class="number">0</span> &amp;&amp; n_block_max == cute::ceil_div(seqlen_k, kBlockN);</span><br><span class="line">        <span class="keyword">if</span> (batch_id &gt; begin_idx) &#123;</span><br><span class="line">            __syncthreads();  <span class="comment">// Barrier between two tiles.</span></span><br><span class="line">        &#125;</span><br><span class="line">        n_split_idx, seqlen_k, n_block_min, n_block_max, NoSplit);</span><br><span class="line">        flash::compute_attn_1rowblock_splitkv_mla&lt;Kernel_traits, Is_causal&gt;(params, batch_id, bidh, m_block, n_split_idx, seqlen_k, n_block_min, n_block_max, NoSplit, shared_storage);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>聚焦在 SM1 上：</p>
+<p><img src="/images/117/metadata.png" width="100%"></p>
+<p>begin_idx = 1, end_idx = 3</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">batch_id</th>
+<th style="text-align: center;">seqlen_k</th>
+<th style="text-align: center;">n_block_min</th>
+<th style="text-align: center;">n_block_max</th>
+<th style="text-align: center;">NoSplit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">54</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+<p>因为设置的是定长的，所以每个的seqlen_k=4096</p>
 <h3
 id="flash_fwd_splitkv_mla_combine_kernel">flash_fwd_splitkv_mla_combine_kernel</h3>
 ]]></content>
