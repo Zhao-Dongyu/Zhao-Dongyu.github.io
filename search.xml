@@ -8340,6 +8340,7 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 <thead>
 <tr class="header">
 <th style="text-align: center;">batch_id</th>
+<th style="text-align: center;">n_split_idx</th>
 <th style="text-align: center;">seqlen_k</th>
 <th style="text-align: center;">n_block_min</th>
 <th style="text-align: center;">n_block_max</th>
@@ -8349,6 +8350,7 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
 <td style="text-align: center;">4096</td>
 <td style="text-align: center;">45</td>
 <td style="text-align: center;">64</td>
@@ -8356,13 +8358,15 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 </tr>
 <tr class="even">
 <td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
 <td style="text-align: center;">4096</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">54</td>
+<td style="text-align: center;">64</td>
 <td style="text-align: center;">1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">3</td>
+<td style="text-align: center;">0</td>
 <td style="text-align: center;">4096</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">21</td>
@@ -8370,7 +8374,7 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 </tr>
 </tbody>
 </table>
-<p>因为设置的是定长的，所以每个的seqlen_k=4096</p>
+<p>进一步看 <code>compute_attn_1rowblock_splitkv_mla</code> 函数：</p>
 <h3
 id="flash_fwd_splitkv_mla_combine_kernel">flash_fwd_splitkv_mla_combine_kernel</h3>
 ]]></content>

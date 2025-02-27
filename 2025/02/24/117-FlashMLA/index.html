@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://example.com/images/marlin/1_stripe.png">
 <meta property="og:image" content="http://example.com/images/117/metadata.png">
 <meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
-<meta property="article:modified_time" content="2025-02-27T07:08:55.434Z">
+<meta property="article:modified_time" content="2025-02-27T07:28:49.193Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
@@ -248,7 +248,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-02-27 15:08:55" itemprop="dateModified" datetime="2025-02-27T15:08:55+08:00">2025-02-27</time>
+                <time title="Modified: 2025-02-27 15:28:49" itemprop="dateModified" datetime="2025-02-27T15:28:49+08:00">2025-02-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1368,6 +1368,7 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
 <thead>
 <tr class="header">
 <th style="text-align: center;">batch_id</th>
+<th style="text-align: center;">n_split_idx</th>
 <th style="text-align: center;">seqlen_k</th>
 <th style="text-align: center;">n_block_min</th>
 <th style="text-align: center;">n_block_max</th>
@@ -1377,6 +1378,7 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
 <td style="text-align: center;">4096</td>
 <td style="text-align: center;">45</td>
 <td style="text-align: center;">64</td>
@@ -1384,13 +1386,15 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
 </tr>
 <tr class="even">
 <td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
 <td style="text-align: center;">4096</td>
 <td style="text-align: center;">0</td>
-<td style="text-align: center;">54</td>
+<td style="text-align: center;">64</td>
 <td style="text-align: center;">1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">3</td>
+<td style="text-align: center;">0</td>
 <td style="text-align: center;">4096</td>
 <td style="text-align: center;">0</td>
 <td style="text-align: center;">21</td>
@@ -1398,7 +1402,7 @@ target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvi
 </tr>
 </tbody>
 </table>
-<p>因为设置的是定长的，所以每个的seqlen_k=4096</p>
+<p>进一步看 <code>compute_attn_1rowblock_splitkv_mla</code> 函数：</p>
 <h3
 id="flash_fwd_splitkv_mla_combine_kernel">flash_fwd_splitkv_mla_combine_kernel</h3>
 
