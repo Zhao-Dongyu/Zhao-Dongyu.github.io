@@ -7902,8 +7902,8 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 <td>0</td>
 <td>0</td>
 <td>0</td>
-<td><strong>1</strong></td>
-<td><strong>2880</strong></td>
+<td>1</td>
+<td>2880</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -7911,8 +7911,8 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 </tr>
 <tr class="even">
 <td>1</td>
-<td><strong>1</strong></td>
-<td><strong>2880</strong></td>
+<td>1</td>
+<td>2880</td>
 <td>3</td>
 <td>1344</td>
 <td>1</td>
@@ -8076,12 +8076,12 @@ block_size_n : seqlens_k_ptr[now_idx - 1];</li>
 </tr>
 </tbody>
 </table>
-<p>可以看到metadata记录了每个thread block的开始和结束信息，这一行的
-end_idx 和 end_seqlen就是下一行的 begin_idx 和
-begin_seqlen。这里有点像之前看的 Marlin gemm 算子的 streamK
+<p>可以看到metadata记录了每个thread
+block的开始和结束信息。这里有点像之前看的 Marlin gemm 算子的 streamK
 的思想，进行了任务的分割，实现不同 patch 的 k seqlen 并行的thread
 block之间的负载均衡。</p>
-<p>其中 n_split_idx 需要结合源码才能理解它的意思：</p>
+<p><img src="/images/117/metadata.png" width="100%"></p>
+<p>其中 n_split_idx 结合源码理解它的意思：</p>
 <p>初始<code>payload = cutlass::ceil_div(total_num_blocks, num_sm_parts) + fixed_overhead_num_blocks;</code></p>
 <p>这是每个 SM 部分
 需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是固定的额外任务块开销。</p>
@@ -8148,7 +8148,6 @@ fixed_overhead_num_blocks = 24
 1</strong>（代表这是在处理拆分后的第1部分）</p></li>
 </ul>
 <p>……</p>
-<p><img src="/images/117/metadata.png" width="100%"></p>
 <p>也就是说，这里分了 78
 个sm_parts，在这个例子里，每个sm_parts会处理多个batch，如果有一个batch没处理完，就要
 n_split_idx + 1，有点像 Marlin 里面的slice_idx 参数的意思?</p>
