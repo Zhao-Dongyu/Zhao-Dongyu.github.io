@@ -8240,6 +8240,9 @@ attention计算 <code>flash_mla_with_kvcache</code></h3>
 </tr>
 </tbody>
 </table>
+<p><strong>要注意，这里的 q
+已经吸收了kv的变换矩阵，所以后面可以直接对合并的 kvcache
+计算</strong></p>
 <p>在 flash_api.cpp 里，<code>mha_fwd_kvcache_mla</code> -&gt;
 <code>run_mha_fwd_splitkv_mla</code> -&gt;
 <code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel:</p>
@@ -8274,7 +8277,7 @@ Kernel_traits 和 Is_causal 的值进行特化。</p></li>
             - 576 * 64 * 2B / 1024 = 72 KB
         - smem_k: 73728 * 2 = 147456 **(Double buffer)**
             - 存放输入K（包含部分V）
-            - 64 * 576 * 2B * 2 / 1024 = 144KB
+            - 64 * 576 * 2B * **2** / 1024 = 144KB
         - smem_p: 8192
             - 用于存放 gemm 1 的结果，用于 `wg 0` 和 `wg 1` 之间的数据中转
             - 64 x 64 x 2B / 1024 = 8KB
