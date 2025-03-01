@@ -6929,6 +6929,7 @@ flash_fwd_splitkv_mla_kernel</h4>
 函数对每个thread block 的 256 thread 进行了分组，分成了2个warp
 group。也就是 0-127 thread是 <code>wg0</code>， 128-255
 thread是<code>wg1</code>.</p>
+<p><img src="/images/117/pipeline.png" width="100%"></p>
 <p><img src="/images/117/warp_group.png" width="100%"></p>
 <h4 id="warp-group-0">warp group 0:</h4>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">typename Kernel_traits::TiledMma tiled_mma;</span><br><span class="line"><span class="keyword">auto</span> thr_mma = tiled_mma.get_thread_slice(tidx);</span><br><span class="line">Tensor tSrQ = thr_mma.partition_fragment_A(sQ);                           <span class="comment">// (MMA,MMA_M,MMA_K)</span></span><br><span class="line">Tensor tSrK = thr_mma.partition_fragment_B(sK);                           <span class="comment">// (MMA,MMA_N,MMA_K)</span></span><br></pre></td></tr></table></figure>
