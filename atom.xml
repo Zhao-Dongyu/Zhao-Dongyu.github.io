@@ -42,7 +42,7 @@ Cuda 加速的机会，实践学习记录一下。&lt;/p&gt;</summary>
     <link href="http://example.com/2025/02/24/117-FlashMLA/"/>
     <id>http://example.com/2025/02/24/117-FlashMLA/</id>
     <published>2025-02-24T05:45:13.000Z</published>
-    <updated>2025-03-01T03:33:55.009Z</updated>
+    <updated>2025-03-01T06:03:48.838Z</updated>
     
     
     <summary type="html">&lt;p&gt;今天Deepseek开源 &lt;a
@@ -152,31 +152,6 @@ MLA 相关知识了，感觉这是一个很好的学习 Cuda
   </entry>
   
   <entry>
-    <title>triton</title>
-    <link href="http://example.com/2024/11/14/112_triton/"/>
-    <id>http://example.com/2024/11/14/112_triton/</id>
-    <published>2024-11-13T16:00:00.000Z</published>
-    <updated>2024-11-21T08:46:43.389Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
-&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a
-href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-  </entry>
-  
-  <entry>
     <title>树莓派Zero实验</title>
     <link href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
     <id>http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
@@ -195,6 +170,31 @@ href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
     <category term="Raspberry" scheme="http://example.com/tags/Raspberry/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>triton</title>
+    <link href="http://example.com/2024/11/14/112_triton/"/>
+    <id>http://example.com/2024/11/14/112_triton/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2024-11-21T08:46:43.389Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
+&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a
+href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
   </entry>
   
@@ -254,7 +254,7 @@ href=&quot;https://neuralmagic.com/blog/llm-compressor-is-here-faster-inference-
     <link href="http://example.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/"/>
     <id>http://example.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/</id>
     <published>2024-11-03T16:00:00.000Z</published>
-    <updated>2024-11-05T02:57:52.376Z</updated>
+    <updated>2024-11-06T02:09:48.926Z</updated>
     
     
     <summary type="html">&lt;p&gt;在&lt;a
@@ -270,9 +270,9 @@ href=&quot;https://hanlab.mit.edu/courses/2024-fall-65940&quot;&gt;韩松&lt;/a&
     
     <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
-    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
-    
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
     
   </entry>
   
@@ -342,11 +342,11 @@ FP8(W4A8)算子，减少一些IO吞吐，看看能不能提升性能。&lt;/p&gt
     <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
     <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
     
     <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
     
@@ -374,11 +374,11 @@ href=&quot;https://github.com/IST-DASLab/marlin&quot;&gt;&lt;code&gt;marlin&lt;/
     <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
     <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
     
     <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
     
@@ -491,13 +491,13 @@ riscv platform.&lt;/p&gt;
     
     
     
+    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
+    
     <category term="notes" scheme="http://example.com/tags/notes/"/>
     
     <category term="tech" scheme="http://example.com/tags/tech/"/>
     
     <category term="tflite-micro" scheme="http://example.com/tags/tflite-micro/"/>
-    
-    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
     
   </entry>
   
