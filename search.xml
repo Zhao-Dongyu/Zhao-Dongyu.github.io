@@ -6929,6 +6929,7 @@ flash_fwd_splitkv_mla_kernel</h4>
 函数对每个thread block 的 256 thread 进行了分组，分成了2个warp
 group。也就是 0-127 thread是 <code>wg0</code>， 128-255
 thread是<code>wg1</code>.</p>
+<p>接下来的代码逻辑，画图反而表达得比较清楚一些：</p>
 <p><img src="/images/117/pipeline.png" width="80%"></p>
 <p><img src="/images/117/warp_group.png" width="100%"></p>
 <h4 id="warp-group-0">warp group 0:</h4>
@@ -6936,21 +6937,34 @@ thread是<code>wg1</code>.</p>
 <p>为线程分配矩阵片段，以便进行矩阵乘法（MMA）操作</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (n_block % <span class="number">2</span> == <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// Double buffer for sK</span></span><br><span class="line">    constexpr <span class="type">int</span> sK_offset = size(sK);</span><br><span class="line">    tSrK.data() = tSrK.data() + sK_offset / <span class="number">8</span>;</span><br><span class="line">    tOrVt.data() = tOrVt.data() + sK_offset / <span class="number">8</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这里是 Double buffer 逻辑，如果 n_block 是奇数的话，要加上 sK_offset
-/ 8 的偏移。 - 为什么是 sK_offset / 8
-呢？我理解的是单个wgmma为64x64x16，这里的 8 是 64 * 2 / 16。</p>
+/ 8 的偏移。</p>
+<ul>
+<li>为什么是 sK_offset / 8 呢？我理解的是单个wgmma为64x64x16，这里的 8
+是 64 * 2 / 16。</li>
+</ul>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> masking_step = n_masking_steps; n_block &gt;= n_block_min; --masking_step, --n_block) &#123;</span><br></pre></td></tr></table></figure>
 <p>for循环是沿着 n_block 做了一个遍历</p>
+<p>每一次循环分别做了 gemm1 的计算，mask操作，online softmax
+以及存储计算结果的操作。</p>
+<p>tiled_mma shape是64,64,576，单个wgmma为 64x64x16，k方向循环迭代。</p>
+<p>tiled_mma_o shape是64,512,64, 在 N
+的方向切成2个mma，单个wgmma为64x256x16，warp group
+0计算其中的一部分，</p>
 <h4 id="warp-group-1">warp group 1:</h4>
-<p>gemm
-1的M,N,K分别为64,64,576，单个wgmma为64x64x16，k方向循环迭代，由warp
-group 0执行计算。</p>
-<p>gemm
-2的M,N,K分别为64,512,64，被从N方向切分成两个mma，单个wgmma为64x256x16，分别由warp
-group 0和warp group 1执行计算。</p>
-<p>wg1 负责 load q kv/pv dot/store。MLA kernel 之后还有combine kernel
-reduce num_sm_parts partial result 得到完整结果。</p>
-<h3
-id="flash_fwd_splitkv_mla_combine_kernel">flash_fwd_splitkv_mla_combine_kernel</h3>
+<p>wg1 负责加载 Q K P，做 tiled_mma_o 的第二部分计算。</p>
+<blockquote>
+<p>有意思的是，wgmma最大支持N=256，刚好是headdimV的一半，因此两个warp
+group刚好完成一整个gemm 2的计算。<a
+href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
+</blockquote>
+<p>加载这个动作用 block_table 进行索引，通过 n_block 的奇偶性切换 KV 的
+buffer。</p>
+<p>在 n_block loop 结束完成后，通过 SoftmaxReady 做了一个 sum/max
+的同步，让两个warp group都取得相同的数据，最后一起做stroe output。</p>
+<p>MLA kernel 之后还有combine kernel，去 reduce num_sm_parts partial
+result 得到完整结果。</p>
+<h3 id="flash_fwd_splitkv_mla_combine_kernel">1.2.3
+flash_fwd_splitkv_mla_combine_kernel</h3>
 <ul>
 <li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 =
 <strong>4096</strong>, <strong>1</strong>, <strong>1</strong>)</li>
@@ -6975,15 +6989,34 @@ actual_num_splits 是否大于 kMaxSplits。 如果 actual_num_splits ==
 <p>最终对结果做一下类型转换和存储到 global memory 中。</p>
 <p>这个 kernel 主要就是在每个线程块内计算和合并多个 split 的结果，使用
 softmax 的 LSE 计算和缩放系数进行加权求和。</p>
-<h1 id="性能">性能</h1>
+<h1 id="性能查看">2.性能查看</h1>
+<p>使用 nsight system 简单看一下 kernel 的耗时：</p>
+<p><code>nsys profile --trace=cuda,osrt -o flash_mla --force-overwrite true python tests/test_flash_mla.py</code></p>
+<p><img src="/images/117/nsys_1.png" width="100%"></p>
+<p><img src="/images/117/nsys_2.png" width="100%"></p>
 <h1 id="和mla有什么关系">和MLA有什么关系？</h1>
+<p>之前看了一些关于讲解 MLA 的文章，如 <a
+href="https://spaces.ac.cn/archives/10091">苏剑林
+缓存与效果的极限拉扯：从MHA、MQA、GQA到MLA</a> 和 <a
+href="https://zhuanlan.zhihu.com/p/700214123">ZHANG Mingxing DeepSeek-V2
+高性能推理 (1)：通过矩阵吸收十倍提速 MLA 算子</a></p>
+<p>看算子的时候就一直在好奇，这不就是在算 attention 吗？W^UQ W^UK
+这些投影矩阵完全没出现啊，那这和 MLA 有什么关系呢？</p>
+<p>后来才知道，这些已经被矩阵吸收到 Q 矩阵了，这个 FlashMLA 就是在做针对
+MLA 维度的高效推理。😓</p>
 <h1 id="总结">总结</h1>
+<blockquote>
 <p>MLA本质上是一个KV部分共享的，升维的MQA。维度从一般的128升维到576/512，KV共享前512长度，另有64长度是K独有的。
 flashMLA只能在hopper架构上运行，几乎无法移植到其他平台。（除非有大于228KB的share
-memory，有N大于256的wgmma） flashMLA的核心优化是其互相配合的两个warp
-group和精心配置的流水线。 <a
+memory，有N大于256的wgmma） flashMLA利用了online softmax算法、paged
+attn的分块和split-kv优化，叠加自己的计算mapping和两个warp
+group相配合的流水线，达到了很高的性能。<a
 href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
-<p>小白一枚，理解的有问题的部分还希望大佬们指正</p>
+</blockquote>
+<p>在 <a href="https://github.com/madsys-dev/deepseekv2-profile">ZHANG
+Mingxing 的 git</a> 里还有关于 move_elision
+的优化，效果显著，但是FlashMLA没有用到，不知道用上的话会有什么影响。</p>
+<p>小白一枚，理解浅显，有问题的部分还希望大佬们指正～</p>
 <h1 id="参考">参考</h1>
 <p><a href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/26080342823">flashMLA
@@ -7001,6 +7034,8 @@ href="https://spaces.ac.cn/archives/10091">缓存与效果的极限拉扯：从M
 <p><a
 href="https://github.com/66RING/tiny-flash-attention/blob/main/cutlass_cute_tutorial_zh.md">用cutlass
 cute实现flash attention</a></p>
+<p><a
+href="https://github.com/madsys-dev/deepseekv2-profile">deepseekv2-profile</a></p>
 ]]></content>
       <categories>
         <category>技术</category>
