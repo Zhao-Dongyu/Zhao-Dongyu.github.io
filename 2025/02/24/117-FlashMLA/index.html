@@ -29,11 +29,10 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/117/Attention.png">
 <meta property="og:image" content="http://example.com/images/117/metadata.png">
-<meta property="og:image" content="http://example.com/images/marlin/1_stripe.png">
 <meta property="og:image" content="http://example.com/images/117/metadata.png">
 <meta property="og:image" content="http://example.com/images/117/metadata.png">
 <meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
-<meta property="article:modified_time" content="2025-03-01T03:09:24.229Z">
+<meta property="article:modified_time" content="2025-03-01T03:25:30.863Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
@@ -249,7 +248,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-03-01 11:09:24" itemprop="dateModified" datetime="2025-03-01T11:09:24+08:00">2025-03-01</time>
+                <time title="Modified: 2025-03-01 11:25:30" itemprop="dateModified" datetime="2025-03-01T11:25:30+08:00">2025-03-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -274,7 +273,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>35k</span>
+              <span>36k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
@@ -859,7 +858,8 @@ target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">L
 <li>负责paged attention计算</li>
 </ul></li>
 </ul>
-<h3 id="负载均衡-get_mla_metadata">3.2.1 负载均衡 get_mla_metadata</h3>
+<h3 id="负载均衡-get_mla_metadata">3.2.1 负载均衡
+<code>get_mla_metadata</code></h3>
 <blockquote>
 <p>一个 batch 里面有很多 seq， 每个 seq 的 len 都不一样，如果启动 kernel
 的时候 grid size 设置成 batch size计算就不均衡，所以先算出 seq
@@ -898,8 +898,9 @@ target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">L
 <li>记录第batch_id 的batch在k seqlen 被拆分了几个thread block</li>
 </ul></li>
 </ul>
-<p>这个函数的实现位于flash_api.cpp，计算元数据用于GPU加速推理和计算，</p>
-<p>为 num_heads_k 个头部划分 SM 资源，确保计算负载均衡。</p>
+<p>这个函数的实现位于 flash_api.cpp
+，计算元数据用于GPU加速推理和计算，为 num_heads_k 个头部划分 SM
+资源，确保计算负载均衡。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</span><br><span class="line">     <span class="number">78</span>      =    <span class="number">78</span>    /      <span class="number">1</span>      / cutlass::ceil_div(         <span class="number">32</span>         ,     <span class="number">64</span>      )</span><br></pre></td></tr></table></figure>
 <p><code>num_sm_parts</code>为在k seqlen 维度并行的thread
 block数目（类似flash decoding），撑满 wave 的并行度，提高GPU的利用率。
@@ -914,16 +915,7 @@ target="_blank" rel="noopener" href="https://www.zhihu.com/question/13181801180/
 int4(16B) 对齐。</p>
 <p>这5个分别是：每个sm要处理的起始seq idx，起始seq的token idx， 结束seq
 idx， 结束seq的token idx， 起始的seq是否被分割了。</p>
-<ul>
-<li>tile_scheduler_metadata0[0] = now_idx;</li>
-<li>tile_scheduler_metadata0[1] = now_block * block_size_n; (static
-constexpr int block_size_n = 64;)</li>
-<li>tile_scheduler_metadata0[2] = now_block &gt; 0 ? now_idx : now_idx -
-1;</li>
-<li>tile_scheduler_metadata0[3] = now_block &gt; 0 ? now_block *
-block_size_n : seqlens_k_ptr[now_idx - 1];</li>
-<li>tile_scheduler_metadata1 = now_n_split_idx;</li>
-</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tile_scheduler_metadata0[<span class="number">0</span>] = now_idx;</span><br><span class="line">tile_scheduler_metadata0[<span class="number">1</span>] = now_block * block_size_n; <span class="comment">// static constexpr int block_size_n = 64;</span></span><br><span class="line">tile_scheduler_metadata0[<span class="number">2</span>] = now_block &gt; <span class="number">0</span> ? now_idx : now_idx - <span class="number">1</span>;</span><br><span class="line">tile_scheduler_metadata0[<span class="number">3</span>] = now_block &gt; <span class="number">0</span> ? now_block * block_size_n : seqlens_k_ptr[now_idx - <span class="number">1</span>];</span><br><span class="line">tile_scheduler_metadata1    = now_n_split_idx;</span><br></pre></td></tr></table></figure>
 <p>打印 <code>tile_scheduler_metadata</code> 看一下：</p>
 <table style="width:100%;">
 <colgroup>
@@ -1134,7 +1126,7 @@ block的开始和结束信息。这里有点像之前看的 Marlin gemm 算子�
 的思想，进行了任务的分割，实现不同 patch 的 k seqlen 并行的thread
 block之间的负载均衡。</p>
 <p><img src="/images/117/metadata.png" width="100%"></p>
-<p>其中 n_split_idx 结合源码理解它的意思：</p>
+<p>别的都好懂，结合源码理解一下 <code>n_split_idx</code> 的意思：</p>
 <p>初始<code>payload = cutlass::ceil_div(total_num_blocks, num_sm_parts) + fixed_overhead_num_blocks;</code></p>
 <p>这是每个 SM 部分
 需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是5，用途是
@@ -1204,11 +1196,12 @@ fixed_overhead_num_blocks = 24
 <p>……</p>
 <p>也就是说，这里分了 78
 个sm_parts，在这个例子里，每个sm_parts会处理多行，如果有一行没处理完，就要
-n_split_idx + 1，有点像 Marlin 里面的slice_idx 参数的意思?</p>
-<p><img src="/images/marlin/1_stripe.png" width="50%"></p>
-<h3 id="flash_mla_with_kvcache">flash_mla_with_kvcache</h3>
-<p>回到主线，看<code>flash_mla_with_kvcache</code> 函数
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure></p>
+n_split_idx + 1。也就是说，对于 SM 来说，n_split_idx
+表示的是n维度的第几块的索引。</p>
+<h3 id="paged-attention计算-flash_mla_with_kvcache">3.2.2 paged
+attention计算 <code>flash_mla_with_kvcache</code></h3>
+<p>回到主线，看<code>flash_mla_with_kvcache</code> 函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
 <table>
 <colgroup>
 <col style="width: 33%" />
@@ -1260,25 +1253,30 @@ n_split_idx + 1，有点像 Marlin 里面的slice_idx 参数的意思?</p>
 </tr>
 </tbody>
 </table>
-<p>在flash_api.cpp里，<code>mha_fwd_kvcache_mla</code> -&gt;
+<p>在 flash_api.cpp 里，<code>mha_fwd_kvcache_mla</code> -&gt;
 <code>run_mha_fwd_splitkv_mla</code> -&gt;
-<code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel。</p>
+<code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel:</p>
+<ul>
+<li>flash_fwd_splitkv_mla_kernel</li>
+<li>flash_fwd_splitkv_mla_combine_kernel</li>
+</ul>
+<p>这两个 kernel 是同一个 stream，是顺序执行的一个关系。</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Kernel_traits, <span class="keyword">typename</span> SharedStorage&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">run_flash_splitkv_fwd_mla</span><span class="params">(Flash_fwd_mla_params &amp;params, cudaStream_t stream)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">FLASH_ASSERT</span>(params.page_block_size == Kernel_traits::kBlockN);</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> num_m_block = cute::<span class="built_in">ceil_div</span>(params.seqlen_q, Kernel_traits::kBlockM);</span><br><span class="line">    <span class="built_in">BOOL_SWITCH</span>(params.is_causal, Is_causal, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> kernel = &amp;flash::flash_fwd_splitkv_mla_kernel&lt;Kernel_traits, Is_causal, SharedStorage&gt;;</span><br><span class="line">        <span class="keyword">constexpr</span> <span class="type">size_t</span> smem_size = <span class="built_in">sizeof</span>(SharedStorage);</span><br><span class="line">        <span class="built_in">CHECK_CUDA</span>(<span class="built_in">cudaFuncSetAttribute</span>(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));</span><br><span class="line">        kernel&lt;&lt;&lt;<span class="built_in">dim3</span>(num_m_block, params.h, params.num_sm_parts), Kernel_traits::kNThreads, smem_size, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line"></span><br><span class="line">    <span class="function">dim3 <span class="title">grid_combine</span><span class="params">(params.b * params.h * params.seqlen_q)</span></span>;</span><br><span class="line">    <span class="built_in">MLA_NUM_SPLITS_SWITCH</span>(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">                <span class="keyword">typename</span> Kernel_traits::Element, <span class="keyword">typename</span> Kernel_traits::ElementAccum, <span class="keyword">typename</span> Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">        combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>逐句解析：</p>
+<p>逐句解析一下：</p>
 <ol type="1">
-<li>通过
-<code>num_m_block = cute::ceil_div(params.seqlen_q, Kernel_traits::kBlockM);</code>
-计算在 M 维度上所需要的块数， 计算是在M方向切分 block，在 seq len
-方向进行 n_block 的loop。其中，blockM=64，blockN=64。</li>
+<li>通过计算 <code>num_m_block</code> 计算在 M 维度上所需要的块数，
+计算是在M方向切分 block，在 seq len 方向进行 n_block
+的loop。其中，blockM=64，blockN=64。</li>
 </ol>
-<p>在我的例子中，h_q(即 params.seqlen_q) = 32，计算出来的 num_m_block =
-1.</p>
+<p><code>num_m_block = cute::ceil_div(params.seqlen_q, Kernel_traits::kBlockM);</code></p>
+<p>在我的例子中，h_q(即 params.seqlen_q) = 32，不够 blockM，
+所以计算出来的 num_m_block = 1.</p>
 <ol start="2" type="1">
 <li><p><code>flash_fwd_splitkv_mla_kernel</code> 这个内核函数会根据
 Kernel_traits 和 Is_causal 的值进行特化。</p></li>
-<li><p>smem_size: 计算共享内存的大小，SharedStorage
-是一个用于存储共享数据的结构体，大小通过 sizeof 获取。然后通过 调用
-<code>cudaFuncSetAttribute</code>
+<li><p>smem_size: 计算共享内存的大小，<code>SharedStorage</code>
+是一个用于存储共享数据的结构体，大小通过 <code>sizeof</code>
+获取。然后通过 调用 <code>cudaFuncSetAttribute</code>
 函数为内核设置最大动态共享内存的大小。</p></li>
 </ol>
 <p>这里值得仔细算一下：smem_size = 230400 (224KB)</p>
@@ -1287,7 +1285,7 @@ Kernel_traits 和 Is_causal 的值进行特化。</p></li>
         - smem_q: 73728 
             - 存放输入Q
             - 576 * 64 * 2B / 1024 = 72 KB
-        - smem_k: 73728 * 2 = 147456 (Double buffer)
+        - smem_k: 73728 * 2 = 147456 **(Double buffer)**
             - 存放输入K（包含部分V）
             - 64 * 576 * 2B * 2 / 1024 = 144KB
         - smem_p: 8192
@@ -1494,6 +1492,7 @@ flashMLA只能在hopper架构上运行，几乎无法移植到其他平台。（
 memory，有N大于256的wgmma） flashMLA的核心优化是其互相配合的两个warp
 group和精心配置的流水线。 <a
 target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
+<p>小白一枚，理解的有问题的部分还希望大佬们指正</p>
 <h1 id="参考">参考</h1>
 <p><a target="_blank" rel="noopener" href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a></p>
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">flashMLA
@@ -1619,7 +1618,9 @@ cute实现flash attention</a></p>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.</span> <span class="nav-text">0. 实验平台</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">1. 安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">2. 测试结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">3. 学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0-ref_mla"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 基础实现 ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A7%92%E7%99%BB%E5%9C%BA-flash_mla"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 主角登场 flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1-get_mla_metadata"><span class="nav-number">4.2.1.</span> <span class="nav-text">3.2.1 负载均衡 get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_mla_with_kvcache"><span class="nav-number">4.2.2.</span> <span class="nav-text">flash_mla_with_kvcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_kernel"><span class="nav-number">4.2.3.</span> <span class="nav-text">flash_fwd_splitkv_mla_kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-0"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">warp group 0:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-1"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">warp group 1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_combine_kernel"><span class="nav-number">4.2.4.</span> <span class="nav-text">flash_fwd_splitkv_mla_combine_kernel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD"><span class="nav-number">5.</span> <span class="nav-text">性能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%92%8Cmla%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="nav-number">6.</span> <span class="nav-text">和MLA有什么关系？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.</span> <span class="nav-text">0. 实验平台</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">1. 安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">2. 测试结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">3. 学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0-ref_mla"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 基础实现 ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A7%92%E7%99%BB%E5%9C%BA-flash_mla"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 主角登场 flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1-get_mla_metadata"><span class="nav-number">4.2.1.</span> <span class="nav-text">3.2.1 负载均衡
+get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#paged-attention%E8%AE%A1%E7%AE%97-flash_mla_with_kvcache"><span class="nav-number">4.2.2.</span> <span class="nav-text">3.2.2 paged
+attention计算 flash_mla_with_kvcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_kernel"><span class="nav-number">4.2.3.</span> <span class="nav-text">flash_fwd_splitkv_mla_kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-0"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">warp group 0:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-1"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">warp group 1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_combine_kernel"><span class="nav-number">4.2.4.</span> <span class="nav-text">flash_fwd_splitkv_mla_combine_kernel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD"><span class="nav-number">5.</span> <span class="nav-text">性能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%92%8Cmla%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="nav-number">6.</span> <span class="nav-text">和MLA有什么关系？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
