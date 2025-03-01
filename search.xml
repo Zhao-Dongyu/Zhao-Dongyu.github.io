@@ -672,6 +672,21 @@ Description
 </td>
 </tr>
 <tr>
+<td>
+<b>Artanis</b>
+</td>
+<td>
+<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/e4a15953bc6896a5afb370361f8f09186b83cbbb5cfd5264db07be7be86e4101.png">
+</td>
+<td>
+Legacy of the Void<br>(Completed 2025/02/27)
+</td>
+<td>
+Passive. At the start of the game, choose from 2 Protoss minions to get
+after you buy 14 cards. <br>Finish in 1st place as Artanis
+</td>
+</tr>
+<tr>
 <td rowspan="2">
 <b>A.F.Kay</b>
 </td>
@@ -1072,13 +1087,13 @@ Mechano
 </tr>
 <tr>
 <td>
-Exarch Othaar
+<b>Exarch Othaar</b>
 </td>
 <td>
 <img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/e4a9826601aab13d7df61e73c9e3629aab72577b3fa7582900fcb9ef8afb4438.png">
 </td>
 <td>
-Astronomical!
+Astronomical!<br>(Completed 2025/02/15)
 </td>
 <td>
 The next Tavern spell you buy costs (1) less. (Unlocks on Turn
@@ -8228,13 +8243,26 @@ Kernel_traits 和 Is_causal 的值进行特化。</p></li>
 <code>cudaFuncSetAttribute</code>
 函数为内核设置最大动态共享内存的大小。</p></li>
 </ol>
-<p>这里值得仔细算一下：smem_size = 230400 (224KB) union{ struct{ -
-smem_q: 73728 - 存放输入Q - 576 * 64 * 2B / 1024 = 72 KB - smem_k: 73728
-* 2 = 147456 (Double buffer) - 存放输入K（包含部分V） - 64 * 576 * 2B *
-2 / 1024 = 144KB - smem_p: 8192 - 用于存放 gemm 1 的结果，用于
-<code>wg 1</code> 和 <code>wg 2</code> 之间的数据中转 - 2 x 2 x 128 x 8
-x 2B / 1024 = 8KB - smem_scale: 1024 } struct{ - smem_max: 1024 -
-smem_sum: 1024 - smem_o : 131072 } }</p>
+<p>这里值得仔细算一下：smem_size = 230400 (224KB)</p>
+<pre><code>union&#123;
+    struct&#123;
+        - smem_q: 73728 
+            - 存放输入Q
+            - 576 * 64 * 2B / 1024 = 72 KB
+        - smem_k: 73728 * 2 = 147456 (Double buffer)
+            - 存放输入K（包含部分V）
+            - 64 * 576 * 2B * 2 / 1024 = 144KB
+        - smem_p: 8192
+            - 用于存放 gemm 1 的结果，用于 `wg 0` 和 `wg 1` 之间的数据中转
+            - 64 x 64 x 2B / 1024 = 8KB
+        - smem_scale: 1024
+    &#125;
+    struct&#123;
+        - smem_max: 1024
+        - smem_sum: 1024
+        - smem_o  : 131072
+    &#125;
+&#125;</code></pre>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -8362,8 +8390,66 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 </tbody>
 </table>
 <p>进一步看 <code>compute_attn_1rowblock_splitkv_mla</code> 函数：</p>
+<p>首先是一些参数：</p>
+<ul>
+<li>kBlockM = 64</li>
+<li>kBlockN = 64</li>
+<li>kHeadDim = 576</li>
+<li>kHeadDimV = 512</li>
+<li>kNThreads = 256</li>
+<li>kNThreadsS = 128</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.</span></span><br><span class="line"><span class="comment">/// Threads within the warp must be converged.</span></span><br><span class="line">CUTLASS_DEVICE</span><br><span class="line"><span class="type">int</span> <span class="title function_">canonical_warp_group_idx</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__)</span></span><br><span class="line">    <span class="keyword">return</span> __shfl_sync(<span class="number">0xffffffff</span>, threadIdx.x / NumThreadsPerWarpGroup, <span class="number">0</span>); <span class="comment">// NumThreadsPerWarpGroup = 128</span></span><br><span class="line">  <span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>cutlass::canonical_warp_group_idx();</code>
+函数对每个thread block 的 256 thread 进行了分组，分成了2个warp
+group。也就是 0-127 thread是 <code>wg0</code>， 128-255
+thread是<code>wg1</code>.</p>
+<h4 id="warp-group-0">warp group 0:</h4>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">typename Kernel_traits::TiledMma tiled_mma;</span><br><span class="line"><span class="keyword">auto</span> thr_mma = tiled_mma.get_thread_slice(tidx);</span><br><span class="line">Tensor tSrQ = thr_mma.partition_fragment_A(sQ);                           <span class="comment">// (MMA,MMA_M,MMA_K)</span></span><br><span class="line">Tensor tSrK = thr_mma.partition_fragment_B(sK);                           <span class="comment">// (MMA,MMA_N,MMA_K)</span></span><br></pre></td></tr></table></figure>
+<p>为线程分配矩阵片段，以便进行矩阵乘法（MMA）操作</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (n_block % <span class="number">2</span> == <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// Double buffer for sK</span></span><br><span class="line">    constexpr <span class="type">int</span> sK_offset = size(sK);</span><br><span class="line">    tSrK.data() = tSrK.data() + sK_offset / <span class="number">8</span>;</span><br><span class="line">    tOrVt.data() = tOrVt.data() + sK_offset / <span class="number">8</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里是 Double buffer 逻辑，如果 n_block 是奇数的话，要加上 sK_offset
+/ 8 的偏移。 - 为什么是 sK_offset / 8
+呢？我理解的是单个wgmma为64x64x16，这里的 8 是 64 * 2 / 16。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> masking_step = n_masking_steps; n_block &gt;= n_block_min; --masking_step, --n_block) &#123;</span><br></pre></td></tr></table></figure>
+<p>for循环是沿着 n_block 做了一个遍历</p>
+<h4 id="warp-group-1">warp group 1:</h4>
+<p>gemm
+1的M,N,K分别为64,64,576，单个wgmma为64x64x16，k方向循环迭代，由warp
+group 0执行计算。</p>
+<p>gemm
+2的M,N,K分别为64,512,64，被从N方向切分成两个mma，单个wgmma为64x256x16，分别由warp
+group 0和warp group 1执行计算。</p>
+<p>wg1 负责 load q kv/pv dot/store。MLA kernel 之后还有combine kernel
+reduce num_sm_parts partial result 得到完整结果。</p>
 <h3
 id="flash_fwd_splitkv_mla_combine_kernel">flash_fwd_splitkv_mla_combine_kernel</h3>
+<ul>
+<li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 =
+<strong>4096</strong>, <strong>1</strong>, <strong>1</strong>)</li>
+</ul>
+<p>这个 kernel 处理基于 splitkv 的计算，执行加法操作、softmax
+求和以及其他张量操作。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> split_offset = __ldg(params.num_splits_ptr + batch_idx);</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> actual_num_splits = __ldg(params.num_splits_ptr + batch_idx + <span class="number">1</span>) - split_offset;</span><br><span class="line">FLASH_DEVICE_ASSERT(actual_num_splits &lt;= kMaxSplits);</span><br><span class="line"><span class="keyword">if</span> (actual_num_splits == <span class="number">1</span>) <span class="keyword">return</span>;</span><br></pre></td></tr></table></figure>
+<p>通过从 params.num_splits_ptr 中读取当前批次的 split 数量，并检查
+actual_num_splits 是否大于 kMaxSplits。 如果 actual_num_splits ==
+1，则提前返回，不做计算。</p>
+<p><img src="/images/117/metadata.png" width="100%"></p>
+<p>这要又一次结合这张图来看了</p>
+<ul>
+<li>batch_idx = 0 --&gt; actual_num_splits = 1 --&gt; return</li>
+<li>batch_idx = 1 --&gt; actual_num_splits = 2 --&gt; ...</li>
+<li>batch_idx = 2 --&gt; actual_num_splits = 1 --&gt; return</li>
+<li>batch_idx = 3 --&gt; actual_num_splits = 3 --&gt; ...</li>
+</ul>
+<p>这一块代码进行了 LSE 的计算：计算最大值， <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> warp_idx = cutlass::canonical_warp_idx_sync(); <span class="comment">// 32个线程一个warp</span></span><br><span class="line"><span class="keyword">if</span> (warp_idx == <span class="number">0</span>) &#123; <span class="comment">// 只有 0-31 线程</span></span><br><span class="line">    constexpr <span class="type">int</span> kNLsePerThread = cute::ceil_div(kMaxSplits, <span class="number">32</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> local_lse[kNLsePerThread];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) &#123;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> split = i * <span class="number">32</span> + tidx;</span><br><span class="line">        local_lse[i] = split &lt; actual_num_splits ? gLSEaccum(split) : -INFINITY;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> max_lse = -INFINITY;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) max_lse = max(max_lse, local_lse[i]);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> offset = <span class="number">16</span>; offset &gt;= <span class="number">1</span>; offset /= <span class="number">2</span>) max_lse = max(max_lse, __shfl_xor_sync(<span class="type">uint32_t</span>(<span class="number">-1</span>), max_lse, offset));</span><br><span class="line">    max_lse = max_lse == -INFINITY ? <span class="number">0.0f</span> : max_lse;  <span class="comment">// In case all local LSEs are -inf</span></span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> sum_lse = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) sum_lse = sum_lse + expf(local_lse[i] - max_lse);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> offset = <span class="number">16</span>; offset &gt;= <span class="number">1</span>; offset /= <span class="number">2</span>) sum_lse = sum_lse + __shfl_xor_sync(<span class="type">uint32_t</span>(<span class="number">-1</span>), sum_lse, offset);</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> global_lse = (sum_lse == <span class="number">0.f</span> || sum_lse != sum_lse) ? INFINITY : logf(sum_lse) + max_lse;</span><br><span class="line">    <span class="keyword">if</span> (tidx == <span class="number">0</span>) gLSE(<span class="number">0</span>) = global_lse;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) &#123; <span class="comment">//存储每个split的lse缩放系数到共享内存中</span></span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> split = i * <span class="number">32</span> + tidx;</span><br><span class="line">        <span class="keyword">if</span> (split &lt; actual_num_splits) sLseScale[split] = expf(local_lse[i] - global_lse);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">__syncthreads();</span><br></pre></td></tr></table></figure></p>
+<p>对每个split进行加权求和，结果在 <code>tOrO</code> 张量中</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> split = <span class="number">0</span>; split &lt; actual_num_splits; ++split) &#123;</span><br><span class="line">    cute::copy(tOgOaccum, tOrOaccum);</span><br><span class="line">    ElementAccum lse_scale = sLseScale[split];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size(tOrO); ++i) &#123;</span><br><span class="line">        tOrO(i) += lse_scale * tOrOaccum(i);</span><br><span class="line">    &#125;</span><br><span class="line">    tOgOaccum.data() = tOgOaccum.data() + hs * kHeadDimV;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终对结果做一下类型转换和存储到 global memory 中。</p>
+<p>这个 kernel 主要就是在每个线程块内计算和合并多个 split 的结果，使用
+softmax 的 LSE 计算和缩放系数进行加权求和。</p>
+<h1 id="性能">性能</h1>
+<h1 id="总结">总结</h1>
 ]]></content>
       <categories>
         <category>技术</category>
