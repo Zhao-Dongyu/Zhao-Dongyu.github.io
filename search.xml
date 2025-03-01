@@ -8275,9 +8275,9 @@ Kernel_traits 和 Is_causal 的值进行特化。</p></li>
         - smem_q: 73728 
             - 存放输入Q
             - 576 * 64 * 2B / 1024 = 72 KB
-        - smem_k: 73728 * 2 = 147456 **(Double buffer)**
+        - smem_k: 73728 * 2 = 147456 (Double buffer)
             - 存放输入K（包含部分V）
-            - 64 * 576 * 2B * **2** / 1024 = 144KB
+            - 64 * 576 * 2B * 2 / 1024 = 144KB
         - smem_p: 8192
             - 用于存放 gemm 1 的结果，用于 `wg 0` 和 `wg 1` 之间的数据中转
             - 64 x 64 x 2B / 1024 = 8KB
@@ -8328,7 +8328,8 @@ KB</strong></td>
 </table>
 <p><a
 href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-depth/">表格数据来源</a></p>
-<p>这么看的话，确实只有 <strong>Hopper
+<p>smem_size 是 224KB，而 Hopper 架构的 Shared memory size 是228KB，
+这么看的话，确实只有 <strong>Hopper
 架构</strong>的卡能完美跑这个算法了。</p>
 <ol start="4" type="1">
 <li>kernel&lt;&lt;&lt;...&gt;&gt;&gt;: 启动 CUDA 核函数
@@ -8349,12 +8350,12 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 </ul></li>
 <li>stream 是 CUDA 流</li>
 </ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">MLA_NUM_SPLITS_SWITCH(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">    <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">            typename Kernel_traits::Element, typename Kernel_traits::ElementAccum, typename Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">    combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <ol start="5" type="1">
 <li>因为 params.num_sm_parts 是 78，所以在
 <code>MLA_NUM_SPLITS_SWITCH</code> 中会将 <code>kMaxSplits</code> 设置为
 96。</li>
 </ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">MLA_NUM_SPLITS_SWITCH(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">    <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">            typename Kernel_traits::Element, typename Kernel_traits::ElementAccum, typename Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">    combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>启动 CUDA 核函数 <code>combine_kernel</code>，</p>
 <ul>
 <li>combine_kernel&lt;&lt;&lt;grid_combine, 128, 0, stream&gt;&gt;&gt;
@@ -8367,8 +8368,10 @@ href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-dept
 <li>这个 combine_kernel 没有分配额外的动态共享内存</li>
 </ul></li>
 </ul>
+<hr />
 <p>接下来看这两个kernel。</p>
-<h3 id="flash_fwd_splitkv_mla_kernel">flash_fwd_splitkv_mla_kernel</h3>
+<h4 id="flash_fwd_splitkv_mla_kernel">3.2.2.1
+flash_fwd_splitkv_mla_kernel</h4>
 <ul>
 <li>dim3(num_m_block, params.h, params.num_sm_parts)</li>
 <li>dim3(1, num_heads = 1, 78)</li>
