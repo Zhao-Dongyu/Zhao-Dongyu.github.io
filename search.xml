@@ -672,21 +672,6 @@ Description
 </td>
 </tr>
 <tr>
-<td>
-<b>Artanis</b>
-</td>
-<td>
-<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/e4a15953bc6896a5afb370361f8f09186b83cbbb5cfd5264db07be7be86e4101.png">
-</td>
-<td>
-Legacy of the Void<br>(Completed 2025/02/27)
-</td>
-<td>
-Passive. At the start of the game, choose from 2 Protoss minions to get
-after you buy 14 cards. <br>Finish in 1st place as Artanis
-</td>
-</tr>
-<tr>
 <td rowspan="2">
 <b>A.F.Kay</b>
 </td>
@@ -782,6 +767,21 @@ Supreme Tavernologist<br>(Completed 2023/07/20)
 <td>
 Next combat, add a plain copy of the first minion you kill to your
 hand.<br>Finish in 1st place as Arch-Villain Rafaam
+</td>
+</tr>
+<tr>
+<td>
+<b>Artanis</b>
+</td>
+<td>
+<img src="https://d15f34w2p8l1cc.cloudfront.net/hearthstone/e4a15953bc6896a5afb370361f8f09186b83cbbb5cfd5264db07be7be86e4101.png">
+</td>
+<td>
+Legacy of the Void<br>(Completed 2025/02/27)
+</td>
+<td>
+Passive. At the start of the game, choose from 2 Protoss minions to get
+after you buy 14 cards. <br>Finish in 1st place as Artanis
 </td>
 </tr>
 <tr>
@@ -7277,11 +7277,12 @@ href="https://zhuanlan.zhihu.com/p/12302566679">大模型推理张量并行的4�
       </tags>
   </entry>
   <entry>
-    <title>FlashMLA</title>
+    <title>FlashMLA 源码分析</title>
     <url>/2025/02/24/117-FlashMLA/</url>
     <content><![CDATA[<p>今天Deepseek开源 <a
-href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a>，之前看过很多MLA相关知识了，很好的学习
-Cuda 加速的机会，实践学习记录一下。</p>
+href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a>，之前看过一些
+MLA 相关知识了，感觉这是一个很好的学习 Cuda
+加速的机会，于是实践学习记录一下。</p>
 <span id="more"></span>
 <h1 id="实验平台">实验平台</h1>
 <p>如FlashMLA所讲：</p>
@@ -7298,8 +7299,8 @@ optimized for variable-length sequences serving.</p>
 </details>
 <h1 id="安装">安装</h1>
 <p><code>git clone https://github.com/deepseek-ai/FlashMLA.git</code></p>
-<p><code>git submodule update --init csrc/cutlass/</code>(GPU平台“网不好”所以先
-update 一下)</p>
+<p><code>git submodule update --init csrc/cutlass/</code></p>
+<p><code>python setup.py install</code></p>
 <details>
 <summary>
 安装过程log
@@ -7773,7 +7774,7 @@ update 一下)</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># python tests/test_flash_mla.py</span></span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 36, n_repeat: 144</span><br><span class="line">0.609 ms, 30 TFLOPS, 998 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 140</span><br><span class="line">0.634 ms, 29 TFLOPS, 965 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 36, n_repeat: 145</span><br><span class="line">0.610 ms, 60 TFLOPS, 1004 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 140</span><br><span class="line">0.634 ms, 60 TFLOPS, 1001 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 36, n_repeat: 145</span><br><span class="line">0.613 ms, 60 TFLOPS, 1000 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 34, n_repeat: 138</span><br><span class="line">0.645 ms, 59 TFLOPS, 998 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 35, n_repeat: 143</span><br><span class="line">0.618 ms, 118 TFLOPS, 1005 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 143</span><br><span class="line">0.622 ms, 117 TFLOPS, 995 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 35, n_repeat: 143</span><br><span class="line">0.621 ms, 118 TFLOPS, 1002 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 141</span><br><span class="line">0.631 ms, 113 TFLOPS, 965 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.186 ms, 123 TFLOPS, 539 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 18, n_repeat: 74</span><br><span class="line">1.261 ms, 121 TFLOPS, 528 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.191 ms, 123 TFLOPS, 537 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 19, n_repeat: 76</span><br><span class="line">1.235 ms, 120 TFLOPS, 523 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 10, n_repeat: 40</span><br><span class="line">2.394 ms, 122 TFLOPS, 282 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 9, n_repeat: 38</span><br><span class="line">2.516 ms, 120 TFLOPS, 276 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.175 ms, 31 TFLOPS, 1032 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 19, n_repeat: 78</span><br><span class="line">1.198 ms, 30 TFLOPS, 1012 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 20, n_repeat: 80</span><br><span class="line">1.173 ms, 62 TFLOPS, 1037 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 18, n_repeat: 74</span><br><span class="line">1.271 ms, 61 TFLOPS, 1024 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.178 ms, 62 TFLOPS, 1033 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 20, n_repeat: 81</span><br><span class="line">1.147 ms, 61 TFLOPS, 1012 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.183 ms, 123 TFLOPS, 1036 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 20, n_repeat: 81</span><br><span class="line">1.151 ms, 121 TFLOPS, 1017 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.190 ms, 123 TFLOPS, 1030 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 20, n_repeat: 80</span><br><span class="line">1.162 ms, 120 TFLOPS, 1011 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 10, n_repeat: 41</span><br><span class="line">2.305 ms, 127 TFLOPS, 539 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 10, n_repeat: 40</span><br><span class="line">2.408 ms, 125 TFLOPS, 532 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 10, n_repeat: 41</span><br><span class="line">2.314 ms, 126 TFLOPS, 537 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 9, n_repeat: 38</span><br><span class="line">2.508 ms, 125 TFLOPS, 529 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 5, n_repeat: 20</span><br><span class="line">4.698 ms, 124 TFLOPS, 272 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 5, n_repeat: 21</span><br><span class="line">4.648 ms, 123 TFLOPS, 270 GB/s</span><br></pre></td></tr></table></figure>
 </details>
 <h1 id="学习分析">学习分析</h1>
-<p>以下配置为例：</p>
+<p>本文以下面的配置为例：</p>
 <ul>
 <li>b = 128</li>
 <li>s = 4096</li>
@@ -7807,8 +7808,9 @@ update 一下)</p>
 定义为<code>gemm 2</code>。本图参考了<a
 href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <h2 id="ref_mla">ref_mla</h2>
-<p>先看一下基础的实现：</p>
-<p>要实现的就是</p>
+<p>先看一下基础的 pytorch 的实现，已经熟悉 attention
+计算的可以直接跳过这部分～</p>
+<p><code>ref_mla</code> 要实现的就是</p>
 <p>$ Attention(Q,K,V) = softmax() V $</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">ref_mla</span>():</span><br><span class="line">    out = torch.empty(b, s_q, h_q, dv, dtype=torch.float32) <span class="comment"># 初始化张量，用于存储结果</span></span><br><span class="line">    lse = torch.empty(b, h_q, s_q, dtype=torch.float32)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b): <span class="comment"># 逐 batch 计算</span></span><br><span class="line">        begin = i * max_seqlen_pad <span class="comment"># 计算 Key-Value 范围索引</span></span><br><span class="line">        end = begin + cache_seqlens[i]</span><br><span class="line">        O, LSE = scaled_dot_product_attention( <span class="comment"># 计算 注意力输出 和 softmax 归一化因子(logsumexp)</span></span><br><span class="line">            q[i].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_k.view(-<span class="number">1</span>, h_kv, d)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_v.view(-<span class="number">1</span>, h_kv, dv)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            h_q=h_q,</span><br><span class="line">            h_kv=h_kv,</span><br><span class="line">            is_causal=causal,</span><br><span class="line">        )</span><br><span class="line">        out[i] = O.transpose(<span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">        lse[i] = LSE</span><br><span class="line">    <span class="keyword">return</span> out, lse</span><br></pre></td></tr></table></figure>
 <p>out 维度 [b, s_q, h_q, dv]</p>
@@ -7829,6 +7831,7 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 以防梯度爆炸。</p></li>
 </ul>
 <h2 id="flash_mla">flash_mla</h2>
+<p>开始步入正题！</p>
 <p>实现 flash_mla 的是 <code>flash_mla_with_kvcache</code> 函数,
 其中用到了 <code>tile_scheduler_metadata</code> 和
 <code>num_splits</code>，所以先看一下<code>get_mla_metadata</code>做了什么：</p>
