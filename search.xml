@@ -7003,7 +7003,7 @@ href="https://zhuanlan.zhihu.com/p/700214123">ZHANG Mingxing DeepSeek-V2
 <p>看算子的时候就一直在好奇，这不就是在算 attention 吗？W^UQ W^UK
 这些投影矩阵完全没出现啊，那这和 MLA 有什么关系呢？</p>
 <p>后来才知道，这些已经被矩阵吸收到 Q 矩阵了，这个 FlashMLA 就是在做针对
-MLA 维度的高效推理。😓</p>
+MLA 维度的高效推理。</p>
 <h1 id="总结">总结</h1>
 <blockquote>
 <p>MLA本质上是一个KV部分共享的，升维的MQA。维度从一般的128升维到576/512，KV共享前512长度，另有64长度是K独有的。
@@ -7014,8 +7014,12 @@ group相配合的流水线，达到了很高的性能。<a
 href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
 </blockquote>
 <p>在 <a href="https://github.com/madsys-dev/deepseekv2-profile">ZHANG
-Mingxing 的 git</a> 里还有关于 move_elision
-的优化，效果显著，但是FlashMLA没有用到，不知道用上的话会有什么影响。</p>
+Mingxing 的 git</a> 里还有关于 <code>move_elision</code>
+的优化，效果显著，但是我看 FlashMLA
+没有用到，不知道用上的话会有什么影响。</p>
+<p>认真读完代码之后学习到很多 Cuda
+算子设计的巧妙之处，受益良多，接下来开始尝试将 FlashMLA 用起来，以及学习
+Deepseek 开源的其他工程。</p>
 <p>小白一枚，理解浅显，有问题的部分还希望大佬们指正～</p>
 <h1 id="参考">参考</h1>
 <p><a href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a></p>
