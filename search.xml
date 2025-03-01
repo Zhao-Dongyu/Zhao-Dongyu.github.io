@@ -6298,7 +6298,7 @@ optimized for variable-length sequences serving.</p>
 <p>其中，8192 = 128(batch) * 4096(max_seqlen_pad) // 64(block_size), 64
 为 block_size</p>
 <p>要实现的是如下计算:</p>
-<p><img src="/images/117/Attention.png" width="70%"></p>
+<p><img src="/images/117/attention.png" width="70%"></p>
 <p>图中 V 和 K 中的一部分是浅绿色，表示这部分共享相同的数据。将
 <code>QK=P</code> 定义为<code>gemm 1</code>，<code>PV=O</code>
 定义为<code>gemm 2</code>。本图参考了<a
@@ -6929,7 +6929,7 @@ flash_fwd_splitkv_mla_kernel</h4>
 函数对每个thread block 的 256 thread 进行了分组，分成了2个warp
 group。也就是 0-127 thread是 <code>wg0</code>， 128-255
 thread是<code>wg1</code>.</p>
-<p><img src="/images/117/pipeline.png" width="100%"></p>
+<p><img src="/images/117/pipeline.png" width="80%"></p>
 <p><img src="/images/117/warp_group.png" width="100%"></p>
 <h4 id="warp-group-0">warp group 0:</h4>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">typename Kernel_traits::TiledMma tiled_mma;</span><br><span class="line"><span class="keyword">auto</span> thr_mma = tiled_mma.get_thread_slice(tidx);</span><br><span class="line">Tensor tSrQ = thr_mma.partition_fragment_A(sQ);                           <span class="comment">// (MMA,MMA_M,MMA_K)</span></span><br><span class="line">Tensor tSrK = thr_mma.partition_fragment_B(sK);                           <span class="comment">// (MMA,MMA_N,MMA_K)</span></span><br></pre></td></tr></table></figure>
