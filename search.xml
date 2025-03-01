@@ -7859,7 +7859,7 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <ul>
 <li>cache_seqlens
 <ul>
-<li>即 batch_size torch.Size([128])</li>
+<li>即 batch_size 本文中是 torch.Size([128])</li>
 </ul></li>
 <li>s_q * h_q // h_kv
 <ul>
@@ -7874,13 +7874,13 @@ href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
 <ul>
 <li>tile_scheduler_metadata
 <ul>
-<li>torch.Size([78, 8])</li>
 <li>(num_sm_parts, TileSchedulerMetaDataSize = 8)</li>
+<li>torch.Size([78, 8])</li>
 </ul></li>
 <li>num_splits
 <ul>
-<li>orch.Size([129])</li>
 <li>batch_size + 1</li>
+<li>orch.Size([129])</li>
 <li>记录第batch_id 的batch在k seqlen 被拆分了几个thread block</li>
 </ul></li>
 </ul>
@@ -7894,9 +7894,12 @@ href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a
 <p>具体计算在 csrc/flash_fwd_mla_kernel.h 的
 <code>get_mla_metadata_func</code>函数的
 <code>get_mla_metadata_kernel</code>.</p>
-<p>tile_scheduler_metadata 的其中一个维度虽然是
-TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是为了
+<p>要注意的是， <code>tile_scheduler_metadata</code>
+的其中一个维度虽然是
+<code>TileSchedulerMetaDataSize = 8</code>，但是只用到了其中的5个，设置为8是为了
 int4(16B) 对齐。</p>
+<p>这5个分别是：每个sm要处理的起始seq idx，起始seq的token idx， 结束seq
+idx， 结束seq的token idx， 起始的seq是否被分割了。</p>
 <ul>
 <li>tile_scheduler_metadata0[0] = now_idx;</li>
 <li>tile_scheduler_metadata0[1] = now_block * block_size_n; (static
@@ -8470,7 +8473,13 @@ actual_num_splits 是否大于 kMaxSplits。 如果 actual_num_splits ==
 <p>这个 kernel 主要就是在每个线程块内计算和合并多个 split 的结果，使用
 softmax 的 LSE 计算和缩放系数进行加权求和。</p>
 <h1 id="性能">性能</h1>
+<h1 id="和mla有什么关系">和MLA有什么关系？</h1>
 <h1 id="总结">总结</h1>
+<p>MLA本质上是一个KV部分共享的，升维的MQA。维度从一般的128升维到576/512，KV共享前512长度，另有64长度是K独有的。
+flashMLA只能在hopper架构上运行，几乎无法移植到其他平台。（除非有大于228KB的share
+memory，有N大于256的wgmma） flashMLA的核心优化是其互相配合的两个warp
+group和精心配置的流水线。 <a
+href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
 <h1 id="参考">参考</h1>
 <p><a href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/26080342823">flashMLA
@@ -8480,6 +8489,14 @@ softmax 的 LSE 计算和缩放系数进行加权求和。</p>
 FlashMLA代码解析</a></p>
 <p><a href="https://zhuanlan.zhihu.com/p/26262350225">Deepseek
 FlashMLA解析</a></p>
+<p><a
+href="https://www.zhihu.com/question/455419977/answer/3450179867">怎样评价NVIDIA新一代的Hopper
+GPU架构？</a></p>
+<p><a
+href="https://spaces.ac.cn/archives/10091">缓存与效果的极限拉扯：从MHA、MQA、GQA到MLA</a></p>
+<p><a
+href="https://github.com/66RING/tiny-flash-attention/blob/main/cutlass_cute_tutorial_zh.md">用cutlass
+cute实现flash attention</a></p>
 ]]></content>
       <categories>
         <category>技术</category>

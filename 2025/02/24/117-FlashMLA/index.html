@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/117/metadata.png">
 <meta property="og:image" content="http://example.com/images/117/metadata.png">
 <meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
-<meta property="article:modified_time" content="2025-03-01T02:56:47.384Z">
+<meta property="article:modified_time" content="2025-03-01T03:09:24.229Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary">
@@ -249,7 +249,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-03-01 10:56:47" itemprop="dateModified" datetime="2025-03-01T10:56:47+08:00">2025-03-01</time>
+                <time title="Modified: 2025-03-01 11:09:24" itemprop="dateModified" datetime="2025-03-01T11:09:24+08:00">2025-03-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -873,7 +873,7 @@ target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">L
 <ul>
 <li>cache_seqlens
 <ul>
-<li>即 batch_size torch.Size([128])</li>
+<li>即 batch_size 本文中是 torch.Size([128])</li>
 </ul></li>
 <li>s_q * h_q // h_kv
 <ul>
@@ -888,13 +888,13 @@ target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">L
 <ul>
 <li>tile_scheduler_metadata
 <ul>
-<li>torch.Size([78, 8])</li>
 <li>(num_sm_parts, TileSchedulerMetaDataSize = 8)</li>
+<li>torch.Size([78, 8])</li>
 </ul></li>
 <li>num_splits
 <ul>
-<li>orch.Size([129])</li>
 <li>batch_size + 1</li>
+<li>orch.Size([129])</li>
 <li>记录第batch_id 的batch在k seqlen 被拆分了几个thread block</li>
 </ul></li>
 </ul>
@@ -908,9 +908,12 @@ target="_blank" rel="noopener" href="https://www.zhihu.com/question/13181801180/
 <p>具体计算在 csrc/flash_fwd_mla_kernel.h 的
 <code>get_mla_metadata_func</code>函数的
 <code>get_mla_metadata_kernel</code>.</p>
-<p>tile_scheduler_metadata 的其中一个维度虽然是
-TileSchedulerMetaDataSize = 8，但是只用到了其中的5个，设置为8是为了
+<p>要注意的是， <code>tile_scheduler_metadata</code>
+的其中一个维度虽然是
+<code>TileSchedulerMetaDataSize = 8</code>，但是只用到了其中的5个，设置为8是为了
 int4(16B) 对齐。</p>
+<p>这5个分别是：每个sm要处理的起始seq idx，起始seq的token idx， 结束seq
+idx， 结束seq的token idx， 起始的seq是否被分割了。</p>
 <ul>
 <li>tile_scheduler_metadata0[0] = now_idx;</li>
 <li>tile_scheduler_metadata0[1] = now_block * block_size_n; (static
@@ -1484,7 +1487,13 @@ actual_num_splits 是否大于 kMaxSplits。 如果 actual_num_splits ==
 <p>这个 kernel 主要就是在每个线程块内计算和合并多个 split 的结果，使用
 softmax 的 LSE 计算和缩放系数进行加权求和。</p>
 <h1 id="性能">性能</h1>
+<h1 id="和mla有什么关系">和MLA有什么关系？</h1>
 <h1 id="总结">总结</h1>
+<p>MLA本质上是一个KV部分共享的，升维的MQA。维度从一般的128升维到576/512，KV共享前512长度，另有64长度是K独有的。
+flashMLA只能在hopper架构上运行，几乎无法移植到其他平台。（除非有大于228KB的share
+memory，有N大于256的wgmma） flashMLA的核心优化是其互相配合的两个warp
+group和精心配置的流水线。 <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
 <h1 id="参考">参考</h1>
 <p><a target="_blank" rel="noopener" href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a></p>
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">flashMLA
@@ -1494,6 +1503,14 @@ softmax 的 LSE 计算和缩放系数进行加权求和。</p>
 FlashMLA代码解析</a></p>
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26262350225">Deepseek
 FlashMLA解析</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/455419977/answer/3450179867">怎样评价NVIDIA新一代的Hopper
+GPU架构？</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://spaces.ac.cn/archives/10091">缓存与效果的极限拉扯：从MHA、MQA、GQA到MLA</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/66RING/tiny-flash-attention/blob/main/cutlass_cute_tutorial_zh.md">用cutlass
+cute实现flash attention</a></p>
 
     </div>
 
@@ -1602,7 +1619,7 @@ FlashMLA解析</a></p>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.</span> <span class="nav-text">0. 实验平台</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">1. 安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">2. 测试结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">3. 学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0-ref_mla"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 基础实现 ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A7%92%E7%99%BB%E5%9C%BA-flash_mla"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 主角登场 flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1-get_mla_metadata"><span class="nav-number">4.2.1.</span> <span class="nav-text">3.2.1 负载均衡 get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_mla_with_kvcache"><span class="nav-number">4.2.2.</span> <span class="nav-text">flash_mla_with_kvcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_kernel"><span class="nav-number">4.2.3.</span> <span class="nav-text">flash_fwd_splitkv_mla_kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-0"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">warp group 0:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-1"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">warp group 1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_combine_kernel"><span class="nav-number">4.2.4.</span> <span class="nav-text">flash_fwd_splitkv_mla_combine_kernel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD"><span class="nav-number">5.</span> <span class="nav-text">性能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.</span> <span class="nav-text">0. 实验平台</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">1. 安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">2. 测试结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">3. 学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0-ref_mla"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 基础实现 ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A7%92%E7%99%BB%E5%9C%BA-flash_mla"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 主角登场 flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1-get_mla_metadata"><span class="nav-number">4.2.1.</span> <span class="nav-text">3.2.1 负载均衡 get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_mla_with_kvcache"><span class="nav-number">4.2.2.</span> <span class="nav-text">flash_mla_with_kvcache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_kernel"><span class="nav-number">4.2.3.</span> <span class="nav-text">flash_fwd_splitkv_mla_kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-0"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">warp group 0:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-1"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">warp group 1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_combine_kernel"><span class="nav-number">4.2.4.</span> <span class="nav-text">flash_fwd_splitkv_mla_combine_kernel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD"><span class="nav-number">5.</span> <span class="nav-text">性能</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%92%8Cmla%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="nav-number">6.</span> <span class="nav-text">和MLA有什么关系？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -1693,7 +1710,7 @@ FlashMLA解析</a></p>
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">2:52</span>
+    <span title="Reading time total">2:53</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
