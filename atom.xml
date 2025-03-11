@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-02-26T05:53:34.852Z</updated>
+  <updated>2025-03-11T02:36:10.959Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,16 +17,16 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>FlashMLA</title>
-    <link href="http://example.com/2025/02/26/118-DeepGEMM/"/>
-    <id>http://example.com/2025/02/26/118-DeepGEMM/</id>
-    <published>2025-02-26T05:49:13.000Z</published>
-    <updated>2025-02-26T05:53:34.852Z</updated>
+    <title>FlashMLA 实践</title>
+    <link href="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/"/>
+    <id>http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/</id>
+    <published>2025-03-03T03:26:13.000Z</published>
+    <updated>2025-03-11T02:36:10.959Z</updated>
     
     
-    <summary type="html">&lt;p&gt;今天Deepseek开源 &lt;a
-href=&quot;https://github.com/deepseek-ai/FlashMLA&quot;&gt;FlashMLA&lt;/a&gt;，之前看过很多MLA相关知识了，很好的学习
-Cuda 加速的机会，实践学习记录一下。&lt;/p&gt;</summary>
+    <summary type="html">&lt;p&gt;之前在 &lt;a href=&quot;https://zhuanlan.zhihu.com/p/27257803590&quot;&gt;FlashMLA
+源码分析&lt;/a&gt; 分析了 FlashMLA
+的源码，后来我又实践了一下，在此记录一下进一步的学习成果。&lt;/p&gt;</summary>
     
     
     
@@ -39,10 +39,10 @@ Cuda 加速的机会，实践学习记录一下。&lt;/p&gt;</summary>
   
   <entry>
     <title>FlashMLA 源码分析</title>
-    <link href="http://example.com/2025/02/24/117-FlashMLA/"/>
-    <id>http://example.com/2025/02/24/117-FlashMLA/</id>
+    <link href="http://example.com/2025/02/24/117_FlashMLA/"/>
+    <id>http://example.com/2025/02/24/117_FlashMLA/</id>
     <published>2025-02-24T05:45:13.000Z</published>
-    <updated>2025-03-01T07:00:29.898Z</updated>
+    <updated>2025-03-11T02:32:29.953Z</updated>
     
     
     <summary type="html">&lt;p&gt;今天Deepseek开源 &lt;a
@@ -83,19 +83,10 @@ MLA 相关知识了，感觉这是一个很好的学习 Cuda
     <link href="http://example.com/2025/01/07/115_Video_Generative/"/>
     <id>http://example.com/2025/01/07/115_Video_Generative/</id>
     <published>2025-01-07T01:49:10.000Z</published>
-    <updated>2025-01-22T03:27:20.650Z</updated>
+    <updated>2025-03-11T02:33:46.813Z</updated>
     
     
-      
-      
-        
-        
-    <summary type="html">&lt;p&gt;学习研究文生视频&lt;/p&gt;
-&lt;p&gt;Effective scaling strategy
-将计算资源需求减少最多5倍，同时实现预期的模型性能。&lt;/p&gt;
-&lt;p&gt;13 billion parameters 130亿参数 pre-training it on</summary>
-        
-      
+    <summary type="html">&lt;p&gt;学习研究文生视频&lt;/p&gt;</summary>
     
     
     
@@ -152,6 +143,31 @@ MLA 相关知识了，感觉这是一个很好的学习 Cuda
   </entry>
   
   <entry>
+    <title>triton</title>
+    <link href="http://example.com/2024/11/14/112_triton/"/>
+    <id>http://example.com/2024/11/14/112_triton/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2024-11-21T08:46:43.389Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
+&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a
+href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
     <title>树莓派Zero实验</title>
     <link href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
     <id>http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
@@ -170,31 +186,6 @@ MLA 相关知识了，感觉这是一个很好的学习 Cuda
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
     <category term="Raspberry" scheme="http://example.com/tags/Raspberry/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>triton</title>
-    <link href="http://example.com/2024/11/14/112_triton/"/>
-    <id>http://example.com/2024/11/14/112_triton/</id>
-    <published>2024-11-13T16:00:00.000Z</published>
-    <updated>2024-11-21T08:46:43.389Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
-&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a
-href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
   </entry>
   
@@ -342,11 +333,11 @@ FP8(W4A8)算子，减少一些IO吞吐，看看能不能提升性能。&lt;/p&gt
     <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
     <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
     
     <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
     
@@ -374,11 +365,11 @@ href=&quot;https://github.com/IST-DASLab/marlin&quot;&gt;&lt;code&gt;marlin&lt;/
     <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
     <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
     
     <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
     
     <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
     

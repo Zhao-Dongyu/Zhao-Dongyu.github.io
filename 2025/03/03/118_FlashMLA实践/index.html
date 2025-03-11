@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="之前在 FlashMLA 源码分析 分析了 FlashMLA 的源码，后来我又实践了一下，在此记录一下进一步的学习成果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FlashMLA 实践">
+<meta property="og:url" content="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="之前在 FlashMLA 源码分析 分析了 FlashMLA 的源码，后来我又实践了一下，在此记录一下进一步的学习成果。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/workspace/blog/data/h20-B1.png">
+<meta property="og:image" content="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/workspace/blog/data/h20-B1.png">
+<meta property="og:image" content="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/workspace/blog/data/heatmap_nhead_8.png">
+<meta property="og:image" content="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/workspace/blog/data/heatmap_nhead_16.png">
+<meta property="article:published_time" content="2025-03-03T03:26:13.000Z">
+<meta property="article:modified_time" content="2025-03-11T02:36:10.959Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="Tech">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/workspace/blog/data/h20-B1.png">
+
+<link rel="canonical" href="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>FlashMLA 实践 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FlashMLA 实践
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-03-03 11:26:13" itemprop="dateCreated datePublished" datetime="2025-03-03T11:26:13+08:00">2025-03-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-03-11 10:36:10" itemprop="dateModified" datetime="2025-03-11T10:36:10+08:00">2025-03-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前在 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/27257803590">FlashMLA
+源码分析</a> 分析了 FlashMLA
+的源码，后来我又实践了一下，在此记录一下进一步的学习成果。</p>
+<span id="more"></span>
+<p>实验平台： Hopper 架构的 H20 GPU。</p>
+<p>本文中所涉及的全部代码的地址：<a
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/mla-profile">https://github.com/Zhao-Dongyu/mla-profile</a></p>
+<p>实验是基于 <a target="_blank" rel="noopener" href="https://www.zhihu.com/people/james0zan">ZHANG
+Mingxing​</a> 的 <a
+target="_blank" rel="noopener" href="https://github.com/madsys-dev/deepseekv2-profile">deepseekv2-profile</a>
+基础上进一步完成的。具体的代码讲解和 MLA 原理可以参考 <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/700214123">DeepSeek-V2 高性能推理
+(1)：通过矩阵吸收十倍提速 MLA 算子</a> 或者 <a
+target="_blank" rel="noopener" href="https://github.com/madsys-dev/deepseekv2-profile/blob/main/workspace/blog/optimizing-mla.md">optimizing-mla.md</a>
+，这是本文的基础。同时也声明一下，本文大部分内容都摘自原作者的 <a
+target="_blank" rel="noopener" href="https://github.com/madsys-dev/deepseekv2-profile/blob/main/workspace/blog/optimizing-mla.md">optimizing-mla.md</a>。</p>
+<h1 id="实验结果">实验结果</h1>
+<p>先上实验结果：</p>
+<figure>
+<img src="./workspace/blog/data/h20-B1.png" alt="h20-B1" />
+<figcaption aria-hidden="true">h20-B1</figcaption>
+</figure>
+<h1 id="版本说明">版本说明</h1>
+<h2 id="简要汇总">简要汇总</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>版本</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline</td>
+<td>使用 pytorch 的基础实现mla版本（用来理解MLA计算过程）</td>
+</tr>
+<tr class="even">
+<td>CacheDecompressed</td>
+<td>将先前迭代过程中KV向量的值缓存下来（凸显 kv cache 重要性）</td>
+</tr>
+<tr class="odd">
+<td>CacheCompressed</td>
+<td>MLA通过多头共用压缩后的KV表示（mla精髓：减少显存占用）</td>
+</tr>
+<tr class="even">
+<td>Absorbed</td>
+<td>将KV的解压缩矩阵吸收到Q-projection和Out-projection中（mla灵魂）</td>
+</tr>
+<tr class="odd">
+<td>Absorbed_CacheCompressed</td>
+<td>在 Absorbed 版本基础上使用kv cache</td>
+</tr>
+<tr class="even">
+<td>Absorbed_CacheCompressed_MoveElision</td>
+<td>采用MoveElision优化策略（进一步优化）</td>
+</tr>
+<tr class="odd">
+<td>AM_CC_ME</td>
+<td>Materializing Projection Matrices（无效的尝试）</td>
+</tr>
+<tr class="even">
+<td>FlashMLA</td>
+<td>接入 FlashMLA 算子（进入cuda算子战场）</td>
+</tr>
+<tr class="odd">
+<td>FlashInfer</td>
+<td>接入 FlashInfer 算子（与 FlashMLA 进行PK）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="baseline-版本">baseline 版本</h2>
+<p><code>mla/impl/baseline.py</code></p>
+<p>Attention的计算过程和传统的MHA并无差异。首先计算attention score：</p>
+<p><span class="math display">\[ a =
+\mathrm{softmax}\left(\frac{q_t^\top k_t +
+\mathrm{Mask}}{\sqrt{192}}\right) \in \mathbb{R}^{B \times L \times H
+\times L} \]</span></p>
+<p>计算对V的加权和，并将所有head压平，得到Attention输出：</p>
+<p><span class="math display">\[ o = a \cdot v_t \in \mathbb{R}^{B
+\times L \times H \times 128} \cong \mathbb{R}^{B \times L \times 16384}
+\]</span></p>
+<p>经过另一个矩阵的投影，就能得到MLA的最终输出：</p>
+<p><span class="math display">\[ u = W^O o \in \mathbb{R}^{B \times L
+\times 5120} \]</span></p>
+<blockquote>
+<p>baseline 就是一个基础的实现版本，没做 kv
+cache，我认为可以不用过多关注。</p>
+</blockquote>
+<h2 id="cache_decompressed-版本">cache_decompressed 版本</h2>
+<p><code>mla/impl/cache_decompressed.py</code></p>
+<p>在原始的transformer模型的decoding过程中，每次迭代都需要计算所有token对应的的KV向量，这部分的计算往往会带来较大的开销。实际上，每次迭代过程中，这些KV向量的值都是一样的；因此，我们可以采用“空间换时间”的策略，将先前迭代过程中KV向量的值缓存下来，这样在后续的迭代过程中，就不需要重复计算KV向量了，从而大大减小了模型推理过程中的计算量。</p>
+<blockquote>
+<p>cache_decompressed 版本是加了 kv cache
+的，这才是主流的部署方法，这个版本可以当作最终对比的真正的<code>baseline</code>~</p>
+</blockquote>
+<h2 id="cache_compressed-版本">cache_compressed 版本</h2>
+<p><code>mla/impl/cache_compressed.py</code></p>
+<p>到了这个版本，就步入正题了，改为缓存压缩后的KV Cache 以及
+RoPE后的k_pe。</p>
+<p>这个改动的优势就是mla的精髓--</p>
+<blockquote>
+<p>在 cache_decompressed 版本中，使用KV
+cache后，虽然计算量减小了，但是显存占用量以及显存带宽需求却急剧上升，成为了制约大模型推理效率的<strong>新瓶颈</strong>。MLA的设计通过多头共用压缩后的KV表示，大幅减少了KV
+cache的占用。</p>
+</blockquote>
+<p>两种实现的KV Cache占用和计算量如下表：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">实现版本</th>
+<th style="text-align: center;">每token每层Cache大小</th>
+<th style="text-align: center;">每token每层计算量</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">CacheDecompressed (CD)</td>
+<td style="text-align: center;">81.92 kB</td>
+<td style="text-align: center;">0.08 MFLOP</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CacheCompressed (CC)</td>
+<td style="text-align: center;">1.152 kB</td>
+<td style="text-align: center;">33.64 MFLOP</td>
+</tr>
+</tbody>
+</table>
+<p>CacheDecompressed策略可以节省浮点计算量，但其显存占用量却很大。这使得CacheDecompressed的瓶颈很容易卡在显存容量和显存带宽上。</p>
+<p>而CacheCompressed的显存占用却少了约98.6%。但要注意计算量变大了（多了投影矩阵的计算）。由于Compressed
+KV在每个head中都参与了计算，DeepSeek-V2的128个heads能够提供足够的计算强度，因此Attention部分的MFU也得到了大幅提高。</p>
+<p>我认为这个表非常明显的展示出了 mla 的特性：</p>
+<ul>
+<li>（1）确实是真的省显存；</li>
+<li>（2）虽然提升了计算强度，但也确实加大了计算量(这个版本计算量非常多)</li>
+</ul>
+<h2 id="absorbed-版本">absorbed 版本</h2>
+<p><code>mla/impl/absorbed.py</code></p>
+<p>这个版本跳过（没有使用kv cache）</p>
+<h2 id="absorbed_cache_compressed-版本">absorbed_cache_compressed
+版本</h2>
+<p><code>mla/impl/absorbed_cache_compressed.py</code></p>
+<p>在cache_compressed 版本中，
+计算MLA的时候，仍然需要存储解压后的完整的KV Cache，这很可能引起 OOM
+崩溃。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kv = self.kv_b_proj(compressed_kv) \</span><br><span class="line">    .view(bsz, kv_seq_len, self.num_heads, self.qk_nope_head_dim + self.v_head_dim) \</span><br><span class="line">    .transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<p>此时，mla的另一个精髓出现了————做吸收，或者说是交换计算顺序。</p>
+<p>将KV的解压缩矩阵吸收到 Q-projection 和 Out-projection
+中，从而可以在不解压缩 KV Cache 的情况下直接计算最终的 Attention
+结果。</p>
+<p>对于K的吸收，在 Attention Score 的计算公式中，非 RoPE
+部分可以做如下展开：</p>
+<p><span class="math display">\[
+{q_t^C}^\top k_t^C = (W^{UQ} c_t^Q)^{\top} W^{UK} c_t^{KV} =
+{c_t^Q}^{\top}{W^{UQ}}^{\top} W^{UK} c_t^{KV} =
+({c_t^Q}^{\top}{W^{UQ}}^{\top} W^{UK}) c_t^{KV}
+\]</span></p>
+<p>即通过矩阵乘法结合律，可以改为计算 <span
+class="math inline">\(({c_t^Q}^{\top}{W^{UQ}}^{\top} W^{UK})\)</span>
+，避免了解压缩出完整的K矩阵。此外，在原始版本的解压缩的过程中，由于每个token的key都需要与
+<span class="math inline">\(W^{UK}\)</span>
+相乘才能得到，因此计算量较大；矩阵吸收后， <span
+class="math inline">\(W^{UK}\)</span> 只需要对 <span
+class="math inline">\(q_t^C\)</span>
+这一个向量相乘，也大大减少了浮点计算量。</p>
+<p>对于V的吸收，则是吸收到后面的 <span
+class="math inline">\(W_o\)</span> 矩阵那边。</p>
+<blockquote>
+<p>我认为矩阵吸收这部分真是神之一笔，膜拜设计这个算法的大佬。</p>
+</blockquote>
+<h2
+id="absorbed_cache_compressed_move_elision-版本">absorbed_cache_compressed_move_elision
+版本</h2>
+<p><code>mla/impl/absorbed_cache_compressed_move_elision.py</code></p>
+<blockquote>
+<p>在原始代码中，query_states和key_states会通过拼接RoPE和非RoPE部分得到，拼接过程会产生大量无用的数据拷贝和广播，同时也会占用大量显存空间导致OOM。为此，我们采用MoveElision优化策略，
+即省略此处的拼接RoPE部分和非RoPE部分的过程，而是直接分别计算量部分的额Attention
+Score并相加</p>
+</blockquote>
+<pre><code>$$ a = \mathrm&#123;softmax&#125;\left(\frac&#123;q_t^\top k_t + \mathrm&#123;Mask&#125;&#125;&#123;\sqrt&#123;192&#125;&#125;\right) = 
+\mathrm&#123;softmax&#125;\left(\frac&#123;&#123;q_t^C&#125;^\top k_t^C + &#123;q_t^R&#125;^\top k_t^R + \mathrm&#123;Mask&#125;&#125;&#123;\sqrt&#123;128 + 64&#125;&#125; \right)
+\in \mathbb&#123;R&#125;^&#123;B \times L \times H \times L&#125; $$</code></pre>
+<p>这样，得到了以下四个版本的优化实现：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">实现版本</th>
+<th style="text-align: center;">每token每层Cache大小</th>
+<th style="text-align: center;">每token每层计算量</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">CacheDecompressed (CD)</td>
+<td style="text-align: center;">81.92 kB</td>
+<td style="text-align: center;">0.08 MFLOP</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">CacheCompressed (CC)</td>
+<td style="text-align: center;">1.152 kB</td>
+<td style="text-align: center;">33.64 MFLOP</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Absorbed_CacheCompressed (A_CC)</td>
+<td style="text-align: center;">1.152 kB</td>
+<td style="text-align: center;">0.28 MFLOP</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Absorbed_CacheCompressed_MoveElision
+(A_CC_ME)</td>
+<td style="text-align: center;">1.152 kB</td>
+<td style="text-align: center;">0.28 MFLOP</td>
+</tr>
+</tbody>
+</table>
+<h2
+id="absorbed_materialized_cache_compressed_move_elision-版本">absorbed_materialized_cache_compressed_move_elision
+版本</h2>
+<p><code>mla/impl/absorbed_materialized_cache_compressed_move_elision.py</code></p>
+<p>DeepSeek-V2的论文中说： &gt; ..., we can absorb <span
+class="math inline">\(W^{UK}\)</span> into <span
+class="math inline">\(W^{UQ}\)</span>, and <span
+class="math inline">\(W^{UV}\)</span> into <span
+class="math inline">\(W^O\)</span>.</p>
+<p>对模型参数进行预处理，<span
+class="math inline">\(W^{UK}\)</span>与<span
+class="math inline">\(W^{UQ}\)</span>相乘后的结果可以视为<span
+class="math inline">\(H\)</span>个大小为<span class="math inline">\(1536
+\times 512\)</span>的低秩（不超过128）矩阵，而<span
+class="math inline">\(W^{UV}\)</span>与<span
+class="math inline">\(W^O\)</span>相乘的结果可以视为<span
+class="math inline">\(H\)</span>个大小为<span class="math inline">\(5120
+\times
+512\)</span>的低秩矩阵。相比用这些特别大的低秩矩阵做投影，明显不如按照低秩分解形式依次相乘来得划算。</p>
+<p>事实确实也是这样。</p>
+<h2 id="flash_mla-版本">flash_mla 版本</h2>
+<p><code>mla/impl/flash_mla.py</code></p>
+<p>我是在 absorbed_cache_compressed 版本的基础上移植了 flash_mla
+版本。</p>
+<p>需要注意的有几点：</p>
+<ol type="1">
+<li><p>输入的<code>query_states</code> 是做过 <code>absorbed</code>
+之后的结果</p></li>
+<li><p><code>flash_mla_with_kvcache</code> 得到的 attn_output，记得先
+<code>out_absorb</code> 再 <code>o_proj</code></p></li>
+<li><p><strong>一定要手动传入 <code>softmax_scale</code>！</strong>
+官方的 FlashMLA
+的代码如果不传入的话，给的是<code>softmax_scale = q.shape[-1] ** (-0.5)</code>，这非常具有误导性。因为这时候q的最后一维是576，softmax_scale不应该用这个来算（应该使用
+192 或者需要进一步考虑YaRN）</p></li>
+</ol>
+<h2 id="flash_infer-版本">flash_infer 版本</h2>
+<p><code>mla/impl/flash_infer.py</code></p>
+<p>集成起来和 flash_mla 版本差不多，只是我运行前需要需要
+<code>export TORCH_CUDA_ARCH_LIST="9.0+PTX"</code></p>
+<h1 id="实验结果分析">实验结果分析</h1>
+<figure>
+<img src="./workspace/blog/data/h20-B1.png" alt="h20-B1" />
+<figcaption aria-hidden="true">h20-B1</figcaption>
+</figure>
+<p>1.看前两张图 ZHANG Mingxing
+的结果，趋势基本是一样的，性能最好的是棕色的
+<code>absorbed_cache_compressed_move_elision</code>
+版本，在A100上，sequence length = 131072, B = 1 的情况下，这个版本速度是
+<code>cache_compressed</code> 版本的
+<code>0.049090097627292/0.00240414586383849 = 20.4</code>倍，效果非常显著。</p>
+<p>2.FlashMLA开源代码是针对mla特定shape写的算子，目前还没有集成
+move_elision 操作，所以在我的H20实验上没有做相关实验。</p>
+<p>3.最右侧的第三张图相比前两个结果显得乱七八糟甚至结论相反，这主要是和我用的
+H20 平台有关：</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>参数/型号</th>
+<th>H100 SXM</th>
+<th>H100 PCIe</th>
+<th>H20</th>
+<th>H800 SXM</th>
+<th>H800 PCIe</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>架构</strong></td>
+<td>Hopper</td>
+<td>Hopper</td>
+<td>Hopper</td>
+<td>Hopper</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>显存容量</strong></td>
+<td>80GB</td>
+<td>80GB</td>
+<td>96GB</td>
+<td>80GB</td>
+<td>80GB</td>
+</tr>
+<tr class="odd">
+<td><strong>显存带宽</strong></td>
+<td>3TB/s</td>
+<td>2TB/s</td>
+<td>4.0TB/s</td>
+<td>3.35TB/s</td>
+<td>2TB/s</td>
+</tr>
+<tr class="even">
+<td><strong>FP64 算力（TFLOPS）</strong></td>
+<td>30</td>
+<td>24</td>
+<td>1</td>
+<td>1</td>
+<td>0.8</td>
+</tr>
+<tr class="odd">
+<td><strong>FP32 算力（TFLOPS）</strong></td>
+<td>60</td>
+<td>48</td>
+<td>44</td>
+<td>67</td>
+<td>51</td>
+</tr>
+<tr class="even">
+<td><strong>BF16/FP16 Tensor Core 算力（TFLOPS）</strong></td>
+<td>2,000</td>
+<td>1,600</td>
+<td><strong>148</strong></td>
+<td>1,979</td>
+<td>1,513</td>
+</tr>
+<tr class="odd">
+<td><strong>INT8/FP8 Tensor Core 算力（TFLOPS）</strong></td>
+<td>4,000</td>
+<td>3,200</td>
+<td>296</td>
+<td>3,958</td>
+<td>3,026</td>
+</tr>
+<tr class="even">
+<td><strong>NVLink 带宽</strong></td>
+<td>900GB/s</td>
+<td>600GB/s</td>
+<td><strong>900GB/s</strong></td>
+<td>400GB/s</td>
+<td>400GB/s</td>
+</tr>
+<tr class="odd">
+<td><strong>PCIe 带宽</strong></td>
+<td>Gen5: 128GB/s</td>
+<td>Gen5: 128GB/s</td>
+<td>Gen5: 128GB/s</td>
+<td>Gen5: 128GB/s</td>
+<td>Gen5: 128GB/s</td>
+</tr>
+</tbody>
+</table>
+<p><a
+target="_blank" rel="noopener" href="https://images.nvidia.cn/aem-dam/en-zz/Solutions/data-center/h100/nvidia-h100-datasheet-nvidia-a4-2287922-r7-zhCN.pdf">H100数据来源</a>,
+<a
+target="_blank" rel="noopener" href="https://www.an-link.com/Se_d_gci_47_id_13.html">H20数据来源</a>,
+<a
+target="_blank" rel="noopener" href="https://chaoqing-i.com/upload/20231128/NVIDIA%20H800%20GPU%20Datasheet.pdf">H800数据来源</a></p>
+<p>H20和H800都是基于H100的“阉割”版本，只不过阉割方向不一样。</p>
+<p>H20是英伟达对算力进行了非常暴力的阉割的版本（AI算力只有H100的不到15%），而带宽非常强悍，这就导致H20这个平台对算力更加敏感，以至于
+decoding 阶段本来是 <code>memory bound</code> 的一个阶段，活生生接触到了
+<code>computing bound</code>？</p>
+<p>做 <code>materialized</code> 的
+AM_CC_AE版本耗时非常高，这是因为加大了计算量。
+橙色的CD版本耗时反而低，这是因为CD版本的计算量很少。不过，MLA
+更大的作用还是显著降低 KVCache 的显存开销，所以还是有必要压缩的。</p>
+<p>另外，FlashMLA表现优异，不愧是精心配制过的 Cuda 算子，不过拿 FlashMLA
+和一堆 pytorch 实现的版本比较有些耍流氓了，所以考虑和 FlashInfer
+进行PK。</p>
+<hr />
+<p>遗憾的是，在这个 profile 里面不太容易对 FlashInfer 这种 JIT
+的做测量，测出来的时间明显偏大，于是采用了<a
+target="_blank" rel="noopener" href="https://gist.github.com/abcdabcd987/b215c5f00f4b5e8399b95d7933bcf475">abcdabcd987/2025-02-23-mla-flashinfer-vs-deepseek.py</a>
+的代码进行单独的实验。</p>
+<p>分别实验了 nhead = 8（TP=16） 和 nhead = 16（TP=8） 的情况：</p>
+<p><img src="./workspace/blog/data/heatmap_nhead_8.png" alt="h20-B1" />
+<img src="./workspace/blog/data/heatmap_nhead_16.png"
+alt="h20-B1" /></p>
+<pre><code>这个热力图画的是二者的速度的比值，颜色越蓝表示 FlashMLA 相比 FlashInfer 速度越快，颜色越红则表示 FlashInfer 速度越快。</code></pre>
+<p>可以看到，在 kv_len &gt; 8192 以及 bs &gt;=8 的时候， FlashMLA
+才有明显优势。</p>
+<p>当然以上结论是针对 H20 平台得出的，猜测在H800上，两个 warp group
+的计算访存分配比较合理，性能表现会好得多。</p>
+<p>可惜我只有H20能用，那么下一步的计划也就很明确了：</p>
+<ul>
+<li>调整 FlashMLA 的 warp group 的计算访存分配，提升性能；</li>
+<li>去学习 FlashInfer，结合二者的优点搞事情。</li>
+</ul>
+<h1 id="附运行脚本">附：运行脚本</h1>
+<ul>
+<li><p>跑benchmark</p>
+<p><code>python3 -m mla.benchmark B 1024</code></p>
+<p><code>python3 -m mla.benchmark B 1024 --repeat=1</code></p></li>
+<li><p>跑一致性</p>
+<p><code>python3 -m mla.test B 1024</code></p></li>
+<li><p>跑性能</p>
+<p><code>python workspace/blog/data/runner.py</code></p></li>
+<li><p>FlashMLA vs FlashInfer</p>
+<p><code>python flashinfer_vs_flashmla/flashinfer_vs_flashmla.py</code></p></li>
+</ul>
+<p>仓库里有的代码图测试方便，考虑的不周全，欢迎提PR～</p>
+<p>认识理解不到位的地方，欢迎大佬们指正～</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/02/24/117_FlashMLA/" rel="prev" title="FlashMLA 源码分析">
+      <i class="fa fa-chevron-left"></i> FlashMLA 源码分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">1.</span> <span class="nav-text">实验结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">版本说明</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E8%A6%81%E6%B1%87%E6%80%BB"><span class="nav-number">2.1.</span> <span class="nav-text">简要汇总</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#baseline-%E7%89%88%E6%9C%AC"><span class="nav-number">2.2.</span> <span class="nav-text">baseline 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cache_decompressed-%E7%89%88%E6%9C%AC"><span class="nav-number">2.3.</span> <span class="nav-text">cache_decompressed 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cache_compressed-%E7%89%88%E6%9C%AC"><span class="nav-number">2.4.</span> <span class="nav-text">cache_compressed 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#absorbed-%E7%89%88%E6%9C%AC"><span class="nav-number">2.5.</span> <span class="nav-text">absorbed 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#absorbed_cache_compressed-%E7%89%88%E6%9C%AC"><span class="nav-number">2.6.</span> <span class="nav-text">absorbed_cache_compressed
+版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#absorbed_cache_compressed_move_elision-%E7%89%88%E6%9C%AC"><span class="nav-number">2.7.</span> <span class="nav-text">absorbed_cache_compressed_move_elision
+版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#absorbed_materialized_cache_compressed_move_elision-%E7%89%88%E6%9C%AC"><span class="nav-number">2.8.</span> <span class="nav-text">absorbed_materialized_cache_compressed_move_elision
+版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flash_mla-%E7%89%88%E6%9C%AC"><span class="nav-number">2.9.</span> <span class="nav-text">flash_mla 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flash_infer-%E7%89%88%E6%9C%AC"><span class="nav-number">2.10.</span> <span class="nav-text">flash_infer 版本</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">实验结果分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%84%E8%BF%90%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="nav-number">4.</span> <span class="nav-text">附：运行脚本</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">198k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:01</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : '71ee40c16f3584ca290217508fd6d021',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>
