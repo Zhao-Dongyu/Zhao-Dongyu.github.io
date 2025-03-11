@@ -5132,7 +5132,8 @@ device_type='GPU')]</p>
   <entry>
     <title>FlashMLA 实践</title>
     <url>/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<p>之前在 <a href="https://zhuanlan.zhihu.com/p/27257803590">FlashMLA
+    <content><![CDATA[<p>之前在 <a
+href="https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/">FlashMLA
 源码分析</a> 分析了 FlashMLA
 的源码，后来我又实践了一下，在此记录一下进一步的学习成果。</p>
 <span id="more"></span>
