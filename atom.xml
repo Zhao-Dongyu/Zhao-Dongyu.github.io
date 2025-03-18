@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-03-11T02:37:38.409Z</updated>
+  <updated>2025-03-18T07:57:18.058Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>FlashMLA 实践</title>
+    <link href="http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/"/>
+    <id>http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/</id>
+    <published>2025-03-12T02:16:10.000Z</published>
+    <updated>2025-03-18T07:57:18.058Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在 Hopper H20 平台优化 FlashMLA。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
   
   <entry>
     <title>FlashMLA 实践</title>
@@ -208,36 +229,6 @@ href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
     <category term="C++" scheme="http://example.com/tags/C/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>LLM Compressor</title>
-    <link href="http://example.com/2024/11/08/109_llm_compressor/"/>
-    <id>http://example.com/2024/11/08/109_llm_compressor/</id>
-    <published>2024-11-07T16:00:00.000Z</published>
-    <updated>2024-11-09T05:31:20.979Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;llmcompressor is an easy-to-use library for optimizing models for
-deployment with vllm.&lt;/p&gt;
-&lt;p&gt;&lt;a
-href=&quot;https://github.com/vllm-project/llm-compressor&quot;&gt;Github&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;a
-href=&quot;https://neuralmagic.com/blog/llm-compressor-is-here-faster-inference-with-vllm/&quot;&gt;Blog&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;LLM Compressor
-是一款优化大型语言模型（LLM）的工具，通过先进的压缩技术实现快速推理，尤其在vLLM框架内。该工具旨在将分散的压缩库统一封装，简化应用并提升性能。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-    <category term="Compressor" scheme="http://example.com/tags/Compressor/"/>
     
   </entry>
   
