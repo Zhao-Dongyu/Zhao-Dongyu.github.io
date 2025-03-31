@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-03-18T07:57:18.058Z</updated>
+  <updated>2025-03-31T01:51:32.392Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,11 +17,77 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>torch.compile</title>
+    <link href="http://example.com/2025/03/31/122_CUDA/"/>
+    <id>http://example.com/2025/03/31/122_CUDA/</id>
+    <published>2025-03-31T01:49:00.000Z</published>
+    <updated>2025-03-31T01:51:32.392Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;CUDA 学习记录&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>torch.compile</title>
+    <link href="http://example.com/2025/03/25/121_Torch_compile/"/>
+    <id>http://example.com/2025/03/25/121_Torch_compile/</id>
+    <published>2025-03-25T07:31:00.000Z</published>
+    <updated>2025-03-26T07:16:45.695Z</updated>
+    
+    
+    <summary type="html">&lt;pre&gt;&lt;code&gt;“`torch.compile“` speeds the flame,
+Trade-offs linger, but worth the game.
+Train or infer, it cuts the line,
+With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
     <title>FlashMLA 实践</title>
     <link href="http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/"/>
     <id>http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/</id>
     <published>2025-03-12T02:16:10.000Z</published>
     <updated>2025-03-18T07:57:18.058Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在 Hopper H20 平台优化 FlashMLA。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>DeepGEMM</title>
+    <link href="http://example.com/2025/03/12/120_DeepGEMM/"/>
+    <id>http://example.com/2025/03/12/120_DeepGEMM/</id>
+    <published>2025-03-12T02:16:10.000Z</published>
+    <updated>2025-03-24T05:59:58.388Z</updated>
     
     
     <summary type="html">&lt;p&gt;在 Hopper H20 平台优化 FlashMLA。&lt;/p&gt;</summary>
@@ -411,76 +477,6 @@ kernel的反量化。&lt;/p&gt;</summary>
     <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
     
     <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Optimize sgemm on RISC-V platform</title>
-    <link href="http://example.com/2024/02/26/103_sgemm_riscv_en/"/>
-    <id>http://example.com/2024/02/26/103_sgemm_riscv_en/</id>
-    <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2025-02-07T06:00:03.420Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;This project records the process of optimizing SGEMM
-(single-precision floating point General Matrix Multiplication) on the
-riscv platform.&lt;/p&gt;
-&lt;p&gt;&lt;img src=/images/sgemm/data/result_all.png width=70% /&gt;&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="RISCV" scheme="http://example.com/tags/RISCV/"/>
-    
-    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
-    
-    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Telegram bot</title>
-    <link href="http://example.com/2024/02/17/98_Telegram_bot/"/>
-    <id>http://example.com/2024/02/17/98_Telegram_bot/</id>
-    <published>2024-02-17T07:38:00.000Z</published>
-    <updated>2024-09-27T08:41:27.723Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;最近学习一些telegram bot，记录一下&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="Telegram bot" scheme="http://example.com/tags/Telegram-bot/"/>
-    
-    <category term="ingress" scheme="http://example.com/tags/ingress/"/>
-    
-    <category term="Homogeneous" scheme="http://example.com/tags/Homogeneous/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>tflite-micro</title>
-    <link href="http://example.com/2023/10/27/91_tflite-micro/"/>
-    <id>http://example.com/2023/10/27/91_tflite-micro/</id>
-    <published>2023-10-27T09:55:37.000Z</published>
-    <updated>2024-10-14T06:09:31.021Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;最近又搞了一次tflite-micro，上一次搞还是在两年前，那时候简直是个工程小白，遇到个问题就卡住了。这一次相对比较顺利，记录一遍过程。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
-    
-    <category term="notes" scheme="http://example.com/tags/notes/"/>
-    
-    <category term="tech" scheme="http://example.com/tags/tech/"/>
-    
-    <category term="tflite-micro" scheme="http://example.com/tags/tflite-micro/"/>
     
   </entry>
   

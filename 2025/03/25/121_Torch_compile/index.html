@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="“&#96;torch.compile“&#96; speeds the flame, Trade-offs linger, but worth the game. Train or infer, it cuts the line, With care and craft, its power’s thine.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="torch.compile">
+<meta property="og:url" content="http://example.com/2025/03/25/121_Torch_compile/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="“&#96;torch.compile“&#96; speeds the flame, Trade-offs linger, but worth the game. Train or infer, it cuts the line, With care and craft, its power’s thine.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/121/backends.png">
+<meta property="article:published_time" content="2025-03-25T07:31:00.000Z">
+<meta property="article:modified_time" content="2025-03-26T07:16:45.695Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="Tech">
+<meta property="article:tag" content="未完成的垃圾">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/121/backends.png">
+
+<link rel="canonical" href="http://example.com/2025/03/25/121_Torch_compile/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>torch.compile | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/25/121_Torch_compile/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          torch.compile
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-03-25 15:31:00" itemprop="dateCreated datePublished" datetime="2025-03-25T15:31:00+08:00">2025-03-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-03-26 15:16:45" itemprop="dateModified" datetime="2025-03-26T15:16:45+08:00">2025-03-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>7.5k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>7 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <pre><code>“`torch.compile“` speeds the flame,
+Trade-offs linger, but worth the game.
+Train or infer, it cuts the line,
+With care and craft, its power’s thine.</code></pre>
+<span id="more"></span>
+<p>开始学习 <code>torch.compile</code> ~</p>
+<h1 id="torch.compiler-api-documentation"><a
+target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/torch.compiler.html#torch-compiler">torch.compiler
+API documentation</a></h1>
+<ol type="1">
+<li><code>torch.compiler</code> 概述</li>
+</ol>
+<p><code>torch.compiler</code> 是 PyTorch 2.x
+中引入的一个命名空间，它提供了一些内部编译方法供用户使用。是一个旨在解决
+PyTorch 中准确捕获计算图问题(accurate graph
+capturing)的函数，目标是帮助用户更快地运行 PyTorch 程序。</p>
+<p>从 C++ 到 Python 的转变：<code>torch.compile</code> 是用 Python
+编写的，标志着 PyTorch 从 C++ 向 Python 的转变。</p>
+<ol start="2" type="1">
+<li>torch.compile 的底层技术 torch.compile 依赖以下关键技术：</li>
+</ol>
+<ul>
+<li><strong>TorchDynamo</strong> (torch._dynamo) : capture PyTorch
+graphs
+<ul>
+<li>这是一个内部 API，利用 Python 的 Frame Evaluation API 安全地捕获
+PyTorch 计算图。TorchDynamo 的一些外部方法通过 torch.compiler
+命名空间暴露给用户。</li>
+</ul></li>
+<li><strong>TorchInductor</strong> : deep learning compiler
+<ul>
+<li>这是 torch.compile
+的默认深度学习编译器，能够为多种加速器和后端生成快速代码。对于
+NVIDIA、AMD 和 Intel GPU，它使用 OpenAI Triton 作为关键组件。</li>
+</ul></li>
+<li><strong>AOT Autograd</strong> （Ahead-of-Time Autograd）
+<ul>
+<li>它不仅捕获用户代码，还捕获反向传播，从而实现对前向和反向传播的同时加速。</li>
+</ul></li>
+</ul>
+<p>As mentioned above, to run your workflows faster,
+<code>torch.compile</code> through TorchDynamo requires a
+<strong>backend</strong> that converts the captured graphs into a fast
+machine code. Different backends can result in various optimization
+gains. The default backend is called <code>TorchInductor</code>, also
+known as <strong>inductor</strong>, TorchDynamo has a list of supported
+backends developed by our partners, which can be see by running
+<code>torch.compiler.list_backends()</code> each of which with its
+optional dependencies.</p>
+<p><img src="/images/121/backends.png" width="100%"></p>
+<h1 id="introduction-to-torch.compile"><a
+target="_blank" rel="noopener" href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">Introduction
+to torch.compile</a></h1>
+<blockquote>
+<p>torch.compile makes PyTorch code run faster by JIT-compiling PyTorch
+code into optimized kernels, all while requiring minimal code
+changes.</p>
+</blockquote>
+<p>通过将 PyTorch
+代码即时编译（JIT）为优化后的内核，从而实现加速，同时只需要极少的代码更改。</p>
+<p>简单使用 <span class="citation"
+data-cites="torch.compiler">@torch.compiler</span> 进行装饰即可</p>
+<p>当你对目标函数或模块使用 torch.compile
+时，编译器会尝试递归地编译目标函数或模块内部的每一个函数调用（除非这些函数在跳过列表中，例如内置函数或
+torch.* 命名空间中的某些函数）。</p>
+<p>可以通过使用 torch.compiler.disable 来禁用某些函数的编译。</p>
+<p><span class="citation"
+data-cites="torch.compiler.disable">@torch.compiler.disable</span>(recursive=False)</p>
+<p>Best Practices:</p>
+<ul>
+<li><ol type="1">
+<li>Top-Level Compilation 顶层编译</li>
+</ol>
+<ul>
+<li>一种方法是尽可能在最高级别进行编译（例如，在顶层模块初始化/调用时），并在遇到过多的图中断或错误时选择性地禁用编译。如果仍然存在许多编译问题，可以尝试分别编译各个子组件。</li>
+</ul></li>
+<li><ol start="2" type="1">
+<li>Modular Testing 模块化测试</li>
+</ol>
+<ul>
+<li>在将函数和模块集成到更大的模型之前，使用 torch.compile
+对它们进行单独测试，以隔离潜在问题。</li>
+</ul></li>
+<li><ol start="3" type="1">
+<li>Disable Compilation Selectively 选择性禁用编译</li>
+</ol>
+<ul>
+<li>如果某些函数或子模块无法被 torch.compile 处理，可以使用
+torch.compiler.disable 上下文管理器递归地将它们从编译中排除。</li>
+</ul></li>
+<li><ol start="4" type="1">
+<li>Compile Leaf Functions First 先编译叶子函数(Leaf Functions,
+内部不调用任何其他函数的函数)</li>
+</ol>
+<ul>
+<li>在具有多个嵌套函数和模块的复杂模型中，建议先从叶子函数或模块开始编译。</li>
+<li><a
+target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/torch.compiler_fine_grain_apis.html">TorchDynamo
+APIs for fine-grained tracing</a></li>
+</ul></li>
+</ul>
+<p>torch.compile 的首次运行时间比 eager mode 长得多。这是因为
+torch.compile 在执行时会将模型编译为<strong>optimized
+kernels</strong>。模型结构不改变就不需要重新编译。如果多次运行优化后的模型，与
+eager mode 相比，会看到显著的改进。</p>
+<p>加速主要来自于减少 Python overhead 和 GPU read/writes</p>
+<p>第二次运行经过 torch.compile
+优化的模型时，时间明显比其他运行时间长，尽管它比第一次运行快得多。这是因为
+reduce-overhead 模式会运行几次 CUDA graphs 的预热迭代 (a few warm-up
+iterations)。</p>
+<p>Primarily, the advantage of torch.compile lies in its ability to
+handle arbitrary Python code with minimal changes to existing code.</p>
+<p>相比于现有的 PyTorch 编译解决方案（TorchScript 或 FX
+Tracing），主要优势在于， torch.compile 能够以最小的代码更改量处理任意
+Python 代码。</p>
+<p>TorchDynamo 负责将任意 Python 代码即时编译（JIT）为 FX
+图，这些图随后可以被进一步优化。TorchDynamo 通过在运行时分析 Python
+字节码并检测对 PyTorch 操作的调用，来提取 FX
+图。通常情况下，torch.compile 的另一个组件 TorchInductor 会进一步将 FX
+图编译为优化后的内核。但 TorchDynamo 允许使用不同的后端。为了查看
+TorchDynamo 输出的 FX 图，我们可以创建一个自定义后端，该后端输出 FX
+图并简单地返回图的未优化前向方法。</p>
+<h1
+id="torchinductor-a-pytorch-native-compiler-with-define-by-run-ir-and-symbolic-shapes"><a
+target="_blank" rel="noopener" href="https://dev-discuss.pytorch.org/t/torchinductor-a-pytorch-native-compiler-with-define-by-run-ir-and-symbolic-shapes/747">TorchInductor:
+a PyTorch-native Compiler with Define-by-Run IR and Symbolic
+Shapes</a></h1>
+<p>TorchDynamo 是通过动态 Python 字节码转换来解决 the graph capture
+problem 的，</p>
+<p>TorchInductor 是 PyTorch 的一个新编译器，它能够表示 PyTorch
+的全部功能，并且以一种通用的方式构建，以便能够支持训练和多个后端目标。</p>
+<p>其设计理念是通过一种轻薄且易于修改的方式，将 PyTorch
+符号化地映射到低级后端，支持在不同后端之间快速实验和自动调优，以及更高层次的优化，例如内存规划(memory
+planning)。</p>
+<p>为了迫使 TorchInductor
+的设计具有通用性，从两个低级执行目标开始，它们代表了设计空间中的不同点：</p>
+<ul>
+<li><p>Triton 是一种新的编程语言，其生产力远高于
+CUDA，但能够以简洁易懂的代码超越高度优化的库（如 cuDNN）的性能。它由
+OpenAI 的 Philippe Tillet
+开发，并且在行业中获得了巨大的采用和牵引力。Triton 支持 NVIDIA
+GPU，并且作为一种替代手写 CUDA
+内核的方案，其受欢迎程度正在迅速增长。</p></li>
+<li><p>C++/OpenMP 是一种广泛采用的规范，用于编写并行内核。OpenMP
+提供了一种工作共享的并行执行模型，并支持 CPU。C++
+作为一种高度可移植的语言，也很有趣，因为它可以支持导出到更奇特的边缘设备和硬件架构。</p></li>
+</ul>
+<h1 id="vllms-torch.compile-integration"><a
+target="_blank" rel="noopener" href="https://docs.vllm.ai/en/latest/design/v1/torch_compile.html">vLLM’s
+torch.compile integration</a></h1>
+<p>在vLLM V1架构中，torch.compile默认启用，是框架的关键部分。</p>
+<h2 id="编译缓存compilation-cache">编译缓存（Compilation Cache）</h2>
+<p>vLLM 会根据多种因素（包括模型配置、PyTorch
+配置、模型的前向传播函数及其调用的相关函数）决定一个目录来存储编译产物。这些缓存可以被直接复制到部署环境中，从而节省大量的编译时间，加速
+vLLM 实例的启动时间。vLLM 保证所有编译工作在服务请求之前完成。</p>
+<h2 id="python-代码编译python-code-compilation">Python 代码编译（Python
+Code Compilation）</h2>
+<p>通过 PyTorch 的 Dynamo
+工具来捕获模型的前向传播函数及其调用的其他函数。这些函数会被编译成一个新的函数，并存储在缓存目录中。</p>
+<ul>
+<li>编译后的代码会生成一个计算图（ <code>computation_graph.py</code>
+）和一个转换后的代码文件（ <code>transformed_code.py</code> ）。</li>
+<li>任何在这些文件中的代码更改都会触发缓存失效，从而重新编译。</li>
+</ul>
+<h2 id="计算图处理computation-graph-processing">计算图处理（Computation
+Graph Processing）</h2>
+<p>计算图中每个张量都有形状注释，输入包括输入 ID、位置
+ID、模型权重和缓冲区，输出是最终的隐藏状态。</p>
+<p>计算图的大部分输入具有静态形状（因为它们是模型权重和缓冲区），只有输入
+ID 和位置 ID 具有符号形状（即形状可以在批次之间变化）。</p>
+<ul>
+<li>attention operation 比较复杂，需要与键值缓存（kv
+caches）交互，但其输出与输入查询的形状相同。因此，vLLM 将整个 attention
+operation 封装为一个 PyTorch 自定义操作
+<code>torch.ops.vllm.unified_attention_with_output</code> ，以便 Dynamo
+不会尝试检查其内部操作。</li>
+<li>计算图被进一步拆分为多个子模块，每个子模块是一个计算图片段，可以独立处理。</li>
+</ul>
+<h2 id="计算图编译computation-graph-compilation">计算图编译（Computation
+Graph Compilation）</h2>
+<p>使用 PyTorch 的 Inductor
+编译器来编译计算图的各个片段。每个片段的编译结果会被存储在缓存目录中。如果缓存目录已经存在（例如第二次运行相同的代码），Inductor
+编译将被完全跳过，直接从磁盘加载上次的编译产物。</p>
+<p>为特定的形状（例如特定的 batch size
+）编译内核。这种情况下，计算图中的所有形状都是静态且已知的，Inductor
+会启用 <strong>自动调优（auto-tuning）</strong> 来优化性能。</p>
+<h2 id="cudagraph-捕获cudagraph-capture">Cudagraph 捕获（Cudagraph
+Capture）</h2>
+<p>vLLM 的 V1 架构使用分段(piecewise)的 Cudagraph
+。计算图被拆分为多个片段，每个片段在 attention operations
+之间（including the first graph before any attention operation, and the
+last graph after all the attention operation）捕获 Cudagraph。</p>
+<ul>
+<li><p>这种设计基于一个常见的观察结果：注意力操作之间的计算通常是
+token-wise 的，适合 Cudagraph；而 the attention operation
+本身比较复杂，不适合 Cudagraph。因此，通过以 Eager 模式 running the
+attention operation，而以 Cudagraph 模式运行其余操作，保持了 attention
+operation 的灵活性。</p></li>
+<li><p>分段的 Cudagraph 还具有细粒度 (fine-grained) 的内存管理，目的是将
+attention kernel 排除在 Cudagraph
+之外，同时将所有其他模块和内存分配操作保留在 Cudagraph 中。 --&gt;
+这就是为什么V1中的注意力操作将输出张量作为注意力的输入。</p></li>
+</ul>
+<p>在 vLLM 中，Cudagraph 的捕获和管理由编译器后端负责，执行时会根据
+batch size 自动选择合适的
+Cudagraph。模型调用者只需要正确管理输入缓冲区，而中间缓冲区的管理由编译器后端自动完成。
+这种设计允许模型在不同的batch
+size下灵活运行，同时保持高性能。编译器后端可以根据不同的 batch size
+捕获和管理多个 Cudagraph，确保在不同场景下都能高效运行。</p>
+<ul>
+<li>1.Cudagraph 的捕获和管理
+<ul>
+<li>捕获（Capture）：Cudagraph
+的捕获是指将一系列操作（如模型的前向传播过程中的某些片段）记录下来，形成一个可重复执行的图。在
+vLLM
+中，这些操作主要是模型计算图中的一部分，特别是那些在注意力操作之间的部分。</li>
+<li>管理（Manage）：捕获的 Cudagraph 由编译器后端（compiler
+backend）管理。这意味着编译器后端负责存储这些图，并在需要时加载它们。编译器后端还负责确保这些图在正确的条件下被正确地执行。</li>
+</ul></li>
+<li><ol start="2" type="1">
+<li>Cudagraph 的执行（Replay）</li>
+</ol>
+<ul>
+<li>执行条件：Cudagraph 的执行取决于当前的批量大小（batch
+size）。如果当前的批量大小与之前捕获的某个 Cudagraph
+的批量大小匹配，那么这个 Cudagraph 就会被执行（replayed）。</li>
+<li>执行过程：当匹配的 Cudagraph
+被执行时，编译器后端会自动管理所有中间缓冲区（intermediate
+buffers）。这意味着模型的调用者（model
+runner）不需要关心这些中间缓冲区的分配和释放，编译器后端会自动处理。</li>
+</ul></li>
+</ul>
+<hr />
+<h1 id="ways-to-use-torch.compile"><a
+target="_blank" rel="noopener" href="https://blog.ezyang.com/2024/11/ways-to-use-torch-compile/">Ways
+to use torch.compile</a></h1>
+<p>主要探讨了 PyTorch 的 <code>torch.compile</code>
+功能在不同场景下的使用方法、优缺点以及一些实际应用案例。</p>
+<p>Some tips:</p>
+<ul>
+<li>Compile only the modules you need.</li>
+<li>Read the <a
+target="_blank" rel="noopener" href="https://docs.google.com/document/d/1y5CRfMLdwEoF1nTk9q8qEu1mgMUuUtvhklPKJ2emLU8/edit?tab=t.0">missing
+manual</a>.</li>
+</ul>
+<p>优点</p>
+<ul>
+<li>潜在性能提升：虽然不能简单地“一键加速”，但通过一些工作，几乎总能获得性能提升。</li>
+</ul>
+<p>缺点 Downsides:</p>
+<ul>
+<li><p>The compiler is complicated.
+编译器复杂性：编译器的复杂性意味着用户需要投入一定的时间和精力来理解和使用
+torch.compile 。</p></li>
+<li><p>Compile time can be long.
+编译时间可能较长：编译模型需要时间，这可能会影响小型实验或频繁崩溃的任务的效率。此外，如果任务在支持抢占的系统上运行，可能会导致重复编译。</p></li>
+<li><p>Numerics divergence from eager. 数值结果可能与 eager mode
+不同：编译器可能选择不同的矩阵乘法算法或优化半精度计算，这可能导致结果与
+eager mode 不完全一致，甚至可能影响模型的收敛。</p></li>
+<li><p>Autotuning makes the most sense for inference.</p></li>
+<li><p>Warmup inference processes before serving traffic to
+them.</p></li>
+<li><p>Try skip_guard_eval_unsafe to reduce guard overhead.</p></li>
+</ul>
+<p>探讨 torch.export 的使用方式，这可能是解决一些 torch.compile
+问题的另一种途径。</p>
+<h1 id="missing-manual"><a
+target="_blank" rel="noopener" href="https://docs.google.com/document/d/1y5CRfMLdwEoF1nTk9q8qEu1mgMUuUtvhklPKJ2emLU8/edit?tab=t.0">missing
+manual</a></h1>
+<p>Do an ablation</p>
+<p>If PyTorch crashes, it’s usually pretty obvious what caused the
+crash. But if your outputs are garbage, this is kind of the nightmare
+scenario where there’s no where to start looking for the problem.</p>
+<p>有两种主要的消融方法：</p>
+<ul>
+<li>可以禁用编译器堆栈的层级（例如，禁用
+Inductor），并尝试定位问题所在。为了以这种方式进行消融，修改
+torch.compile 调用中的 backend 参数。我们推荐测试以下三种设置：
+<ul>
+<li>backend="eager" ：如果这失败了，这表明是 Dynamo 的问题。</li>
+<li>backend="aot_eager" ：如果这失败了，但 eager 没有失败，这表明是
+AOTAutograd 的问题。</li>
+<li>backend="aot_eager_decomp_partition" ：如果这失败了，但 aot_eager
+没有失败，这表明问题与我们的分解/分区器有关。</li>
+<li>此外，如果使用的是 mode="reduce-overhead" ，应该尝试不使用它（如果是
+CUDA 图问题）。如果使用的是 dynamic=True
+，应该尝试不使用它（如果是动态形状问题）。如果怀疑问题与某个特定的 FX
+传递有关，也可以手动禁用该传递，通过注释掉或禁用相关的配置，例如
+torch/_inductor/fx_passes/joint_graph.py 或
+torch/_inductor/fx_passes/post_grad.py
+（TODO：优化燃料，这样就不需要了解内部机制来做到这一点）。</li>
+</ul></li>
+<li>可以禁用模型层级的编译器。可以通过将 torch.compile
+调用推入模型内部来手动完成，或者使用类似
+https://gist.github.com/ezyang/4a5138b11327335e618dd37ad2fd0a4e
+的补丁程序来程序化地完成（TODO：正式落地）。</li>
+</ul>
+<p>还有其他方法可以诊断准确性问题（例如，逐层比较输出），但消融实验很容易进行，且不费力，因此应该先尝试它们。</p>
+<p>使用缓存加速编译 Speeding up compilation with caching</p>
+<p>默认情况下，我们也有一个文件系统缓存，保存在 /tmp 中。如果系统中 /tmp
+的保留时间不够长，可以使用 TORCHINDUCTOR_CACHE_DIR 更改缓存目录。</p>
+<p>使用分层编译加速编译 Speeding up compilation with hierarchical
+compilation</p>
+<p>默认情况下，PT2
+将您的所有模型代码内联到一个函数中，然后对其进行编译。在某些架构中，这意味着重复使用的块（例如
+Transformer
+块）将被内联并反复编译。如果您没有从跨块边界的融合中受益，您可以通过仅对块本身使用
+torch.compile
+来显著减少编译时间，这样它只会被编译一次，并在每个实例中重复使用。您可能需要设置
+torch._dynamo.config.inline_inbuilt_nn_modules = True 以确保在 self
+实例发生变化时不会重新编译。</p>
+<hr />
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+              <a href="/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/" rel="tag"># 未完成的垃圾</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/" rel="prev" title="FlashMLA 实践">
+      <i class="fa fa-chevron-left"></i> FlashMLA 实践
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/03/31/122_CUDA/" rel="next" title="torch.compile">
+      torch.compile <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#torch.compiler-api-documentation"><span class="nav-number">1.</span> <span class="nav-text">torch.compiler
+API documentation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#introduction-to-torch.compile"><span class="nav-number">2.</span> <span class="nav-text">Introduction
+to torch.compile</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#torchinductor-a-pytorch-native-compiler-with-define-by-run-ir-and-symbolic-shapes"><span class="nav-number">3.</span> <span class="nav-text">TorchInductor:
+a PyTorch-native Compiler with Define-by-Run IR and Symbolic
+Shapes</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vllms-torch.compile-integration"><span class="nav-number">4.</span> <span class="nav-text">vLLM’s
+torch.compile integration</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E7%BC%93%E5%AD%98compilation-cache"><span class="nav-number">4.1.</span> <span class="nav-text">编译缓存（Compilation Cache）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python-%E4%BB%A3%E7%A0%81%E7%BC%96%E8%AF%91python-code-compilation"><span class="nav-number">4.2.</span> <span class="nav-text">Python 代码编译（Python
+Code Compilation）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%9B%BE%E5%A4%84%E7%90%86computation-graph-processing"><span class="nav-number">4.3.</span> <span class="nav-text">计算图处理（Computation
+Graph Processing）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%9B%BE%E7%BC%96%E8%AF%91computation-graph-compilation"><span class="nav-number">4.4.</span> <span class="nav-text">计算图编译（Computation
+Graph Compilation）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cudagraph-%E6%8D%95%E8%8E%B7cudagraph-capture"><span class="nav-number">4.5.</span> <span class="nav-text">Cudagraph 捕获（Cudagraph
+Capture）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ways-to-use-torch.compile"><span class="nav-number">5.</span> <span class="nav-text">Ways
+to use torch.compile</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#missing-manual"><span class="nav-number">6.</span> <span class="nav-text">missing
+manual</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">205k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:07</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : 'a92d7633dd6fdb96a4ddc7da4356459a',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>
