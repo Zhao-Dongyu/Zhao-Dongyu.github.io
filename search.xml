@@ -89,7 +89,7 @@ Winning every round in Duos<br>(Completed 2024/06/03)
 Finish in top 2 in Duos
 </td>
 <td>
-463/1000
+476/1000
 </td>
 </tr>
 <tr>
@@ -9347,7 +9347,7 @@ torch._dynamo.config.inline_inbuilt_nn_modules = True 以确保在 self
       </tags>
   </entry>
   <entry>
-    <title>torch.compile</title>
+    <title>CUDA学习</title>
     <url>/2025/03/31/122_CUDA/</url>
     <content><![CDATA[<p>CUDA 学习记录</p>
 <span id="more"></span>
