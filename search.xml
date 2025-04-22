@@ -9363,4 +9363,92 @@ torch._dynamo.config.inline_inbuilt_nn_modules = True 以确保在 self
         <tag>未完成的垃圾</tag>
       </tags>
   </entry>
+  <entry>
+    <title>P/D 分离</title>
+    <url>/2025/04/21/123_PD%E5%88%86%E7%A6%BB/</url>
+    <content><![CDATA[<p>记录 Dynamo 学习实践 P/D 分离。</p>
+<span id="more"></span>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/ai-dynamo/dynamo.git</span><br></pre></td></tr></table></figure>
+<p>根据这个<a
+href="https://github.com/ai-dynamo/dynamo/issues/321#issuecomment-2744883807">issue</a>可知，需要
+Ubuntu24.04。</p>
+<blockquote>
+<p>Ubuntu 22.04 currently is not supported as it has glibc 2.35 which is
+below minimum required glibc 2.39</p>
+</blockquote>
+<p>否则会报错：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">pip install ai-dynamo[all]</span></span><br><span class="line">Collecting ai-dynamo[all]</span><br><span class="line">  Using cached ai_dynamo-0.1.0-py3-none-any.whl.metadata (5.7 kB)</span><br><span class="line">INFO: pip is looking at multiple versions of ai-dynamo[all] to determine which version is compatible with other requirements. This could take a while.</span><br><span class="line">ERROR: Ignored the following yanked versions: 0.0.0.dev0</span><br><span class="line">ERROR: Could not find a version that satisfies the requirement ai-dynamo-runtime==0.1.0 (from ai-dynamo[all]) (from versions: none)</span><br><span class="line">ERROR: No matching distribution found for ai-dynamo-runtime==0.1.0</span><br></pre></td></tr></table></figure>
+<p>CUDA 基础镜像为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ARG BASE_IMAGE=&quot;nvcr.io/nvidia/cuda-dl-base&quot;</span><br><span class="line">ARG BASE_IMAGE_TAG=&quot;25.01-cuda12.8-devel-ubuntu24.04&quot;</span><br><span class="line">ARG RELEASE_BUILD</span><br><span class="line">ARG RUNTIME_IMAGE=&quot;nvcr.io/nvidia/cuda&quot;</span><br><span class="line">ARG RUNTIME_IMAGE_TAG=&quot;12.8.1-runtime-ubuntu24.04&quot;</span><br><span class="line">ARG MANYLINUX_IMAGE=&quot;quay.io/pypa/manylinux_2_28_x86_64&quot;</span><br><span class="line">ARG GENAI_PERF_TAG=&quot;25d0188713adc47868d6b3f22426375237a90529&quot;</span><br></pre></td></tr></table></figure>
+<p>打包镜像： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda-dl-base</span><br><span class="line"></span><br><span class="line">$ docker pull nvcr.io/nvidia/cuda-dl-base:25.01-cuda12.8-devel-ubuntu24.04</span><br><span class="line">$ docker images</span><br><span class="line">REPOSITORY                    TAG                                IMAGE ID       CREATED         SIZE</span><br><span class="line">nvcr.io/nvidia/cuda-dl-base   25.01-cuda12.8-devel-ubuntu24.04   583d3d06ed9f   2 months ago    11.9GB</span><br><span class="line">$ docker save -o 25.01-cuda12.8-devel-ubuntu24.04.tar nvcr.io/nvidia/cuda-dl-base</span><br><span class="line">/data/team/zhaodongyu/25.01-cuda12.8-devel-ubuntu24.04.tar</span><br></pre></td></tr></table></figure></p>
+<p>安装python3.10的必要性： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ERROR: Ignored the following versions that require a different python version: 1.21.2 Requires-Python &gt;=3.7,&lt;3.11; 1.21.3 Requires-Python &gt;=3.7,&lt;3.11; 1.21.4 Requires-Python &gt;=3.7,&lt;3.11; 1.21.5 Requires-Python &gt;=3.7,&lt;3.11; 1.21.6 Requires-Python &gt;=3.7,&lt;3.11</span><br><span class="line">ERROR: Could not find a version that satisfies the requirement pydantic&gt;=2.9 (from ai-dynamo-vllm) (from versions: none)</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz</span><br><span class="line">tar -xzf Python-3.10.13.tgz</span><br><span class="line">cd Python-3.10.13</span><br><span class="line">./configure --enable-optimizations --prefix=$HOME/python310</span><br><span class="line">make -j$(nproc)</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<p>python 路径： /root/python310/bin/python3</p>
+<p>由于无法访问nvidia官网，在 https://pypi.nvidia.com/ 手动下载
+<code>ai_dynamo_vllm-0.7.2-cp38-abi3-manylinux1_x86_64.whl</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"></span><br><span class="line">DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-dev python3-pip python3-venv libucx0</span><br><span class="line"></span><br><span class="line">/root/python310/bin/python3 -m venv venv310</span><br><span class="line"></span><br><span class="line">source venv310/bin/activate</span><br><span class="line"></span><br><span class="line">pip install -i https://mirrors.aliyun.com/pypi/simple git/ai_dynamo_vllm-0.7.2-cp38-abi3-manylinux1_x86_64.whl</span><br><span class="line"></span><br><span class="line">pip install -i https://mirrors.aliyun.com/pypi/simple ai-dynamo[all]</span><br><span class="line"></span><br><span class="line">pip install -i https://mirrors.aliyun.com/pypi/simple vllm</span><br></pre></td></tr></table></figure>
+<p>Dynamo CLI has the following 4 sub-commands.</p>
+<ul>
+<li>🏃 dynamo run: quickly spin up a server to experiment with a
+specified model, input and output target.</li>
+<li>🫴 dynamo serve: compose a graph of workers locally and serve.</li>
+<li>🔨 (Experimental) dynamo build: containerize either the entire graph
+or parts of graph to multiple containers</li>
+<li>🚀 (Experimental) dynamo deploy: deploy to K8 with helm charts or
+custom operators</li>
+<li>☁️ (Experimental) dynamo cloud: interact with your dynamo cloud
+server</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+        <tag>未完成的垃圾</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>强化学习框架</title>
+    <url>/2025/04/21/124_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/</url>
+    <content><![CDATA[<p>记录学习实践强化学习框架。</p>
+<span id="more"></span>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/ai-dynamo/dynamo.git</span><br></pre></td></tr></table></figure>
+<p>根据这个<a
+href="https://github.com/ai-dynamo/dynamo/issues/321#issuecomment-2744883807">issue</a>可知，需要
+Ubuntu24.04。</p>
+<blockquote>
+<p>Ubuntu 22.04 currently is not supported as it has glibc 2.35 which is
+below minimum required glibc 2.39</p>
+</blockquote>
+<p>否则会报错：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">pip install ai-dynamo[all]</span></span><br><span class="line">Collecting ai-dynamo[all]</span><br><span class="line">  Using cached ai_dynamo-0.1.0-py3-none-any.whl.metadata (5.7 kB)</span><br><span class="line">INFO: pip is looking at multiple versions of ai-dynamo[all] to determine which version is compatible with other requirements. This could take a while.</span><br><span class="line">ERROR: Ignored the following yanked versions: 0.0.0.dev0</span><br><span class="line">ERROR: Could not find a version that satisfies the requirement ai-dynamo-runtime==0.1.0 (from ai-dynamo[all]) (from versions: none)</span><br><span class="line">ERROR: No matching distribution found for ai-dynamo-runtime==0.1.0</span><br></pre></td></tr></table></figure>
+<p>CUDA 基础镜像为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ARG BASE_IMAGE=&quot;nvcr.io/nvidia/cuda-dl-base&quot;</span><br><span class="line">ARG BASE_IMAGE_TAG=&quot;25.01-cuda12.8-devel-ubuntu24.04&quot;</span><br><span class="line">ARG RELEASE_BUILD</span><br><span class="line">ARG RUNTIME_IMAGE=&quot;nvcr.io/nvidia/cuda&quot;</span><br><span class="line">ARG RUNTIME_IMAGE_TAG=&quot;12.8.1-runtime-ubuntu24.04&quot;</span><br><span class="line">ARG MANYLINUX_IMAGE=&quot;quay.io/pypa/manylinux_2_28_x86_64&quot;</span><br><span class="line">ARG GENAI_PERF_TAG=&quot;25d0188713adc47868d6b3f22426375237a90529&quot;</span><br></pre></td></tr></table></figure>
+<p>打包镜像： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda-dl-base</span><br><span class="line"></span><br><span class="line">$ docker pull nvcr.io/nvidia/cuda-dl-base:25.01-cuda12.8-devel-ubuntu24.04</span><br><span class="line">$ docker images</span><br><span class="line">REPOSITORY                    TAG                                IMAGE ID       CREATED         SIZE</span><br><span class="line">nvcr.io/nvidia/cuda-dl-base   25.01-cuda12.8-devel-ubuntu24.04   583d3d06ed9f   2 months ago    11.9GB</span><br><span class="line">$ docker save -o 25.01-cuda12.8-devel-ubuntu24.04.tar nvcr.io/nvidia/cuda-dl-base</span><br><span class="line">/data/team/zhaodongyu/25.01-cuda12.8-devel-ubuntu24.04.tar</span><br></pre></td></tr></table></figure></p>
+<p>安装python3.10的必要性： <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ERROR: Ignored the following versions that require a different python version: 1.21.2 Requires-Python &gt;=3.7,&lt;3.11; 1.21.3 Requires-Python &gt;=3.7,&lt;3.11; 1.21.4 Requires-Python &gt;=3.7,&lt;3.11; 1.21.5 Requires-Python &gt;=3.7,&lt;3.11; 1.21.6 Requires-Python &gt;=3.7,&lt;3.11</span><br><span class="line">ERROR: Could not find a version that satisfies the requirement pydantic&gt;=2.9 (from ai-dynamo-vllm) (from versions: none)</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz</span><br><span class="line">tar -xzf Python-3.10.13.tgz</span><br><span class="line">cd Python-3.10.13</span><br><span class="line">./configure --enable-optimizations --prefix=$HOME/python310</span><br><span class="line">make -j$(nproc)</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+<p>python 路径： /root/python310/bin/python3</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"></span><br><span class="line">DEBIAN_FRONTEND=noninteractive apt-get install -yq python3-dev python3-pip python3-venv libucx0</span><br><span class="line"></span><br><span class="line">/root/python310/bin/python3 -m venv venv310</span><br><span class="line"></span><br><span class="line">source venv310/bin/activate</span><br><span class="line"></span><br><span class="line">pip install -i https://mirrors.aliyun.com/pypi/simple ai-dynamo[all]</span><br><span class="line"></span><br><span class="line">pip install -i https://mirrors.aliyun.com/pypi/simple git/ai_dynamo_vllm-0.7.2-cp38-abi3-manylinux1_x86_64.whl</span><br></pre></td></tr></table></figure>
+<p>Dynamo CLI has the following 4 sub-commands.</p>
+<ul>
+<li>🏃 dynamo run: quickly spin up a server to experiment with a
+specified model, input and output target.</li>
+<li>🫴 dynamo serve: compose a graph of workers locally and serve.</li>
+<li>🔨 (Experimental) dynamo build: containerize either the entire graph
+or parts of graph to multiple containers</li>
+<li>🚀 (Experimental) dynamo deploy: deploy to K8 with helm charts or
+custom operators</li>
+<li>☁️ (Experimental) dynamo cloud: interact with your dynamo cloud
+server</li>
+</ul>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+        <tag>未完成的垃圾</tag>
+      </tags>
+  </entry>
 </search>

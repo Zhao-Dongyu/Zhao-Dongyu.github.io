@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-04-02T13:48:37.668Z</updated>
+  <updated>2025-04-21T09:06:33.212Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,48 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>P/D 分离</title>
+    <link href="http://example.com/2025/04/21/123_PD%E5%88%86%E7%A6%BB/"/>
+    <id>http://example.com/2025/04/21/123_PD%E5%88%86%E7%A6%BB/</id>
+    <published>2025-04-21T07:58:00.000Z</published>
+    <updated>2025-04-21T09:06:33.212Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录 Dynamo 学习实践 P/D 分离。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>强化学习框架</title>
+    <link href="http://example.com/2025/04/21/124_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/"/>
+    <id>http://example.com/2025/04/21/124_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/</id>
+    <published>2025-04-21T07:58:00.000Z</published>
+    <updated>2025-04-21T08:25:29.527Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录学习实践强化学习框架。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
   
   <entry>
     <title>CUDA学习</title>
@@ -432,51 +474,6 @@ href=&quot;https://github.com/IST-DASLab/marlin&quot;&gt;&lt;code&gt;marlin&lt;/
     <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
     
     <category term="MARLIN" scheme="http://example.com/tags/MARLIN/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析</title>
-    <link href="http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
-    <id>http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/</id>
-    <published>2024-08-12T01:52:02.000Z</published>
-    <updated>2024-10-14T06:09:10.723Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
-kernel的反量化。&lt;/p&gt;</summary>
-    
-    
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="AWQ" scheme="http://example.com/tags/AWQ/"/>
-    
-    <category term="dequantize" scheme="http://example.com/tags/dequantize/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>在riscv平台优化SGEMM</title>
-    <link href="http://example.com/2024/02/26/102_sgemm_riscv_cn/"/>
-    <id>http://example.com/2024/02/26/102_sgemm_riscv_cn/</id>
-    <published>2024-02-25T16:00:00.000Z</published>
-    <updated>2025-02-07T05:59:38.880Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;本项目记录了在riscv平台上优化SGEMM（单精度浮点通用矩阵乘法）的过程。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="RISCV" scheme="http://example.com/tags/RISCV/"/>
-    
-    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
-    
-    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
     
   </entry>
   
