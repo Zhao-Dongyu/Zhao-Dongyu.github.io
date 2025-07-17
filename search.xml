@@ -9433,4 +9433,20 @@ size）一般比较大（DeepSeekMath论文中为64个），高采样频率对�
         <tag>未完成的垃圾</tag>
       </tags>
   </entry>
+  <entry>
+    <title>c++模版</title>
+    <url>/2025/07/17/125_c++template/</url>
+    <content><![CDATA[<p>学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了
+C++ Templates - The Complete Guide, 2nd Edition
+之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！</p>
+<span id="more"></span>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+        <tag>未完成的垃圾</tag>
+      </tags>
+  </entry>
 </search>

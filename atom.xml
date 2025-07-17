@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-04-21T09:06:33.212Z</updated>
+  <updated>2025-07-17T01:12:57.097Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>c++模版</title>
+    <link href="http://example.com/2025/07/17/125_c++template/"/>
+    <id>http://example.com/2025/07/17/125_c++template/</id>
+    <published>2025-07-17T01:09:00.000Z</published>
+    <updated>2025-07-17T01:12:57.097Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了
+C++ Templates - The Complete Guide, 2nd Edition
+之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
   
   <entry>
     <title>P/D 分离</title>
@@ -427,38 +450,6 @@ and performance.&lt;/p&gt;</summary>
     <summary type="html">&lt;p&gt;&lt;a href=&quot;https://docs.vllm.ai/en/stable/quantization/fp8.html&quot;&gt;vLLM
 支持 FP8(W8A8)&lt;/a&gt;了，开始学习fp8 ，写一个
 FP8(W4A8)算子，减少一些IO吞吐，看看能不能提升性能。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
-    
-    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-    <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
-    
-    <category term="MARLIN" scheme="http://example.com/tags/MARLIN/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Marlin代码解读</title>
-    <link href="http://example.com/2024/09/26/104_marlin/"/>
-    <id>http://example.com/2024/09/26/104_marlin/</id>
-    <published>2024-09-25T16:00:00.000Z</published>
-    <updated>2024-11-05T02:58:12.713Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;Marlin Kernel是&lt;a href=&quot;https://github.com/IST-DASLab&quot;&gt;IST-DASLab&lt;/a&gt;
-开发的GPTQ量化模型高性能 FP16(activation) x INT4(weight)
-GEMM算子实现，在现有W4A16 GEMM Kernel中，Marlin Kernel性能是最好的。&lt;/p&gt;
-&lt;p&gt;作为一个不会cuda的小白，研究完&lt;a
-href=&quot;https://github.com/IST-DASLab/marlin&quot;&gt;&lt;code&gt;marlin&lt;/code&gt;&lt;/a&gt;算子之后神清气爽，&lt;/p&gt;
-&lt;p&gt;【长文预警 &amp;amp; 多图预警】&lt;/p&gt;</summary>
     
     
     
