@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-07-17T01:12:57.097Z</updated>
+  <updated>2025-07-17T03:13:32.315Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2025/07/17/125_c++template/"/>
     <id>http://example.com/2025/07/17/125_c++template/</id>
     <published>2025-07-17T01:09:00.000Z</published>
-    <updated>2025-07-17T01:12:57.097Z</updated>
+    <updated>2025-07-17T03:13:32.315Z</updated>
     
     
     <summary type="html">&lt;p&gt;学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了
@@ -127,11 +127,11 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
   </entry>
   
   <entry>
-    <title>FlashMLA 实践</title>
+    <title>FlashMLA 优化</title>
     <link href="http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/"/>
     <id>http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/</id>
     <published>2025-03-12T02:16:10.000Z</published>
-    <updated>2025-03-18T07:57:18.058Z</updated>
+    <updated>2025-08-01T08:13:54.495Z</updated>
     
     
     <summary type="html">&lt;p&gt;在 Hopper H20 平台优化 FlashMLA。&lt;/p&gt;</summary>

@@ -8995,7 +8995,7 @@ la，上海大竹笋计划又一次被我记起！</p>
       </tags>
   </entry>
   <entry>
-    <title>FlashMLA 实践</title>
+    <title>FlashMLA 优化</title>
     <url>/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/</url>
     <content><![CDATA[<p>在 Hopper H20 平台优化 FlashMLA。</p>
 <span id="more"></span>
@@ -9440,6 +9440,164 @@ size）一般比较大（DeepSeekMath论文中为64个），高采样频率对�
 C++ Templates - The Complete Guide, 2nd Edition
 之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！</p>
 <span id="more"></span>
+<h1 id="雾里看花真正意义上的理解-c-模板"><a
+href="https://zhuanlan.zhihu.com/p/655902377">雾里看花：真正意义上的理解
+C++ 模板</a></h1>
+<p>我看的入坑文章，很有意思！</p>
+<p>四个主题：</p>
+<ul>
+<li>代码生成 (Code Generation)</li>
+<li>TMP (Template meta programming 模板元编程)
+<ul>
+<li>类型约束 (Type Constraint)
+<ul>
+<li>通过requires我们能阻止编译错误的传播</li>
+</ul></li>
+<li>编译时计算 (Compile-time Computing)
+<ul>
+<li>C++
+允许在一个函数前面直接加上constexpr关键字修饰。表示这个函数既可以在运行期调用，也可以在编译期调用，而函数本身的内容几乎不需要任何改变。这样一来，我们可以直接把运行期的代码复用到编译期。</li>
+</ul></li>
+<li>操纵类型 (Type Manipulation)
+<ul>
+<li>在 C++
+中类型不是一等公民，只能作为模板参数，在涉及到类型相关的计算的时候，我们就不得不编写繁琐的模板元代码</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>模板设计之初的意图并不是实现后面这三个功能，但是最后却通过一些奇怪的
+trick 实现了这些功能，代码写起来也比较晦涩难懂，所以一般叫做元编程。</p>
+<h2 id="code-generation">Code Generation</h2>
+<p>在加入模板之前，我们只能通过宏来模拟泛型。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> add(T) _ADD_IMPL_##T</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ADD_IMPL(T)        \</span></span><br><span class="line"><span class="meta">    T add(T)(T a, T b) &#123;   \</span></span><br><span class="line"><span class="meta">        return a + b;      \</span></span><br><span class="line"><span class="meta">    &#125;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">ADD_IMPL</span>(<span class="type">int</span>);</span><br><span class="line"><span class="built_in">ADD_IMPL</span>(<span class="type">float</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">add</span>(<span class="type">int</span>)(<span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">    <span class="built_in">add</span>(<span class="type">float</span>)(<span class="number">1.0f</span>, <span class="number">2.0f</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>把普通函数中的类型替换成<strong>宏参数</strong>，通过<strong>宏符号</strong>拼接来为不同的类型参数生成不同的名字。再通过<strong>IMPL宏</strong>来为特定的函数生成定义，这个过程可以叫做<strong>实例化
+(instantiate)</strong>。</p>
+</blockquote>
+<p>而这主要有如下几个缺点</p>
+<ul>
+<li>代码可读性差，宏的拼接和代码逻辑耦合，报错信息不好阅读</li>
+<li>很难调试，打断点只能打到宏展开的位置，而不是宏定义内部</li>
+<li>需要显式写出类型参数，参数一多起来就会显得十分冗长</li>
+<li>必须手动实例化函数定义，在较大的代码库中，往往一个泛型可能有几十个实例化，全部手动写出过于繁琐</li>
+</ul>
+<p>这些问题，在模板中都被解决了： <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">add</span><span class="params">(T a, T b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> <span class="type">int</span> add&lt;&gt;(<span class="type">int</span>, <span class="type">int</span>);  <span class="comment">// explicit instantiation</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">add</span>(<span class="number">1</span>, <span class="number">2</span>);         <span class="comment">// auto deduce T</span></span><br><span class="line">    <span class="built_in">add</span>(<span class="number">1.0f</span>, <span class="number">2.0f</span>);   <span class="comment">// implicit instantiation</span></span><br><span class="line">    <span class="built_in">add</span>&lt;<span class="type">float</span>&gt;(<span class="number">1</span>, <span class="number">2</span>);  <span class="comment">// explicitly specify T</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>模板就是占位符，不需要字符拼接，和普通的代码别无二致，仅仅<strong>多了一项模板参数声明</strong></li>
+<li>报错和调试都能准确的指向模板<strong>定义</strong>的位置，而不是模板<strong>实例化</strong>的位置</li>
+<li>支持模板参数<strong>自动推导</strong>，不需要显式写出类型参数，同时也支持显式指定类型参数</li>
+<li>支持<strong>隐式实例化 (implicit
+instantiation)</strong>，即由编译器自动实例化使用到的函数。也支持<strong>显式实例化
+(explicit instantiation)</strong>，即手动实例化。</li>
+</ul>
+<p>除此之外，还有诸如偏特化 (partial specialization)，全特化 (full
+specialization)，可变模板参数 (variadic template)，变量模板 (variable
+template)
+等等一系列特性，这些仅凭宏都是做不到的。正是由于模板的出现，才使用 STL
+这样的泛型库的实现成为可能。</p>
+<h1 id="小试牛刀-templates-in-c"><a
+href="https://www.geeksforgeeks.org/cpp/templates-cpp/">小试牛刀
+Templates in C++</a></h1>
+<blockquote>
+<p>C++ template is a powerful tool that allows you to write a generic
+code that can work with any data type. The idea is to simply pass the
+data type as a parameter so that we don't need to write the same code
+for different data types.</p>
+</blockquote>
+<p>Templates are expanded at compiler time.</p>
+<h2 id="templates-vs-function-overloading"><a
+href="https://www.geeksforgeeks.org/cpp/function-overloading-vs-function-templates-in-cpp/">Templates
+vs Function Overloading</a></h2>
+<p>在
+C++中，函数重载和函数模板都允许我们创建可以操作不同类型数据的函数。虽然它们看起来相似，但它们用于不同的目的。</p>
+<p>当你需要对不同类型或数量的输入执行相似操作时，使用函数重载。</p>
+<p>当你需要一个单一的函数来处理不同的数据类型，而无需为每种类型重写函数时，使用函数模板。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Function Overloading</th>
+<th>Function Templates</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Purpose</td>
+<td>Define multiple functions with the same name but different
+parameters</td>
+<td>Define a single function to work with different data types</td>
+</tr>
+<tr class="even">
+<td>Syntax</td>
+<td>void functionName(int a);<br>void functionName(double a);<br>void
+functionName(int a, int b);</td>
+<td>template <typename T><br>void functionName(T a);<br>template
+<typename T><br>T functionName(T a, T b);</td>
+</tr>
+<tr class="odd">
+<td>Code Duplication</td>
+<td>Multiple functions, potentially similar code</td>
+<td>Single function, no code duplication</td>
+</tr>
+<tr class="even">
+<td>Type Safety</td>
+<td>Checked at compile-time</td>
+<td>Checked at compile-time</td>
+</tr>
+<tr class="odd">
+<td>Readability</td>
+<td>Clear which function is called based on parameters</td>
+<td>More abstract, but cleaner for multiple types</td>
+</tr>
+<tr class="even">
+<td>Flexibility</td>
+<td>Limited to predefined function signatures</td>
+<td>More flexible, works with any data type</td>
+</tr>
+<tr class="odd">
+<td>Maintenance</td>
+<td>Harder to maintain due to multiple functions</td>
+<td>Easier to maintain, single function definition</td>
+</tr>
+</tbody>
+</table>
+<p>结论：</p>
+<blockquote>
+<p>Function overloading and function templates are both important
+features of C++ that allow for flexible and reusable code. We can use
+<strong>function overloading</strong> when we have similar functions
+that operate on different types or numbers of parameters and use
+<strong>function templates</strong> when we want a single function to
+work with different data types, reducing code duplication and increasing
+flexibility.</p>
+</blockquote>
+<ul>
+<li>当我们有相似但操作不同类型或参数数量的函数时，可以使用函数重载；</li>
+<li>当我们希望一个函数能处理不同的数据类型，减少代码重复并提高灵活性时，可以使用函数模板。</li>
+</ul>
+<h1 id="c-templates---the-complete-guide-2nd-edition"><a
+href="https://github.com/xuchen-tech/Books/blob/main/C%2B%2B%20Templates%20The%20Complete%20Guide%2C%202nd%20Edition%20%5BBooxRack%5D.pdf">C++
+Templates - The Complete Guide, 2nd Edition</a></h1>
+<h1 id="在纷繁多变的世界里茁壮成长c-20062020"><a
+href="https://github.com/Cpp-Club/Cxx_HOPL4_zh/tree/main">在纷繁多变的世界里茁壮成长：C+‍+
+2006–2020</a></h1>
+<p>学习期间解锁了 C+‍+ 之父 Bjarne Stroustrup 的 HOPL4 论文。</p>
+<p>设计 C+‍+ 是为了回答这样的一个问题：</p>
+<ul>
+<li>How do you directly manipulate hardware and also support efficient
+high-level abstraction?</li>
+<li>如何直接操作硬件，同时又支持高效、高级的抽象？</li>
+</ul>
+<p>Abstractions are represented in code as functions, classes,
+templates, concepts, and aliases.</p>
+<ul>
+<li>抽象在代码中体现为函数、类、模板、概念和别名。</li>
+</ul>
 ]]></content>
       <categories>
         <category>技术</category>
