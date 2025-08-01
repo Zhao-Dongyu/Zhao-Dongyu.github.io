@@ -127,27 +127,6 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
   </entry>
   
   <entry>
-    <title>FlashMLA 优化</title>
-    <link href="http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/"/>
-    <id>http://example.com/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/</id>
-    <published>2025-03-12T02:16:10.000Z</published>
-    <updated>2025-08-01T08:13:54.495Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;在 Hopper H20 平台优化 FlashMLA。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
-    
-  </entry>
-  
-  <entry>
     <title>DeepGEMM</title>
     <link href="http://example.com/2025/03/12/120_DeepGEMM/"/>
     <id>http://example.com/2025/03/12/120_DeepGEMM/</id>
@@ -251,6 +230,25 @@ MLA 相关知识了，感觉这是一个很好的学习 Cuda
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
     <category term="T2V" scheme="http://example.com/tags/T2V/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>结绳记事</title>
+    <link href="http://example.com/2025/01/01/1_%E6%97%A0%E4%B8%8B%E6%96%87/"/>
+    <id>http://example.com/2025/01/01/1_%E6%97%A0%E4%B8%8B%E6%96%87/</id>
+    <published>2024-12-31T16:00:00.000Z</published>
+    <updated>2025-08-01T08:19:27.197Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;一些没有下文的文档汇总。本身没什么价值，但是结绳记事一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="结绳记事" scheme="http://example.com/categories/%E7%BB%93%E7%BB%B3%E8%AE%B0%E4%BA%8B/"/>
+    
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
     
   </entry>
   

@@ -7520,10 +7520,6 @@ id="git将当前修改的内容提交到新的分支上">Git：将当前修改�
 那么，这时候如何力挽狂澜，如何在保存这些修改的前提下，新建分支并提交呢？</p>
 <h2 id="操作思路">操作思路：</h2>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//步骤1：在当前的master分支上的修改暂存起来</span></span><br><span class="line">git stash</span><br><span class="line"><span class="comment">//步骤2：暂存修改后，在本地新建分支（new_branch为新分支的名字）</span></span><br><span class="line">git checkout -b new_branch</span><br><span class="line"><span class="comment">//步骤3：将暂存的修改放到新建分支中</span></span><br><span class="line">git stash pop</span><br><span class="line"><span class="comment">//步骤4：使用TortoiseGit进行commit，比如add、modify、delete...</span></span><br><span class="line"><span class="comment">//步骤5：将提交的内容push到远程服务器</span></span><br><span class="line">git push</span><br></pre></td></tr></table></figure>
-<p>————————————————</p>
-<p>版权声明：本文为CSDN博主「Oruizn」的原创文章，遵循CC 4.0
-BY-SA版权协议，转载请附上原文出处链接及本声明。
-原文链接：https://blog.csdn.net/Oruizn/article/details/111294375</p>
 <h1
 id="git创建本地分支并关联远程分支">git创建本地分支并关联远程分支</h1>
 <h2 id="创建本地分支">1. 创建本地分支</h2>
@@ -7714,22 +7710,6 @@ Shift + H - 18. 添加 缝隙 - Option + W - -&gt; Control + D （设置帧数�
         <tag>finalcut</tag>
         <tag>notes</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>flatc</title>
-    <url>/2023/06/28/71_flatc/</url>
-    <content><![CDATA[<p>记录一下flatbuffer的学习</p>
-<span id="more"></span>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-<p><a
-href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
-<p>./flatc -t schema.fbs -- test.tflite</p>
-<p>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs --
-~/Downloads/encoder.tflite</p>
-<p>参考资料：</p>
-<p><a
-href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
-]]></content>
   </entry>
   <entry>
     <title>gdb</title>
@@ -8995,20 +8975,6 @@ la，上海大竹笋计划又一次被我记起！</p>
       </tags>
   </entry>
   <entry>
-    <title>FlashMLA 优化</title>
-    <url>/2025/03/12/119_FlashMLA%E4%BC%98%E5%8C%96/</url>
-    <content><![CDATA[<p>在 Hopper H20 平台优化 FlashMLA。</p>
-<span id="more"></span>
-]]></content>
-      <categories>
-        <category>技术</category>
-      </categories>
-      <tags>
-        <tag>Tech</tag>
-        <tag>未完成的垃圾</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>DeepGEMM</title>
     <url>/2025/03/12/120_DeepGEMM/</url>
     <content><![CDATA[<p>在 Hopper H20 平台优化 FlashMLA。</p>
@@ -9604,6 +9570,36 @@ templates, concepts, and aliases.</p>
       </categories>
       <tags>
         <tag>Tech</tag>
+        <tag>未完成的垃圾</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>结绳记事</title>
+    <url>/2025/01/01/1_%E6%97%A0%E4%B8%8B%E6%96%87/</url>
+    <content><![CDATA[<p>一些没有下文的文档汇总。本身没什么价值，但是结绳记事一下。</p>
+<span id="more"></span>
+<ul>
+<li>2023-06-28 00:00:00</li>
+</ul>
+<p>记录一下flatbuffer的学习</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/google/flatbuffers.git</span><br><span class="line"></span><br><span class="line">cmake -G &quot;Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Release</span><br><span class="line"></span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+<p><a
+href="https://stackoverflow.com/questions/24275803/how-to-build-flatbuffers-on-osx">reference</a></p>
+<p><code>./flatc -t schema.fbs -- test.tflite</code></p>
+<p><code>./flatc -t ~/Projects/tensorflow/tensorflow/lite/schema/schema.fbs -- ~/Downloads/encoder.tflite</code></p>
+<p>参考资料：</p>
+<p><a
+href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中FlatBuffers的使用</a></p>
+<hr />
+<ul>
+<li>2025-03-12 10:16:10</li>
+</ul>
+<p>在 Hopper H20 平台优化 FlashMLA。</p>
+]]></content>
+      <categories>
+        <category>结绳记事</category>
+      </categories>
+      <tags>
         <tag>未完成的垃圾</tag>
       </tags>
   </entry>
