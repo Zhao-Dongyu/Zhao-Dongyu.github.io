@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-08-11T05:55:14.466Z</updated>
+  <updated>2025-08-11T07:07:09.436Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2025/08/01/126_Acceleration_on_RTX4090/"/>
     <id>http://example.com/2025/08/01/126_Acceleration_on_RTX4090/</id>
     <published>2025-08-01T08:27:00.000Z</published>
-    <updated>2025-08-11T05:55:14.466Z</updated>
+    <updated>2025-08-11T07:07:09.436Z</updated>
     
     
     <summary type="html">&lt;p&gt;RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用
