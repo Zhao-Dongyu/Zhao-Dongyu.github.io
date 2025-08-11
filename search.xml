@@ -9838,7 +9838,8 @@ sum(P_j, axis=1) = 1 for all j</li>
 </ul>
 <p>(更加详细的位于<a
 href="https://github.com/Zhao-Dongyu/flash-attention-learning/tree/main/misc/statics">flash-attention-learning</a>)</p>
-<p>有超过 65505 的，这就意味着必须要有损了。</p>
+<p>尤其注意第一层和最后一层的分布，尤其注意 Q@K^T 这个中间结果， 有超过
+65505 的，这就意味着必须要有损了。</p>
 <hr />
 <h1 id="总结">总结</h1>
 <p>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half precision
