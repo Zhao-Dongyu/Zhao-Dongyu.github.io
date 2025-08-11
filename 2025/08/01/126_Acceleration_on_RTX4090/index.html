@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://example.com/images/126/cycle_1_combined_analysis_prefill.png">
 <meta property="og:image" content="http://example.com/images/126/cycle_1_combined_analysis_decode.png">
 <meta property="article:published_time" content="2025-08-01T08:27:00.000Z">
-<meta property="article:modified_time" content="2025-08-11T07:10:33.666Z">
+<meta property="article:modified_time" content="2025-08-11T08:18:13.260Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta property="article:tag" content="未完成的垃圾">
@@ -252,7 +252,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-08-11 15:10:33" itemprop="dateModified" datetime="2025-08-11T15:10:33+08:00">2025-08-11</time>
+                <time title="Modified: 2025-08-11 16:18:13" itemprop="dateModified" datetime="2025-08-11T16:18:13+08:00">2025-08-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -277,14 +277,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>7k</span>
+              <span>17k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>6 mins.</span>
+              <span>16 mins.</span>
             </span>
 
         </div>
@@ -452,7 +452,7 @@ cache Throughput 下降了很多，导致整体性能下降。</p>
 </ul></li>
 <li><strong>10位尾数位（M）</strong>：表示小数部分。
 <ul>
-<li>可以表示从0到1023的整数。在FP16中，尾数位表示的是二进制小数，即1 +
+<li>可以表示从0到1023的整数。在FP16中，尾数位表示的是二进制小数，即 1 +
 尾数/1024。对于最大正数，尾数位为1023，表示的二进制小数为 <span
 class="math inline">\(1 + 1023/1024 = 1.9990234375\)</span> 。
 <strong>最大正数</strong>：当 E=30 且 M=1023
@@ -462,7 +462,8 @@ class="math inline">\(1 + 1023/1024 = 1.9990234375\)</span> 。
 class="math inline">\(1.9990234375×2^{16}=1.9990234375×65536=65504\)</span></li>
 </ul></li>
 </ul>
-<p>也就是说，当gemm结果超过 65504 的话，就会出现饱和导致的精度问题。</p>
+<p>也就是说，<strong>当gemm结果超过 65504
+的话，就会出现饱和导致的精度问题</strong>。</p>
 <h2 id="相关讨论">2.1 相关讨论</h2>
 <p>相关讨论资料主要集中在2023年，学习一下:)</p>
 <ul>
@@ -530,7 +531,208 @@ sum(P_j, axis=1) = 1 for all j</li>
 target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/flash-attention-learning/tree/main/misc/statics">flash-attention-learning</a>)</p>
 <p>尤其注意第一层和最后一层的分布，尤其注意 Q@K^T 这个中间结果， 有超过
 65505 的，这就意味着必须要有损了。</p>
-<hr />
+<p>在vllm里面统计这个数据分布的代码位于<a
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/flash-attention-learning/tree/main/misc/flash_attn.py">v1/attention/backends/flash_attn.py</a></p>
+<p>本来我还想，flash attention 是 tiling
+的，是不是可以分担这个数据范围，后来一想，该 accum 的还是要
+accum，没法避免。</p>
+<h1 id="算子修改">3.算子修改</h1>
+<h2 id="gemm">3.1 GEMM</h2>
+<p>在计算 将vllm里面涉及到fp16 gemm的计算改为 xop 算子（使用FP16
+Accumulate）</p>
+<p>涉及到vllm的compile，需要使用 direct_register_custom_op
+进行注册，否则会报错</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/lib/python3.12/dist-packages/torch/_dynamo/variables/functions.py:1262: UserWarning: Dynamo does not know how to trace the builtin `None.pybind11_object.__new__.` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).</span><br><span class="line">If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.</span><br><span class="line">If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.</span><br><span class="line">  torch._dynamo.utils.warn_once(explanation + &quot;\n&quot; + &quot;\n&quot;.join(hints))</span><br></pre></td></tr></table></figure>
+<p>在<code>vllm/vllm/utils.py</code>中写到： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">`torch.library.custom_op` can have significant overhead because it</span></span><br><span class="line"><span class="string">needs to consider complicated dispatching logic. This function</span></span><br><span class="line"><span class="string">directly registers a custom op and dispatches it to the CUDA backend.</span></span><br><span class="line"><span class="string">See https://gist.github.com/youkaichao/ecbea9ec9fc79a45d2adce1784d7a9a5</span></span><br><span class="line"><span class="string">for more details.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">By default, the custom op is registered to the vLLM library. If you</span></span><br><span class="line"><span class="string">want to register it to a different library, you can pass the library</span></span><br><span class="line"><span class="string">object to the `target_lib` argument.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">IMPORTANT: the lifetime of the operator is tied to the lifetime of the</span></span><br><span class="line"><span class="string">library object. If you want to bind the operator to a different library,</span></span><br><span class="line"><span class="string">make sure the library object is alive when the operator is used.</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure></p>
+<p>其中提到的
+https://gist.github.com/youkaichao/ecbea9ec9fc79a45d2adce1784d7a9a5
+是很好的学习实践例子</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 标准方式（有显著开销）</span></span><br><span class="line">torch.library.custom_op(<span class="string">&quot;my_op&quot;</span>, my_func)  </span><br><span class="line"></span><br><span class="line"><span class="comment"># vLLM 优化方式（低开销）</span></span><br><span class="line">direct_register_custom_op(<span class="string">&quot;my_op&quot;</span>, my_func, ...)</span><br></pre></td></tr></table></figure>
+<p>torch.library.custom_op 需要考虑复杂的分发逻辑 -
+支持多种设备后端（CPU、CUDA、ROCm、TPU等） - 动态类型推断和验证 -
+兼容性检查</p>
+<p>direct_register_custom_op 如何优化？ -
+直接分发到特定后端（通常是CUDA） - 跳过复杂的分发逻辑 -
+减少运行时开销</p>
+<p>需要注意的点</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">direct_register_custom_op(</span><br><span class="line">    op_name=<span class="string">&quot;xop_gemm_normal&quot;</span>,</span><br><span class="line">    op_func=xop_gemm_normal,</span><br><span class="line">    mutates_args=[<span class="string">&quot;output_tensor&quot;</span>],</span><br><span class="line">    fake_impl=xop_gemm_normal_fake,</span><br><span class="line">    target_lib=xop_lib,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>中的 mutates_args=["output_tensor"]，那么在 xop_gemm_normal
+函数中，一定要注意对 output_tensor 使用 in-place操作。 - 比如python中的
+a = a + b 和 a += b - a = a +
+b：创建新张量，不修改原数据，保留计算图，适用于需要梯度的场景。 - a +=
+b：原地操作（in-place），可能破坏计算图，不保留梯度信息，适用于节省内存但不需要梯度的场景。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">from vllm.utils import direct_register_custom_op</span><br><span class="line"></span><br><span class="line">from torch.library import Library</span><br><span class="line">xop_lib = Library(&quot;xop&quot;, &quot;FRAGMENT&quot;)</span><br><span class="line"></span><br><span class="line">import xop</span><br><span class="line"></span><br><span class="line">xop_gemm = xop.GemmNormal(</span><br><span class="line">    input_dtype=torch.float16,</span><br><span class="line">    output_dtype=torch.float16,</span><br><span class="line">    transpose_weight=False</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">def xop_gemm_normal(</span><br><span class="line">    input_tensor: torch.Tensor,</span><br><span class="line">    weight_tensor: torch.Tensor,</span><br><span class="line">    output_tensor: torch.Tensor,</span><br><span class="line">    bias_tensor: Optional[torch.Tensor] = None,</span><br><span class="line">    input_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    weight_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    output_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    tuning: Optional[torch.Tensor] = None,</span><br><span class="line">    fast_accum: bool = False) -&gt; None:</span><br><span class="line">    xop_gemm.forward(</span><br><span class="line">            input_tensor,</span><br><span class="line">            weight_tensor,</span><br><span class="line">            output_tensor,</span><br><span class="line">            None,</span><br><span class="line">            #bias_tensor,</span><br><span class="line">            input_scale,</span><br><span class="line">            weight_scale,</span><br><span class="line">            output_scale,</span><br><span class="line">            tuning,</span><br><span class="line">            fast_accum,</span><br><span class="line">        )</span><br><span class="line">    if bias_tensor is not None:</span><br><span class="line">        output_tensor +=  bias_tensor</span><br><span class="line"></span><br><span class="line">def xop_gemm_normal_fake(</span><br><span class="line">    input_tensor: torch.Tensor,</span><br><span class="line">    weight_tensor: torch.Tensor,</span><br><span class="line">    output_tensor: torch.Tensor,</span><br><span class="line">    bias_tensor: Optional[torch.Tensor] = None,</span><br><span class="line">    input_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    weight_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    output_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    tuning: Optional[torch.Tensor] = None,</span><br><span class="line">    fast_accum: bool = False) -&gt; None:</span><br><span class="line">    pass</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">direct_register_custom_op(</span><br><span class="line">    op_name=&quot;xop_gemm_normal&quot;,</span><br><span class="line">    op_func=xop_gemm_normal,</span><br><span class="line">    mutates_args=[&quot;output_tensor&quot;],</span><br><span class="line">    fake_impl=xop_gemm_normal_fake,</span><br><span class="line">    target_lib=xop_lib,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">调用</span><br><span class="line">torch.ops.xop.xop_gemm_normal(</span><br><span class="line">    input_tensor = x,</span><br><span class="line">    weight_tensor = layer.weight,</span><br><span class="line">    output_tensor = output,</span><br><span class="line">    bias_tensor = bias,</span><br><span class="line">    input_scale = None,</span><br><span class="line">    weight_scale = None,</span><br><span class="line">    output_scale = None,</span><br><span class="line">    tuning = None,</span><br><span class="line">    fast_accum=False,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h2 id="flash-attention">3.2 Flash Attention</h2>
+<p>我是修改的<a
+target="_blank" rel="noopener" href="https://github.com/vllm-project/flash-attention">vllm-project/flash-attention</a>的相关代码</p>
+<p>最关键的一行修改是</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">diff --git a/csrc/flash_attn/src/kernel_traits.h b/csrc/flash_attn/src/kernel_traits.h</span><br><span class="line">index <span class="number">1</span>c94672..c4ebc8a <span class="number">100644</span></span><br><span class="line">--- a/csrc/flash_attn/src/kernel_traits.h</span><br><span class="line">+++ b/csrc/flash_attn/src/kernel_traits.h</span><br><span class="line">@@ <span class="number">-29</span>,<span class="number">7</span> +<span class="number">29</span>,<span class="number">8</span> @@ <span class="class"><span class="keyword">struct</span> <span class="title">Flash_kernel_traits</span> &#123;</span></span><br><span class="line"> <span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp;  __CUDA_ARCH__ &gt;= 800</span></span><br><span class="line">     using MMA_Atom_Arch = <span class="built_in">std</span>::<span class="type">conditional_t</span>&lt;</span><br><span class="line">         <span class="built_in">std</span>::is_same_v&lt;elem_type, cutlass::<span class="type">half_t</span>&gt;,</span><br><span class="line">-        MMA_Atom&lt;SM80_16x8x16_F32F16F16F32_TN&gt;,</span><br><span class="line">+        <span class="comment">// MMA_Atom&lt;SM80_16x8x16_F32F16F16F32_TN&gt;,</span></span><br><span class="line">+        MMA_Atom&lt;SM80_16x8x16_F16F16F16F16_TN&gt;,</span><br><span class="line">         MMA_Atom&lt;SM80_16x8x16_F32BF16BF16F32_TN&gt;</span><br><span class="line">     &gt;;</span><br><span class="line"> <span class="meta">#<span class="keyword">else</span></span></span><br></pre></td></tr></table></figure>
+<p>即，将 <code>MMA_Atom_Arch</code> 修改为
+<code>SM80_16x8x16_F16F16F16F16_TN</code>.</p>
+<p>报错 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">flash-attention/csrc/flash_attn/src/softmax.h(160): error: no operator &quot;*=&quot; matches these operands</span><br><span class="line">            operand types are: cutlass::half_t *= float</span><br><span class="line">                  for (int ni = 0; ni &lt; size&lt;1&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= scores_scale; &#125;</span><br><span class="line">                                                                                            ^</span><br></pre></td></tr></table></figure> 解决方案</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">diff --git a/csrc/flash_attn/src/softmax.h b/csrc/flash_attn/src/softmax.h</span><br><span class="line">index <span class="number">01589</span>ad.<span class="number">.2e1</span>e14d <span class="number">100644</span></span><br><span class="line">--- a/csrc/flash_attn/src/softmax.h</span><br><span class="line">+++ b/csrc/flash_attn/src/softmax.h</span><br><span class="line">@@ <span class="number">-157</span>,<span class="number">7</span> +<span class="number">157</span>,<span class="number">8</span> @@ <span class="class"><span class="keyword">struct</span> <span class="title">Softmax</span> &#123;</span></span><br><span class="line">                 <span class="type">float</span> scores_scale = exp2f((scores_max_prev(mi) - scores_max_cur) * softmax_scale_log2);</span><br><span class="line">                 row_sum(mi) *= scores_scale;</span><br><span class="line">                 <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">-                <span class="keyword">for</span> (<span class="type">int</span> ni = <span class="number">0</span>; ni &lt; size&lt;<span class="number">1</span>&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= scores_scale; &#125;</span><br><span class="line">+                <span class="comment">// for (int ni = 0; ni &lt; size&lt;1&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= scores_scale; &#125;</span></span><br><span class="line">+                <span class="keyword">for</span> (<span class="type">int</span> ni = <span class="number">0</span>; ni &lt; size&lt;<span class="number">1</span>&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= cutlass::<span class="type">half_t</span>(scores_scale); &#125;</span><br><span class="line">             &#125;</span><br><span class="line">             FLASH_NAMESPACE::scale_apply_exp2(scores, row_max, softmax_scale_log2);</span><br><span class="line">             <span class="comment">// We don&#x27;t do the reduce across threads here since we don&#x27;t need to use the row_sum.</span></span><br><span class="line">@@ <span class="number">-180</span>,<span class="number">7</span> +<span class="number">181</span>,<span class="number">8</span> @@ <span class="class"><span class="keyword">struct</span> <span class="title">Softmax</span> &#123;</span></span><br><span class="line">             lse(mi) = (sum == <span class="number">0.f</span> || sum != sum) ? (Split ? -INFINITY : INFINITY) : row_max(mi) * softmax_scale + __logf(sum);</span><br><span class="line">             <span class="type">float</span> scale = !Is_dropout ? inv_sum : inv_sum * rp_dropout;</span><br><span class="line">             <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">-            <span class="keyword">for</span> (<span class="type">int</span> ni = <span class="number">0</span>; ni &lt; size&lt;<span class="number">1</span>&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= scale; &#125;</span><br><span class="line">+            <span class="comment">// for (int ni = 0; ni &lt; size&lt;1&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= scale; &#125;</span></span><br><span class="line">+            <span class="keyword">for</span> (<span class="type">int</span> ni = <span class="number">0</span>; ni &lt; size&lt;<span class="number">1</span>&gt;(acc_o_rowcol); ++ni) &#123; acc_o_rowcol(mi, ni) *= cutlass::<span class="type">half_t</span>(scale); &#125;</span><br><span class="line">         &#125;</span><br><span class="line">         <span class="keyword">return</span> lse;</span><br><span class="line">     &#125;;</span><br></pre></td></tr></table></figure>
+<p>报错 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flash-attention/csrc/flash_attn/src/mask.h(184): note #3328-D: built-in operator-=(&lt;arithmetic&gt;, &lt;promoted arithmetic&gt;) does not match because argument #1 does not match parameter</span><br><span class="line">                                          tensor(make_coord(i, mi), make_coord(j, nj)) -= alibi_slope * abs(row_idx + max_seqlen_k - max_seqlen_q - col_idx);</span><br></pre></td></tr></table></figure></p>
+<p>解决方案 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">diff --git a/CMakeLists.txt b/CMakeLists.txt</span><br><span class="line">index e4423ef..d17505e <span class="number">100644</span></span><br><span class="line">--- a/CMakeLists.txt</span><br><span class="line">+++ b/CMakeLists.txt</span><br><span class="line">@@ <span class="number">-166</span>,<span class="number">7</span> +<span class="number">166</span>,<span class="number">7</span> @@ <span class="keyword">if</span> (FA2_ENABLED)</span><br><span class="line">     target_compile_definitions(_vllm_fa2_C PRIVATE</span><br><span class="line">         FLASHATTENTION_DISABLE_BACKWARD</span><br><span class="line">         FLASHATTENTION_DISABLE_DROPOUT</span><br><span class="line">-        # FLASHATTENTION_DISABLE_ALIBI</span><br><span class="line">+        FLASHATTENTION_DISABLE_ALIBI</span><br><span class="line">         # FLASHATTENTION_DISABLE_SOFTCAP</span><br><span class="line">         FLASHATTENTION_DISABLE_UNEVEN_K</span><br><span class="line">         # FLASHATTENTION_DISABLE_LOCAL</span><br></pre></td></tr></table></figure></p>
+<p>为了防止出现 inf 导致模型输出全是感叹号，还要加一个防护：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">diff --git a/csrc/flash_attn/src/flash_fwd_kernel.h b/csrc/flash_attn/src/flash_fwd_kernel.h</span><br><span class="line">index <span class="number">7512828.</span>.d6e2608 <span class="number">100644</span></span><br><span class="line">--- a/csrc/flash_attn/src/flash_fwd_kernel.h</span><br><span class="line">+++ b/csrc/flash_attn/src/flash_fwd_kernel.h</span><br><span class="line">@@ <span class="number">-903</span>,<span class="number">6</span> +<span class="number">903</span>,<span class="number">16</span> @@ <span class="keyword">inline</span> __device__ <span class="type">void</span> <span class="title function_">compute_attn_1rowblock_splitkv</span><span class="params">(<span class="type">const</span> Params &amp;params, cons</span></span><br><span class="line"><span class="params">             acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,</span></span><br><span class="line"><span class="params">             smem_thr_copy_Q, smem_thr_copy_K</span></span><br><span class="line"><span class="params">         )</span>;</span><br><span class="line">+        <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size(acc_s); ++i) &#123;</span><br><span class="line">+            <span class="keyword">if</span> (::isinf(acc_s(i))) &#123;</span><br><span class="line">+                <span class="keyword">if</span> (acc_s(i) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">65500f</span>;  <span class="comment">// Clamp positive inf to large finite value</span></span><br><span class="line">+                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">-65500f</span>; <span class="comment">// Clamp negative inf to large negative finite value</span></span><br><span class="line">+                &#125;</span><br><span class="line">+            &#125;</span><br><span class="line">+        &#125;</span><br><span class="line">         <span class="comment">// if (cute::thread0()) &#123; print(acc_s); &#125;</span></span><br><span class="line">         <span class="keyword">if</span> <span class="title function_">constexpr</span> <span class="params">(Is_softcap)</span>&#123;</span><br><span class="line">             FLASH_NAMESPACE::apply_softcap(acc_s, params.softcap);</span><br><span class="line">@@ <span class="number">-974</span>,<span class="number">6</span> +<span class="number">984</span>,<span class="number">16</span> @@ <span class="keyword">inline</span> __device__ <span class="type">void</span> <span class="title function_">compute_attn_1rowblock_splitkv</span><span class="params">(<span class="type">const</span> Params &amp;params, cons</span></span><br><span class="line"><span class="params">             acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,</span></span><br><span class="line"><span class="params">             smem_thr_copy_Q, smem_thr_copy_K</span></span><br><span class="line"><span class="params">         )</span>;</span><br><span class="line">+        <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size(acc_s); ++i) &#123;</span><br><span class="line">+            <span class="keyword">if</span> (::isinf(acc_s(i))) &#123;</span><br><span class="line">+                <span class="keyword">if</span> (acc_s(i) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">65500f</span>;  <span class="comment">// Clamp positive inf to large finite value</span></span><br><span class="line">+                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">-65500f</span>; <span class="comment">// Clamp negative inf to large negative finite value</span></span><br><span class="line">+                &#125;</span><br><span class="line">+            &#125;</span><br><span class="line">+        &#125;</span><br><span class="line">         <span class="keyword">if</span> <span class="title function_">constexpr</span> <span class="params">(Is_softcap)</span>&#123;</span><br><span class="line">             FLASH_NAMESPACE::apply_softcap(acc_s, params.softcap);</span><br><span class="line">         &#125;</span><br></pre></td></tr></table></figure>
+<h1 id="结果">4.结果</h1>
+<h2 id="benchmark">4.1Benchmark</h2>
+<p>在4090上单独跑了一下 fa ，几乎翻倍的效果，非常不错！</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: center;">Accumulate</th>
+<th style="text-align: center;">headdim</th>
+<th style="text-align: center;">causal</th>
+<th style="text-align: center;">seqlen</th>
+<th style="text-align: center;">TFLOPS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fav2</td>
+<td style="text-align: center;">FP32</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">137.9</td>
+</tr>
+<tr class="even">
+<td>Fav3</td>
+<td style="text-align: center;">FP32</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">142.2</td>
+</tr>
+<tr class="odd">
+<td>Fav3</td>
+<td style="text-align: center;">FP16</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;"><strong>261.4</strong></td>
+</tr>
+<tr class="even">
+<td>Fav2</td>
+<td style="text-align: center;">FP32</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">136.2</td>
+</tr>
+<tr class="odd">
+<td>Fav3</td>
+<td style="text-align: center;">FP32</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">144.9</td>
+</tr>
+<tr class="even">
+<td>Fav3</td>
+<td style="text-align: center;">FP16</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;"><strong>254.6</strong></td>
+</tr>
+</tbody>
+</table>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: center;">backend</th>
+<th style="text-align: center;">pic size</th>
+<th style="text-align: center;">DataType</th>
+<th style="text-align: right;">80张耗时</th>
+<th style="text-align: right;">速度</th>
+<th style="text-align: left;">others</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>baseline</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;">bf16</td>
+<td style="text-align: right;">s</td>
+<td style="text-align: right;">3.06s/张</td>
+<td style="text-align: left;">transformer版本</td>
+</tr>
+<tr class="even">
+<td>v1</td>
+<td style="text-align: center;">Fav2</td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;">bf16</td>
+<td style="text-align: right;">164.54s</td>
+<td style="text-align: right;">2.06s/张</td>
+<td style="text-align: left;">使用vllm 单并发</td>
+</tr>
+<tr class="odd">
+<td>v2</td>
+<td style="text-align: center;">Fav2</td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;">bf16</td>
+<td style="text-align: right;">72.80s</td>
+<td style="text-align: right;">0.910s/张</td>
+<td style="text-align: left;">使用vllm <strong>异步多并发</strong></td>
+</tr>
+<tr class="even">
+<td>v3</td>
+<td style="text-align: center;">Fav2</td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;"><strong>fp16</strong></td>
+<td style="text-align: right;">72.31s</td>
+<td style="text-align: right;">0.904s/张</td>
+<td style="text-align: left;">使用vllm <strong>异步多并发</strong></td>
+</tr>
+<tr class="odd">
+<td>v4</td>
+<td style="text-align: center;">Fav2</td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;"><strong>fp16</strong></td>
+<td style="text-align: right;">63.00s</td>
+<td style="text-align: right;">0.788s/张</td>
+<td style="text-align: left;">v3基础上加入xop加速gemm <br>
+<strong>gemm使用FP16 Accumulate</strong></td>
+</tr>
+<tr class="even">
+<td>v5</td>
+<td style="text-align: center;">Fav2</td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;"><strong>fp16</strong></td>
+<td style="text-align: right;">48.00s</td>
+<td style="text-align: right;">0.600s/张</td>
+<td style="text-align: left;">v4基础上加入定制fa2 <br>
+<strong>fa2使用FP16 Accumulate</strong></td>
+</tr>
+<tr class="odd">
+<td>v6</td>
+<td style="text-align: center;">Fav2</td>
+<td style="text-align: center;">1920x1080</td>
+<td style="text-align: center;"><strong>fp16</strong></td>
+<td style="text-align: right;">40.00s</td>
+<td style="text-align: right;">0.500s/张</td>
+<td style="text-align: left;">v5基础上更换图像文本顺序 <br>
+<strong>强化prefix caching</strong></td>
+</tr>
+</tbody>
+</table>
+<h1 id="其他">其他</h1>
+<h2 id="转换模型权重">转换模型权重</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> peft <span class="keyword">import</span> PeftModel, PeftConfig</span><br><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> AutoModelForCausalLM, AutoTokenizer, Qwen2_5_VLForConditionalGeneration</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">merge_lora_and_convert_to_float16</span>():</span><br><span class="line">    BASE_MODEL_PATH = <span class="string">&quot;/data/Qwen2.5-VL-7B-Instruct/&quot;</span></span><br><span class="line">    LORA_MODEL_PATH = <span class="string">&quot;/data/v1.2&quot;</span></span><br><span class="line">    OUTPUT_PATH = <span class="string">&quot;/data//merged_model_fp16&quot;</span></span><br><span class="line"></span><br><span class="line">    os.makedirs(OUTPUT_PATH, exist_ok=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Loading base model...&quot;</span>)</span><br><span class="line">    base_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(</span><br><span class="line">        BASE_MODEL_PATH, torch_dtype=torch.bfloat16</span><br><span class="line">    )</span><br><span class="line">    tokenizer = AutoTokenizer.from_pretrained(</span><br><span class="line">        BASE_MODEL_PATH</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Loading LoRA adapter...&quot;</span>)</span><br><span class="line">    model = PeftModel.from_pretrained(</span><br><span class="line">        base_model,</span><br><span class="line">        LORA_MODEL_PATH</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Merging weights...&quot;</span>)</span><br><span class="line">    merged_model = model.merge_and_unload()</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Converting model weights to float16...&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> merged_model.named_parameters():</span><br><span class="line">        <span class="keyword">if</span> param.dtype == torch.bfloat16:</span><br><span class="line">            param.data = param.data.to(torch.float16)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;参数 <span class="subst">&#123;name&#125;</span> 已从 bfloat16 转换为 float16&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Saving merged and converted model to <span class="subst">&#123;OUTPUT_PATH&#125;</span>...&quot;</span>)</span><br><span class="line">    merged_model.save_pretrained(OUTPUT_PATH)</span><br><span class="line">    tokenizer.save_pretrained(OUTPUT_PATH)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Merge and conversion completed successfully!&quot;</span>)</span><br><span class="line"></span><br><span class="line">merge_lora_and_convert_to_float16()</span><br></pre></td></tr></table></figure>
 <h1 id="总结">总结</h1>
 <p>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half precision
 (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single precision (FP32)
@@ -644,7 +846,7 @@ gemm，相比于使用 FP32的 gemm 确实是有极大的性能提升，尤其�
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B5%B7%E6%BA%90"><span class="nav-number">1.</span> <span class="nav-text">起源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E9%AA%8C%E8%AF%81%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">1. 性能验证实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fp16-tensor"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 FP16 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fp8-tensor"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 FP8 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 结论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B2%BE%E5%BA%A6%E6%8D%9F%E5%A4%B1"><span class="nav-number">3.</span> <span class="nav-text">2.精度损失</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E8%AE%A8%E8%AE%BA"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 相关讨论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 数据分布</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B5%B7%E6%BA%90"><span class="nav-number">1.</span> <span class="nav-text">起源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E9%AA%8C%E8%AF%81%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">1. 性能验证实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fp16-tensor"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 FP16 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fp8-tensor"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 FP8 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 结论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B2%BE%E5%BA%A6%E6%8D%9F%E5%A4%B1"><span class="nav-number">3.</span> <span class="nav-text">2.精度损失</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E8%AE%A8%E8%AE%BA"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 相关讨论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 数据分布</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%97%E5%AD%90%E4%BF%AE%E6%94%B9"><span class="nav-number">4.</span> <span class="nav-text">3.算子修改</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gemm"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 GEMM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#flash-attention"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 Flash Attention</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">4.结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#benchmark"><span class="nav-number">5.1.</span> <span class="nav-text">4.1Benchmark</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">6.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BD%AC%E6%8D%A2%E6%A8%A1%E5%9E%8B%E6%9D%83%E9%87%8D"><span class="nav-number">6.1.</span> <span class="nav-text">转换模型权重</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -729,13 +931,13 @@ gemm，相比于使用 FP32的 gemm 确实是有极大的性能提升，尤其�
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">219k</span>
+    <span title="Symbols count total">229k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">3:19</span>
+    <span title="Reading time total">3:28</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
