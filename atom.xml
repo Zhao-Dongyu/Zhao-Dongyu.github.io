@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-07-17T03:13:32.315Z</updated>
+  <updated>2025-08-11T03:23:05.694Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>在RTX4090上做加速</title>
+    <link href="http://example.com/2025/08/01/126_Acceleration_on_RTX4090/"/>
+    <id>http://example.com/2025/08/01/126_Acceleration_on_RTX4090/</id>
+    <published>2025-08-01T08:27:00.000Z</published>
+    <updated>2025-08-11T03:23:05.694Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用
+fp32 accum 的 matmul 的两倍。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;这是非常诱人的加速！&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
   
   <entry>
     <title>c++模版</title>
@@ -434,35 +457,6 @@ and performance.&lt;/p&gt;</summary>
     <category term="Diffusion" scheme="http://example.com/tags/Diffusion/"/>
     
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Marlin fp8</title>
-    <link href="http://example.com/2024/10/18/105_marlin_fp8/"/>
-    <id>http://example.com/2024/10/18/105_marlin_fp8/</id>
-    <published>2024-10-17T16:00:00.000Z</published>
-    <updated>2024-11-05T02:58:05.137Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://docs.vllm.ai/en/stable/quantization/fp8.html&quot;&gt;vLLM
-支持 FP8(W8A8)&lt;/a&gt;了，开始学习fp8 ，写一个
-FP8(W4A8)算子，减少一些IO吞吐，看看能不能提升性能。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="GEMM" scheme="http://example.com/tags/GEMM/"/>
-    
-    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
-    
-    <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
-    
-    <category term="MARLIN" scheme="http://example.com/tags/MARLIN/"/>
     
   </entry>
   

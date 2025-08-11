@@ -9603,4 +9603,210 @@ href="https://www.jianshu.com/p/523968b82e74?tdsourcetag=s_pcqq_aiomsg">iOS中Fl
         <tag>未完成的垃圾</tag>
       </tags>
   </entry>
+  <entry>
+    <title>在RTX4090上做加速</title>
+    <url>/2025/08/01/126_Acceleration_on_RTX4090/</url>
+    <content><![CDATA[<p>RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用
+fp32 accum 的 matmul 的两倍。</p>
+<p><strong>这是非常诱人的加速！</strong></p>
+<span id="more"></span>
+<h1 id="起源">起源</h1>
+<p>事情的起源是在 <a
+href="https://images.nvidia.cn/aem-dam/Solutions/geforce/ada/nvidia-ada-gpu-architecture.pdf">nvidia-ada-gpu-architecture</a>
+中看到 RTX4090 相关的数据</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Graphics Card</th>
+<th style="text-align: right;">TFLOPS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Peak FP8 Tensor TFLOPS with FP16
+Accumulate</td>
+<td style="text-align: right;">660.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Peak FP8 Tensor TFLOPS with FP32
+Accumulate</td>
+<td style="text-align: right;">330.3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Peak FP16 Tensor TFLOPS with FP16
+Accumulate</td>
+<td style="text-align: right;">330.3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Peak FP16 Tensor TFLOPS with FP32
+Accumulate</td>
+<td style="text-align: right;">165.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Peak BF16 Tensor TFLOPS with FP32
+Accumulate</td>
+<td style="text-align: right;">165.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Peak TF32 Tensor TFLOPS</td>
+<td style="text-align: right;">82.6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Peak INT8 Tensor TOPS</td>
+<td style="text-align: right;">660.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Peak INT4 Tensor TOPS</td>
+<td style="text-align: right;">1321.2</td>
+</tr>
+</tbody>
+</table>
+<p>对于 4090这样的消费级显卡(consumer cards)，使用
+<code>fp16 accum</code> 的 matmul 的吞吐量是使用 <code>fp32 accum</code>
+的 matmul 的两倍。而 A100/H00 这样的数据中心显卡(data center
+cards)则没有这种特性。</p>
+<pre><code>消费级显卡
+是面向普通消费者设计的显卡，主要用于个人电脑，以满足游戏、多媒体处理等日常使用需求
+数据中心显卡
+是专为数据中心和企业级应用设计的显卡，主要用于大规模计算任务，如深度学习、数据分析和高性能计算</code></pre>
+<p><strong>这是非常诱人的加速！</strong></p>
+<p>于是计划做以下几部分：</p>
+<ol type="1">
+<li>验证加速效果</li>
+<li>结合attention验证精度损失</li>
+<li>集成到 vllm 进行加速</li>
+</ol>
+<h1 id="性能验证实验">1. 性能验证实验</h1>
+<h2 id="fp16-tensor">FP16 Tensor</h2>
+<p>实验使用<a
+href="https://github.com/NVIDIA/cutlass">cutlass</a>代码（<code>commit bdd641790ad49353b40ada41330552a78d2f8b5a</code>）</p>
+<p>指导文档 <a
+href="https://docs.nvidia.com/cutlass/media/docs/cpp/quickstart.html">CUTLASS
+C++ Quick Start Guide</a></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">mkdir</span> build &amp;&amp; <span class="built_in">cd</span> build</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">cmake .. -DCUTLASS_NVCC_ARCHS=89</span></span><br><span class="line">// $ make -j12</span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make cutlass_profiler -j12</span></span><br></pre></td></tr></table></figure>
+<p>参照 <a
+href="https://docs.nvidia.com/cutlass/media/docs/cpp/profiler.html">profiler</a>，执行测试</p>
+<details>
+<summary>
+点击展开/折叠
+</summary>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">单独测试</span><br><span class="line">./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=4096 --n=4096 --k=4096 --accum=f16,f32 --A=f16:row --B=f16:column --D=f16:column --stages=3  --output=report.csv</span><br><span class="line">批量测试</span><br><span class="line">./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=256:16384:256 --n=4096 --k=4096 --accum=f16,f32 --A=f16:row --B=f16:column --D=f16:column --stages=3 --output=report.csv</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>写个小脚本跑测试 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">start_size=256</span><br><span class="line">end_size=16384</span><br><span class="line">step_size=256</span><br><span class="line"></span><br><span class="line">for size in $(seq $start_size $step_size $end_size); do</span><br><span class="line">    ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=$size --n=$size --k=$size --accum=f16,f32 --A=f16:row --B=f16:column --D=f16:column --stages=3 --output=report/report_$&#123;size&#125;.csv</span><br><span class="line">done</span><br></pre></td></tr></table></figure></p>
+<p>记录相关Arguments</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Arguments: --gemm_kind=universal --m=4096 --n=4096 --k=4096 --A=f16:row --B=f16:column --C=f16:column --D=f16:column  \</span><br><span class="line">            --alpha=1 --beta=0 --split_k_mode=serial --split_k_slices=1 --batch_count=1 --raster_order=heuristic  \</span><br><span class="line">            --runtime_input_datatype_a=invalid --runtime_input_datatype_b=invalid --use_pdl=false --swizzle_size=1  \</span><br><span class="line">            --op_class=tensorop --accum=f16 --cta_m=256 --cta_n=128 --cta_k=32 --cluster_m=1 --cluster_n=1 --cluster_k=1  \</span><br><span class="line">            --cluster_m_fallback=0 --cluster_n_fallback=0 --cluster_k_fallback=0 --stages=3 --warps_m=4 --warps_n=2  \</span><br><span class="line">            --warps_k=1 --inst_m=16 --inst_n=8 --inst_k=16 --min_cc=80 --max_cc=1024</span><br></pre></td></tr></table></figure>
+</details>
+<p>其中，可以发现</p>
+<ul>
+<li>accum = fp16用的 operator 是
+<code>cutlass_tensorop_h16816gemm_256x128_32x3_tn_align8</code></li>
+<li>accum = fp32用的 operator 是
+<code>cutlass_tensorop_f16_s16816gemm_f16_256x128_32x3_tn_align8</code></li>
+</ul>
+<p><strong>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half
+precision (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single
+precision (FP32) 的 gemm。</strong></p>
+<p>ncu 看一下</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ncu --target-processes all --<span class="built_in">set</span> full --import-source <span class="built_in">yes</span> -f -o ncu_log_ada_fp16_1024_f16acc ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=1024 --n=1024 --k=1024 --accum=f16 --A=f16:row --B=f16:column --D=f16:column --stages=3</span><br><span class="line"></span><br><span class="line">ncu --target-processes all --<span class="built_in">set</span> full --import-source <span class="built_in">yes</span> -f -o ncu_log_ada_fp16_1024_f32acc ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=1024 --n=1024 --k=1024 --accum=f32 --A=f16:row --B=f16:column --D=f16:column --stages=3</span><br></pre></td></tr></table></figure>
+<p>试验结果： <img src="/images/126/gemm_fp16.png" width="100%"></p>
+<p>果然，加速效果非常明显！</p>
+<h2 id="fp8-tensor">FP8 Tensor</h2>
+<p>在cutlass工程里面单独编译指令</p>
+<p><code>cd cutlass/examples/58_ada_fp8_gemm/</code></p>
+<p><code>nvcc -o ada_fp8_gemm ada_fp8_gemm.cu -I../../include -I../../tools/util/include -arch=sm_89 -std=c++17 -O3 -lcudart -lcublas -lcublasLt --expt-relaxed-constexpr</code></p>
+<p>但是这里</p>
+<p>代码摘自<a
+href="https://github.com/NVIDIA/cutlass">cutlass</a>/examples/58_ada_fp8_gemm，相关代码开源至<a
+href="ada_fp8_gemm">github</a></p>
+<p>编译指令</p>
+<p><code>cd ada_fp8_gemm/</code></p>
+<p><code>nvcc -o ada_fp8_gemm ada_fp8_gemm.cu -Iinclude -arch=sm_89 -std=c++17 -O3 -lcudart -lcublas -lcublasLt --expt-relaxed-constexpr</code></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">单独测试</span><br><span class="line">./ada_fp8_gemm --m=1024 --n=1024 --k=1024 --iterations=100 --warmup-iterations=10 --reference-check=true</span><br><span class="line">批量测试</span><br><span class="line">bash benchmark_script.sh</span><br></pre></td></tr></table></figure>
+<p>官方代码里分了 <code>staged</code> 和 <code>fast</code> 两种：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">TestbedRunner&lt;Gemm_&lt;cutlass::arch::OpMultiplyAdd&gt;&gt; testbed_staged_accum;</span><br><span class="line">TestbedRunner&lt;Gemm_&lt;cutlass::arch::OpMultiplyAddFastAccum&gt;&gt; testbed_fast_accum;</span><br></pre></td></tr></table></figure>
+<p>这两种模式代表了精度与性能的权衡： - OpMultiplyAdd:
+精度优先，适合对数值稳定性要求高的场景 - 精度优势: 在 FP8
+的有限精度下，分阶段计算可能更稳定 -
+OpMultiplyAddFastAccum: 性能优先，适合大规模高性能计算 -
+速度优势: 充分利用 Tensor Core 的 FMA 指令</p>
+<p>需要注意的是，<code>cutlass::arch::OpMultiplyAddFastAccum</code>,
+which is only used for SM89 FP8 kernels.</p>
+<p>细查一下代码，在代码的模版类中 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">template &lt;typename MathOperator&gt;</span><br><span class="line">using Gemm_ = cutlass::gemm::device::GemmUniversalWithAbsMax&lt;</span><br><span class="line">    ElementA, LayoutA, ElementB, LayoutB, ElementOutput, LayoutC,</span><br><span class="line">    ElementAccumulator, cutlass::arch::OpClassTensorOp, cutlass::arch::Sm89,</span><br><span class="line">    cutlass::gemm::GemmShape&lt;128, 64, 128&gt;, cutlass::gemm::GemmShape&lt;64, 32, 128&gt;, cutlass::gemm::GemmShape&lt;16, 8, 32&gt;,</span><br><span class="line">    EpilogueOutputOp, cutlass::gemm::threadblock::GemmIdentityThreadblockSwizzle&lt;&gt;, kStages,</span><br><span class="line">    kAlignmentA, kAlignmentB, MathOperator</span><br><span class="line">  &gt;;</span><br></pre></td></tr></table></figure>
+<code>OpMultiplyAddFastAccum</code> 和 <code>OpMultiplyAdd</code>
+影响的是 <code>MathOperator</code>，给到class GemmUniversalBase 的
+Operator。</p>
+<p>试验结果： <img src="/images/126/gemm_fp8.png" width="100%"></p>
+<p>MNK尺寸比较大的时候有些异常，单独分析一下 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ncu --target-processes all --set full --import-source yes -f -o ncu_log_ada_fp8_4096 ./ada_fp8_gemm --m=4096 --n=4096 --k=4096 --iterations=1 --warmup-iterations=0 --reference-check=false</span><br><span class="line"></span><br><span class="line">ncu --target-processes all --set full --import-source yes -f -o ncu_log_ada_fp8_14080 ./ada_fp8_gemm --m=14080 --n=14080 --k=14080 --iterations=1 --warmup-iterations=0 --reference-check=false</span><br></pre></td></tr></table></figure></p>
+<p><img src="/images/126/fp8_compare.png" width="100%"></p>
+<ul>
+<li>M=N=k=4096的时候，Size = (32,64,1)x(128,1,1)</li>
+<li>M=N=k=8192的时候，Size = (64,128,1)x(128,1,1)</li>
+<li>M=N=k=8192的时候，Size = (110,220,1)x(128,1,1)</li>
+</ul>
+<p>检查下来的结论是当使用 (110,220,1)x(128,1,1) kernel 的时候 L1/L2
+cache Throughput 下降了很多，导致整体性能下降。</p>
+<h2 id="结论">结论</h2>
+<p>使用 FP16 Accumulate 其实是使用了 half precision (FP16) 的
+gemm，相比于使用 FP32的 gemm 确实是有极大的性能提升，尤其是 fp16
+算子。</p>
+<h1 id="精度损失">精度损失</h1>
+<p>FP16（半精度浮点数）是一种16位浮点数格式，由以下三个部分组成： -
+<strong>1位符号位（S）</strong>：表示数字的正负。 -
+<strong>5位指数位（E）</strong>：表示指数部分。 -
+<strong>10位尾数位（M）</strong>：表示小数部分。
+<strong>最大正数</strong>：当 E=30 且 M=1023 时，表示的值约为：65504</p>
+<h1 id="相关讨论">相关讨论</h1>
+<p>相关讨论资料主要集中在2023年，学习一下:)</p>
+<p><a
+href="https://forums.developer.nvidia.com/t/ada-geforce-rtx-4090-fp8-cublaslt-performance/250737/2">Ada
+GeForce (RTX 4090) FP8 cuBLASLt performance</a></p>
+<ul>
+<li>FP8计算只能达到额定吞吐量的一半，大约 330-340 TFLOPS</li>
+<li>一种可能性是它可能与功率上限触发的时钟节流有关。</li>
+</ul>
+<p><a
+href="https://forums.developer.nvidia.com/t/fp8-fp16-accumulation-on-ada-rtx-4090/294400">Fp8/fp16
+accumulation on ada RTX 4090</a></p>
+<p>To use FP8 kernels, the following set of requirements must be
+satisfied: - All matrix pointers must be 16-byte aligned. - A must be
+transposed and B non-transposed (The “TN” format). - <strong>The compute
+type must be CUBLAS_COMPUTE_32F.</strong> - The scale type must be
+CUDA_R_32F.</p>
+<p><a href="https://github.com/jax-ml/jax/pull/17328">feat(pallas):
+Optimize Pallas Attention + Benchmark #17328</a></p>
+<ul>
+<li>FP16 accumulation for Q @ K matmul
+<ul>
+<li>not committing due to questions on numerical stability</li>
+<li>However, performance gains (extra 20%) are very tempting</li>
+</ul></li>
+</ul>
+<p><a
+href="https://github.com/Dao-AILab/flash-attention/issues/543">perf:
+matmul accumulation does not need to default to float #543</a> -
+Accumulation is done in fp32 for numerical precision and numerical
+stability. Fp16 might get inf if e.g. Q @ K^T has entries larger than
+65k. - even Q @ K fp16 accumulation stability can be feasible with the
+right model choice. - 由于 FlashAttention 中存在 softmax
+缩放，会将每个块的输出缩放到可能非常小的程度 - Do you think it may be
+feasible to use fp16 accumulation for P @ V? - We know that: - Delayed
+softmax reciprocal (FA2): exp(k - amax) &lt;= 1.0 - In-loop reciprocal
+(FA1): P is normalized to 1. In particular sum(P_j, axis=1) = 1 for all
+j</p>
+<p>https://github.com/Zhao-Dongyu/AdaGemm</p>
+<p>总结：</p>
+<p>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half precision
+(FP16) 的 gemm， <code>s16816gemm</code> 用的是 single precision (FP32)
+的 gemm。</p>
+<p>使用 FP16 Accumulate 其实是使用了 half precision (FP16) 的
+gemm，相比于使用 FP32的 gemm 确实是有极大的性能提升，尤其是 fp16
+算子。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Tech</tag>
+        <tag>未完成的垃圾</tag>
+      </tags>
+  </entry>
 </search>
