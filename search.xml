@@ -9858,19 +9858,31 @@ Accumulate）</p>
 https://gist.github.com/youkaichao/ecbea9ec9fc79a45d2adce1784d7a9a5
 是很好的学习实践例子</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 标准方式（有显著开销）</span></span><br><span class="line">torch.library.custom_op(<span class="string">&quot;my_op&quot;</span>, my_func)  </span><br><span class="line"></span><br><span class="line"><span class="comment"># vLLM 优化方式（低开销）</span></span><br><span class="line">direct_register_custom_op(<span class="string">&quot;my_op&quot;</span>, my_func, ...)</span><br></pre></td></tr></table></figure>
-<p>torch.library.custom_op 需要考虑复杂的分发逻辑 -
-支持多种设备后端（CPU、CUDA、ROCm、TPU等） - 动态类型推断和验证 -
-兼容性检查</p>
-<p>direct_register_custom_op 如何优化？ -
-直接分发到特定后端（通常是CUDA） - 跳过复杂的分发逻辑 -
-减少运行时开销</p>
+<p>torch.library.custom_op 需要考虑复杂的分发逻辑</p>
+<ul>
+<li>支持多种设备后端（CPU、CUDA、ROCm、TPU等）</li>
+<li>动态类型推断和验证</li>
+<li>兼容性检查</li>
+</ul>
+<p>direct_register_custom_op 如何优化？</p>
+<ul>
+<li>直接分发到特定后端（通常是CUDA）</li>
+<li>跳过复杂的分发逻辑</li>
+<li>减少运行时开销</li>
+</ul>
 <p>需要注意的点</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">direct_register_custom_op(</span><br><span class="line">    op_name=<span class="string">&quot;xop_gemm_normal&quot;</span>,</span><br><span class="line">    op_func=xop_gemm_normal,</span><br><span class="line">    mutates_args=[<span class="string">&quot;output_tensor&quot;</span>],</span><br><span class="line">    fake_impl=xop_gemm_normal_fake,</span><br><span class="line">    target_lib=xop_lib,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 <p>中的 mutates_args=["output_tensor"]，那么在 xop_gemm_normal
-函数中，一定要注意对 output_tensor 使用 in-place操作。 - 比如python中的
-a = a + b 和 a += b - a = a +
-b：创建新张量，不修改原数据，保留计算图，适用于需要梯度的场景。 - a +=
-b：原地操作（in-place），可能破坏计算图，不保留梯度信息，适用于节省内存但不需要梯度的场景。</p>
+函数中，一定要注意对 output_tensor 使用 in-place操作。</p>
+<ul>
+<li>比如python中的 a = a + b 和 a += b
+<ul>
+<li>a = a +
+b：创建新张量，不修改原数据，保留计算图，适用于需要梯度的场景。</li>
+<li>a +=
+b：原地操作（in-place），可能破坏计算图，不保留梯度信息，适用于节省内存但不需要梯度的场景。</li>
+</ul></li>
+</ul>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from vllm.utils import direct_register_custom_op</span><br><span class="line"></span><br><span class="line">from torch.library import Library</span><br><span class="line">xop_lib = Library(&quot;xop&quot;, &quot;FRAGMENT&quot;)</span><br><span class="line"></span><br><span class="line">import xop</span><br><span class="line"></span><br><span class="line">xop_gemm = xop.GemmNormal(</span><br><span class="line">    input_dtype=torch.float16,</span><br><span class="line">    output_dtype=torch.float16,</span><br><span class="line">    transpose_weight=False</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">def xop_gemm_normal(</span><br><span class="line">    input_tensor: torch.Tensor,</span><br><span class="line">    weight_tensor: torch.Tensor,</span><br><span class="line">    output_tensor: torch.Tensor,</span><br><span class="line">    bias_tensor: Optional[torch.Tensor] = None,</span><br><span class="line">    input_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    weight_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    output_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    tuning: Optional[torch.Tensor] = None,</span><br><span class="line">    fast_accum: bool = False) -&gt; None:</span><br><span class="line">    xop_gemm.forward(</span><br><span class="line">            input_tensor,</span><br><span class="line">            weight_tensor,</span><br><span class="line">            output_tensor,</span><br><span class="line">            None,</span><br><span class="line">            #bias_tensor,</span><br><span class="line">            input_scale,</span><br><span class="line">            weight_scale,</span><br><span class="line">            output_scale,</span><br><span class="line">            tuning,</span><br><span class="line">            fast_accum,</span><br><span class="line">        )</span><br><span class="line">    if bias_tensor is not None:</span><br><span class="line">        output_tensor +=  bias_tensor</span><br><span class="line"></span><br><span class="line">def xop_gemm_normal_fake(</span><br><span class="line">    input_tensor: torch.Tensor,</span><br><span class="line">    weight_tensor: torch.Tensor,</span><br><span class="line">    output_tensor: torch.Tensor,</span><br><span class="line">    bias_tensor: Optional[torch.Tensor] = None,</span><br><span class="line">    input_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    weight_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    output_scale: Optional[torch.Tensor] = None,</span><br><span class="line">    tuning: Optional[torch.Tensor] = None,</span><br><span class="line">    fast_accum: bool = False) -&gt; None:</span><br><span class="line">    pass</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">direct_register_custom_op(</span><br><span class="line">    op_name=&quot;xop_gemm_normal&quot;,</span><br><span class="line">    op_func=xop_gemm_normal,</span><br><span class="line">    mutates_args=[&quot;output_tensor&quot;],</span><br><span class="line">    fake_impl=xop_gemm_normal_fake,</span><br><span class="line">    target_lib=xop_lib,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">调用</span><br><span class="line">torch.ops.xop.xop_gemm_normal(</span><br><span class="line">    input_tensor = x,</span><br><span class="line">    weight_tensor = layer.weight,</span><br><span class="line">    output_tensor = output,</span><br><span class="line">    bias_tensor = bias,</span><br><span class="line">    input_scale = None,</span><br><span class="line">    weight_scale = None,</span><br><span class="line">    output_scale = None,</span><br><span class="line">    tuning = None,</span><br><span class="line">    fast_accum=False,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 <h2 id="flash-attention">3.2 Flash Attention</h2>
 <p>我是修改的<a
@@ -9886,7 +9898,9 @@ href="https://github.com/vllm-project/flash-attention">vllm-project/flash-attent
 <p>为了防止出现 inf 导致模型输出全是感叹号，还要加一个防护：</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">diff --git a/csrc/flash_attn/src/flash_fwd_kernel.h b/csrc/flash_attn/src/flash_fwd_kernel.h</span><br><span class="line">index <span class="number">7512828.</span>.d6e2608 <span class="number">100644</span></span><br><span class="line">--- a/csrc/flash_attn/src/flash_fwd_kernel.h</span><br><span class="line">+++ b/csrc/flash_attn/src/flash_fwd_kernel.h</span><br><span class="line">@@ <span class="number">-903</span>,<span class="number">6</span> +<span class="number">903</span>,<span class="number">16</span> @@ <span class="keyword">inline</span> __device__ <span class="type">void</span> <span class="title function_">compute_attn_1rowblock_splitkv</span><span class="params">(<span class="type">const</span> Params &amp;params, cons</span></span><br><span class="line"><span class="params">             acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,</span></span><br><span class="line"><span class="params">             smem_thr_copy_Q, smem_thr_copy_K</span></span><br><span class="line"><span class="params">         )</span>;</span><br><span class="line">+        <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size(acc_s); ++i) &#123;</span><br><span class="line">+            <span class="keyword">if</span> (::isinf(acc_s(i))) &#123;</span><br><span class="line">+                <span class="keyword">if</span> (acc_s(i) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">65500f</span>;  <span class="comment">// Clamp positive inf to large finite value</span></span><br><span class="line">+                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">-65500f</span>; <span class="comment">// Clamp negative inf to large negative finite value</span></span><br><span class="line">+                &#125;</span><br><span class="line">+            &#125;</span><br><span class="line">+        &#125;</span><br><span class="line">         <span class="comment">// if (cute::thread0()) &#123; print(acc_s); &#125;</span></span><br><span class="line">         <span class="keyword">if</span> <span class="title function_">constexpr</span> <span class="params">(Is_softcap)</span>&#123;</span><br><span class="line">             FLASH_NAMESPACE::apply_softcap(acc_s, params.softcap);</span><br><span class="line">@@ <span class="number">-974</span>,<span class="number">6</span> +<span class="number">984</span>,<span class="number">16</span> @@ <span class="keyword">inline</span> __device__ <span class="type">void</span> <span class="title function_">compute_attn_1rowblock_splitkv</span><span class="params">(<span class="type">const</span> Params &amp;params, cons</span></span><br><span class="line"><span class="params">             acc_s, tSrQ, tSrK, tSsQ, tSsK, tiled_mma, smem_tiled_copy_Q, smem_tiled_copy_K,</span></span><br><span class="line"><span class="params">             smem_thr_copy_Q, smem_thr_copy_K</span></span><br><span class="line"><span class="params">         )</span>;</span><br><span class="line">+        <span class="meta">#<span class="keyword">pragma</span> unroll</span></span><br><span class="line">+        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size(acc_s); ++i) &#123;</span><br><span class="line">+            <span class="keyword">if</span> (::isinf(acc_s(i))) &#123;</span><br><span class="line">+                <span class="keyword">if</span> (acc_s(i) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">65500f</span>;  <span class="comment">// Clamp positive inf to large finite value</span></span><br><span class="line">+                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">+                    acc_s(i) = <span class="number">-65500f</span>; <span class="comment">// Clamp negative inf to large negative finite value</span></span><br><span class="line">+                &#125;</span><br><span class="line">+            &#125;</span><br><span class="line">+        &#125;</span><br><span class="line">         <span class="keyword">if</span> <span class="title function_">constexpr</span> <span class="params">(Is_softcap)</span>&#123;</span><br><span class="line">             FLASH_NAMESPACE::apply_softcap(acc_s, params.softcap);</span><br><span class="line">         &#125;</span><br></pre></td></tr></table></figure>
 <h1 id="结果">4.结果</h1>
-<h2 id="benchmark">4.1Benchmark</h2>
+<p><a
+href="https://github.com/Zhao-Dongyu/flash-attention-learning/blob/main/misc/merge_and_converter.py">merge模型并转换模型权重</a></p>
+<h2 id="fa-benchmark">4.1 FA Benchmark</h2>
 <p>在4090上单独跑了一下 fa ，几乎翻倍的效果，非常不错！</p>
 <table>
 <thead>
@@ -9901,12 +9915,12 @@ href="https://github.com/vllm-project/flash-attention">vllm-project/flash-attent
 </thead>
 <tbody>
 <tr class="odd">
-<td>Fav2</td>
-<td style="text-align: center;">FP32</td>
+<td>FP32</td>
 <td style="text-align: center;">128</td>
 <td style="text-align: center;">False</td>
 <td style="text-align: center;">8192</td>
 <td style="text-align: center;">137.9</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="even">
 <td>Fav3</td>
@@ -9925,12 +9939,12 @@ href="https://github.com/vllm-project/flash-attention">vllm-project/flash-attent
 <td style="text-align: center;"><strong>261.4</strong></td>
 </tr>
 <tr class="even">
-<td>Fav2</td>
-<td style="text-align: center;">FP32</td>
+<td>FP32</td>
 <td style="text-align: center;">128</td>
 <td style="text-align: center;">True</td>
 <td style="text-align: center;">8192</td>
 <td style="text-align: center;">136.2</td>
+<td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td>Fav3</td>
@@ -9950,23 +9964,20 @@ href="https://github.com/vllm-project/flash-attention">vllm-project/flash-attent
 </tr>
 </tbody>
 </table>
-<table style="width:100%;">
+<h2 id="qwen2.5-speedup">4.2 Qwen2.5 Speedup</h2>
+<p>pic size = 1920x1080</p>
+<p>backend = Fav2</p>
+<table>
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
+<col style="width: 18%" />
+<col style="width: 31%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th></th>
-<th style="text-align: center;">backend</th>
-<th style="text-align: center;">pic size</th>
 <th style="text-align: center;">DataType</th>
-<th style="text-align: right;">80张耗时</th>
 <th style="text-align: right;">速度</th>
 <th style="text-align: left;">others</th>
 </tr>
@@ -9974,75 +9985,51 @@ href="https://github.com/vllm-project/flash-attention">vllm-project/flash-attent
 <tbody>
 <tr class="odd">
 <td>baseline</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;">bf16</td>
-<td style="text-align: right;">s</td>
 <td style="text-align: right;">3.06s/张</td>
 <td style="text-align: left;">transformer版本</td>
 </tr>
 <tr class="even">
 <td>v1</td>
-<td style="text-align: center;">Fav2</td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;">bf16</td>
-<td style="text-align: right;">164.54s</td>
 <td style="text-align: right;">2.06s/张</td>
 <td style="text-align: left;">使用vllm 单并发</td>
 </tr>
 <tr class="odd">
 <td>v2</td>
-<td style="text-align: center;">Fav2</td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;">bf16</td>
-<td style="text-align: right;">72.80s</td>
 <td style="text-align: right;">0.910s/张</td>
 <td style="text-align: left;">使用vllm <strong>异步多并发</strong></td>
 </tr>
 <tr class="even">
 <td>v3</td>
-<td style="text-align: center;">Fav2</td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;"><strong>fp16</strong></td>
-<td style="text-align: right;">72.31s</td>
 <td style="text-align: right;">0.904s/张</td>
 <td style="text-align: left;">使用vllm <strong>异步多并发</strong></td>
 </tr>
 <tr class="odd">
 <td>v4</td>
-<td style="text-align: center;">Fav2</td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;"><strong>fp16</strong></td>
-<td style="text-align: right;">63.00s</td>
 <td style="text-align: right;">0.788s/张</td>
 <td style="text-align: left;">v3基础上加入xop加速gemm <br>
 <strong>gemm使用FP16 Accumulate</strong></td>
 </tr>
 <tr class="even">
 <td>v5</td>
-<td style="text-align: center;">Fav2</td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;"><strong>fp16</strong></td>
-<td style="text-align: right;">48.00s</td>
 <td style="text-align: right;">0.600s/张</td>
 <td style="text-align: left;">v4基础上加入定制fa2 <br>
 <strong>fa2使用FP16 Accumulate</strong></td>
 </tr>
 <tr class="odd">
 <td>v6</td>
-<td style="text-align: center;">Fav2</td>
-<td style="text-align: center;">1920x1080</td>
 <td style="text-align: center;"><strong>fp16</strong></td>
-<td style="text-align: right;">40.00s</td>
 <td style="text-align: right;">0.500s/张</td>
 <td style="text-align: left;">v5基础上更换图像文本顺序 <br>
 <strong>强化prefix caching</strong></td>
 </tr>
 </tbody>
 </table>
-<h1 id="其他">其他</h1>
-<h2 id="转换模型权重">转换模型权重</h2>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> peft <span class="keyword">import</span> PeftModel, PeftConfig</span><br><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> AutoModelForCausalLM, AutoTokenizer, Qwen2_5_VLForConditionalGeneration</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">merge_lora_and_convert_to_float16</span>():</span><br><span class="line">    BASE_MODEL_PATH = <span class="string">&quot;/data/Qwen2.5-VL-7B-Instruct/&quot;</span></span><br><span class="line">    LORA_MODEL_PATH = <span class="string">&quot;/data/v1.2&quot;</span></span><br><span class="line">    OUTPUT_PATH = <span class="string">&quot;/data//merged_model_fp16&quot;</span></span><br><span class="line"></span><br><span class="line">    os.makedirs(OUTPUT_PATH, exist_ok=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Loading base model...&quot;</span>)</span><br><span class="line">    base_model = Qwen2_5_VLForConditionalGeneration.from_pretrained(</span><br><span class="line">        BASE_MODEL_PATH, torch_dtype=torch.bfloat16</span><br><span class="line">    )</span><br><span class="line">    tokenizer = AutoTokenizer.from_pretrained(</span><br><span class="line">        BASE_MODEL_PATH</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Loading LoRA adapter...&quot;</span>)</span><br><span class="line">    model = PeftModel.from_pretrained(</span><br><span class="line">        base_model,</span><br><span class="line">        LORA_MODEL_PATH</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Merging weights...&quot;</span>)</span><br><span class="line">    merged_model = model.merge_and_unload()</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Converting model weights to float16...&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> name, param <span class="keyword">in</span> merged_model.named_parameters():</span><br><span class="line">        <span class="keyword">if</span> param.dtype == torch.bfloat16:</span><br><span class="line">            param.data = param.data.to(torch.float16)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;参数 <span class="subst">&#123;name&#125;</span> 已从 bfloat16 转换为 float16&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Saving merged and converted model to <span class="subst">&#123;OUTPUT_PATH&#125;</span>...&quot;</span>)</span><br><span class="line">    merged_model.save_pretrained(OUTPUT_PATH)</span><br><span class="line">    tokenizer.save_pretrained(OUTPUT_PATH)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Merge and conversion completed successfully!&quot;</span>)</span><br><span class="line"></span><br><span class="line">merge_lora_and_convert_to_float16()</span><br></pre></td></tr></table></figure>
 <h1 id="总结">总结</h1>
 <p>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half precision
 (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single precision (FP32)
