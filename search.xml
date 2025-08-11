@@ -9702,9 +9702,10 @@ href="https://docs.nvidia.com/cutlass/media/docs/cpp/profiler.html">profiler</a>
 <li>accum = fp32用的 operator 是
 <code>cutlass_tensorop_f16_s16816gemm_f16_256x128_32x3_tn_align8</code></li>
 </ul>
-<p><strong>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half
+<p><span style="color: red;">
+<strong>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half
 precision (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single
-precision (FP32) 的 gemm。</strong></p>
+precision (FP32) 的 gemm。</strong> </span></p>
 <p>ncu 看一下</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ncu --target-processes all --<span class="built_in">set</span> full --import-source <span class="built_in">yes</span> -f -o ncu_log_ada_fp16_1024_f16acc ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=1024 --n=1024 --k=1024 --accum=f16 --A=f16:row --B=f16:column --D=f16:column --stages=3</span><br><span class="line"></span><br><span class="line">ncu --target-processes all --<span class="built_in">set</span> full --import-source <span class="built_in">yes</span> -f -o ncu_log_ada_fp16_1024_f32acc ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=1024 --n=1024 --k=1024 --accum=f32 --A=f16:row --B=f16:column --D=f16:column --stages=3</span><br></pre></td></tr></table></figure>
 <p>试验结果：</p>
