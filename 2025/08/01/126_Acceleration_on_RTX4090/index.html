@@ -31,7 +31,7 @@
 <meta property="og:image" content="http://example.com/images/126/gemm_fp8.png">
 <meta property="og:image" content="http://example.com/images/126/fp8_compare.png">
 <meta property="article:published_time" content="2025-08-01T08:27:00.000Z">
-<meta property="article:modified_time" content="2025-08-11T03:23:05.694Z">
+<meta property="article:modified_time" content="2025-08-11T05:08:22.357Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta property="article:tag" content="未完成的垃圾">
@@ -248,7 +248,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-08-11 11:23:05" itemprop="dateModified" datetime="2025-08-11T11:23:05+08:00">2025-08-11</time>
+                <time title="Modified: 2025-08-11 13:08:22" itemprop="dateModified" datetime="2025-08-11T13:08:22+08:00">2025-08-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -363,7 +363,7 @@ cards)则没有这种特性。</p>
 <li>集成到 vllm 进行加速</li>
 </ol>
 <h1 id="性能验证实验">1. 性能验证实验</h1>
-<h2 id="fp16-tensor">FP16 Tensor</h2>
+<h2 id="fp16-tensor">1.1 FP16 Tensor</h2>
 <p>实验使用<a
 target="_blank" rel="noopener" href="https://github.com/NVIDIA/cutlass">cutlass</a>代码（<code>commit bdd641790ad49353b40ada41330552a78d2f8b5a</code>）</p>
 <p>指导文档 <a
@@ -374,7 +374,7 @@ C++ Quick Start Guide</a></p>
 target="_blank" rel="noopener" href="https://docs.nvidia.com/cutlass/media/docs/cpp/profiler.html">profiler</a>，执行测试</p>
 <details>
 <summary>
-点击展开/折叠
+点击展开/折叠 测试代码
 </summary>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">单独测试</span><br><span class="line">./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=4096 --n=4096 --k=4096 --accum=f16,f32 --A=f16:row --B=f16:column --D=f16:column --stages=3  --output=report.csv</span><br><span class="line">批量测试</span><br><span class="line">./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=256:16384:256 --n=4096 --k=4096 --accum=f16,f32 --A=f16:row --B=f16:column --D=f16:column --stages=3 --output=report.csv</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>写个小脚本跑测试 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">start_size=256</span><br><span class="line">end_size=16384</span><br><span class="line">step_size=256</span><br><span class="line"></span><br><span class="line">for size in $(seq $start_size $step_size $end_size); do</span><br><span class="line">    ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=$size --n=$size --k=$size --accum=f16,f32 --A=f16:row --B=f16:column --D=f16:column --stages=3 --output=report/report_$&#123;size&#125;.csv</span><br><span class="line">done</span><br></pre></td></tr></table></figure></p>
@@ -393,20 +393,16 @@ precision (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single
 precision (FP32) 的 gemm。</strong></p>
 <p>ncu 看一下</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ncu --target-processes all --<span class="built_in">set</span> full --import-source <span class="built_in">yes</span> -f -o ncu_log_ada_fp16_1024_f16acc ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=1024 --n=1024 --k=1024 --accum=f16 --A=f16:row --B=f16:column --D=f16:column --stages=3</span><br><span class="line"></span><br><span class="line">ncu --target-processes all --<span class="built_in">set</span> full --import-source <span class="built_in">yes</span> -f -o ncu_log_ada_fp16_1024_f32acc ./tools/profiler/cutlass_profiler --kernels=gemm --op_class=tensorop --m=1024 --n=1024 --k=1024 --accum=f32 --A=f16:row --B=f16:column --D=f16:column --stages=3</span><br></pre></td></tr></table></figure>
-<p>试验结果： <img src="/images/126/gemm_fp16.png" width="100%"></p>
+<p>试验结果：</p>
+<p><img src="/images/126/gemm_fp16.png" width="100%"></p>
 <p>果然，加速效果非常明显！</p>
-<h2 id="fp8-tensor">FP8 Tensor</h2>
-<p>在cutlass工程里面单独编译指令</p>
-<p><code>cd cutlass/examples/58_ada_fp8_gemm/</code></p>
-<p><code>nvcc -o ada_fp8_gemm ada_fp8_gemm.cu -I../../include -I../../tools/util/include -arch=sm_89 -std=c++17 -O3 -lcudart -lcublas -lcublasLt --expt-relaxed-constexpr</code></p>
-<p>但是这里</p>
-<p>代码摘自<a
+<h2 id="fp8-tensor">1.2 FP8 Tensor</h2>
+<p>在cutlass工程里面单独编译</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd cutlass/examples/58_ada_fp8_gemm/</span><br><span class="line">nvcc -o ada_fp8_gemm ada_fp8_gemm.cu -I../../include -I../../tools/util/include -arch=sm_89 -std=c++17 -O3 -lcudart -lcublas -lcublasLt --expt-relaxed-constexpr</span><br></pre></td></tr></table></figure>
+<p>我新建了一个项目，代码摘自<a
 target="_blank" rel="noopener" href="https://github.com/NVIDIA/cutlass">cutlass</a>/examples/58_ada_fp8_gemm，相关代码开源至<a
-href="ada_fp8_gemm">github</a></p>
-<p>编译指令</p>
-<p><code>cd ada_fp8_gemm/</code></p>
-<p><code>nvcc -o ada_fp8_gemm ada_fp8_gemm.cu -Iinclude -arch=sm_89 -std=c++17 -O3 -lcudart -lcublas -lcublasLt --expt-relaxed-constexpr</code></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">单独测试</span><br><span class="line">./ada_fp8_gemm --m=1024 --n=1024 --k=1024 --iterations=100 --warmup-iterations=10 --reference-check=true</span><br><span class="line">批量测试</span><br><span class="line">bash benchmark_script.sh</span><br></pre></td></tr></table></figure>
+target="_blank" rel="noopener" href="https://github.com/Zhao-Dongyu/AdaGemm/tree/main/ada_fp8_gemm">github</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">cd ada_fp8_gemm/</span><br><span class="line"></span><br><span class="line">nvcc -o ada_fp8_gemm ada_fp8_gemm.cu -Iinclude -arch=sm_89 -std=c++17 -O3 -lcudart -lcublas -lcublasLt --expt-relaxed-constexpr</span><br><span class="line"></span><br><span class="line">单独测试</span><br><span class="line">./ada_fp8_gemm --m=1024 --n=1024 --k=1024 --iterations=100 --warmup-iterations=10 --reference-check=true</span><br><span class="line">批量测试</span><br><span class="line">bash benchmark_script.sh</span><br></pre></td></tr></table></figure>
 <p>官方代码里分了 <code>staged</code> 和 <code>fast</code> 两种：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TestbedRunner&lt;Gemm_&lt;cutlass::arch::OpMultiplyAdd&gt;&gt; testbed_staged_accum;</span><br><span class="line">TestbedRunner&lt;Gemm_&lt;cutlass::arch::OpMultiplyAddFastAccum&gt;&gt; testbed_fast_accum;</span><br></pre></td></tr></table></figure>
 <p>这两种模式代表了精度与性能的权衡： - OpMultiplyAdd:
@@ -416,10 +412,10 @@ OpMultiplyAddFastAccum: 性能优先，适合大规模高性能计算 -
 速度优势: 充分利用 Tensor Core 的 FMA 指令</p>
 <p>需要注意的是，<code>cutlass::arch::OpMultiplyAddFastAccum</code>,
 which is only used for SM89 FP8 kernels.</p>
-<p>细查一下代码，在代码的模版类中 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">template &lt;typename MathOperator&gt;</span><br><span class="line">using Gemm_ = cutlass::gemm::device::GemmUniversalWithAbsMax&lt;</span><br><span class="line">    ElementA, LayoutA, ElementB, LayoutB, ElementOutput, LayoutC,</span><br><span class="line">    ElementAccumulator, cutlass::arch::OpClassTensorOp, cutlass::arch::Sm89,</span><br><span class="line">    cutlass::gemm::GemmShape&lt;128, 64, 128&gt;, cutlass::gemm::GemmShape&lt;64, 32, 128&gt;, cutlass::gemm::GemmShape&lt;16, 8, 32&gt;,</span><br><span class="line">    EpilogueOutputOp, cutlass::gemm::threadblock::GemmIdentityThreadblockSwizzle&lt;&gt;, kStages,</span><br><span class="line">    kAlignmentA, kAlignmentB, MathOperator</span><br><span class="line">  &gt;;</span><br></pre></td></tr></table></figure>
+<p>细查一下代码，在代码的模版类中 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">template &lt;typename MathOperator&gt;</span><br><span class="line">using Gemm_ = cutlass::gemm::device::GemmUniversalWithAbsMax&lt;</span><br><span class="line">    ElementA, LayoutA, ElementB, LayoutB, ElementOutput, LayoutC,</span><br><span class="line">    ElementAccumulator, cutlass::arch::OpClassTensorOp, cutlass::arch::Sm89,</span><br><span class="line">    cutlass::gemm::GemmShape&lt;<span class="number">128</span>, <span class="number">64</span>, <span class="number">128</span>&gt;, cutlass::gemm::GemmShape&lt;<span class="number">64</span>, <span class="number">32</span>, <span class="number">128</span>&gt;, cutlass::gemm::GemmShape&lt;<span class="number">16</span>, <span class="number">8</span>, <span class="number">32</span>&gt;,</span><br><span class="line">    EpilogueOutputOp, cutlass::gemm::threadblock::GemmIdentityThreadblockSwizzle&lt;&gt;, kStages,</span><br><span class="line">    kAlignmentA, kAlignmentB, MathOperator</span><br><span class="line">  &gt;;</span><br></pre></td></tr></table></figure>
 <code>OpMultiplyAddFastAccum</code> 和 <code>OpMultiplyAdd</code>
-影响的是 <code>MathOperator</code>，给到class GemmUniversalBase 的
-Operator。</p>
+影响的是 <code>MathOperator</code>，给到
+<code>class GemmUniversalBase</code> 的 <code>Operator</code>。</p>
 <p>试验结果： <img src="/images/126/gemm_fp8.png" width="100%"></p>
 <p>MNK尺寸比较大的时候有些异常，单独分析一下 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ncu --target-processes all --set full --import-source yes -f -o ncu_log_ada_fp8_4096 ./ada_fp8_gemm --m=4096 --n=4096 --k=4096 --iterations=1 --warmup-iterations=0 --reference-check=false</span><br><span class="line"></span><br><span class="line">ncu --target-processes all --set full --import-source yes -f -o ncu_log_ada_fp8_14080 ./ada_fp8_gemm --m=14080 --n=14080 --k=14080 --iterations=1 --warmup-iterations=0 --reference-check=false</span><br></pre></td></tr></table></figure></p>
 <p><img src="/images/126/fp8_compare.png" width="100%"></p>
@@ -430,17 +426,17 @@ Operator。</p>
 </ul>
 <p>检查下来的结论是当使用 (110,220,1)x(128,1,1) kernel 的时候 L1/L2
 cache Throughput 下降了很多，导致整体性能下降。</p>
-<h2 id="结论">结论</h2>
+<h2 id="结论">1.3 结论</h2>
 <p>使用 FP16 Accumulate 其实是使用了 half precision (FP16) 的
 gemm，相比于使用 FP32的 gemm 确实是有极大的性能提升，尤其是 fp16
 算子。</p>
-<h1 id="精度损失">精度损失</h1>
+<h1 id="精度损失">2.精度损失</h1>
 <p>FP16（半精度浮点数）是一种16位浮点数格式，由以下三个部分组成： -
 <strong>1位符号位（S）</strong>：表示数字的正负。 -
 <strong>5位指数位（E）</strong>：表示指数部分。 -
 <strong>10位尾数位（M）</strong>：表示小数部分。
 <strong>最大正数</strong>：当 E=30 且 M=1023 时，表示的值约为：65504</p>
-<h1 id="相关讨论">相关讨论</h1>
+<h2 id="相关讨论">相关讨论</h2>
 <p>相关讨论资料主要集中在2023年，学习一下:)</p>
 <p><a
 target="_blank" rel="noopener" href="https://forums.developer.nvidia.com/t/ada-geforce-rtx-4090-fp8-cublaslt-performance/250737/2">Ada
@@ -478,8 +474,7 @@ feasible to use fp16 accumulation for P @ V? - We know that: - Delayed
 softmax reciprocal (FA2): exp(k - amax) &lt;= 1.0 - In-loop reciprocal
 (FA1): P is normalized to 1. In particular sum(P_j, axis=1) = 1 for all
 j</p>
-<p>https://github.com/Zhao-Dongyu/AdaGemm</p>
-<p>总结：</p>
+<h1 id="总结">总结</h1>
 <p>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half precision
 (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single precision (FP32)
 的 gemm。</p>
@@ -592,7 +587,7 @@ gemm，相比于使用 FP32的 gemm 确实是有极大的性能提升，尤其�
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B5%B7%E6%BA%90"><span class="nav-number">1.</span> <span class="nav-text">起源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E9%AA%8C%E8%AF%81%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">1. 性能验证实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fp16-tensor"><span class="nav-number">2.1.</span> <span class="nav-text">FP16 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fp8-tensor"><span class="nav-number">2.2.</span> <span class="nav-text">FP8 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">2.3.</span> <span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B2%BE%E5%BA%A6%E6%8D%9F%E5%A4%B1"><span class="nav-number">3.</span> <span class="nav-text">精度损失</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E8%AE%A8%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">相关讨论</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B5%B7%E6%BA%90"><span class="nav-number">1.</span> <span class="nav-text">起源</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E9%AA%8C%E8%AF%81%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">1. 性能验证实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#fp16-tensor"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 FP16 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fp8-tensor"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 FP8 Tensor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 结论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B2%BE%E5%BA%A6%E6%8D%9F%E5%A4%B1"><span class="nav-number">3.</span> <span class="nav-text">2.精度损失</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E8%AE%A8%E8%AE%BA"><span class="nav-number">3.1.</span> <span class="nav-text">相关讨论</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
