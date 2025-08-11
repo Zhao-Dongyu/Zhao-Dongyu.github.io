@@ -9757,6 +9757,7 @@ cache Throughput 下降了很多，导致整体性能下降。</p>
 <strong>5位指数位（E）</strong>：表示指数部分。 -
 <strong>10位尾数位（M）</strong>：表示小数部分。
 <strong>最大正数</strong>：当 E=30 且 M=1023 时，表示的值约为：65504</p>
+<p>也就是说，当gemm结果超过 65504 的话，就会出现饱和导致的精度问题。</p>
 <h2 id="相关讨论">2.1 相关讨论</h2>
 <p>相关讨论资料主要集中在2023年，学习一下:)</p>
 <ul>
@@ -9809,6 +9810,31 @@ sum(P_j, axis=1) = 1 for all j</li>
 </ul></li>
 </ul></li>
 </ul>
+<h2 id="数据分布">2.2 数据分布</h2>
+<p>跑一下 Qwen2.5-VL-7B-Instruct ，看了一下Vit attention的分布</p>
+<p><img src="/images/126/cycle_2_combined_analysis.png" width="100%"></p>
+<p>最大值没有超过 65505</p>
+<p>language模型</p>
+<ul>
+<li><p>prefill阶段</p>
+<p><img src="/images/126/cycle_1_combined_analysis_prefill.png" width="100%"></p></li>
+<li><p>decode阶段</p>
+<p><img src="/images/126/cycle_1_combined_analysis_decode.png" width="100%"></p></li>
+</ul>
+<p>(更加详细的位于<a
+href="https://github.com/Zhao-Dongyu/flash-attention-learning/tree/main/misc/statics">flash-attention-learning</a>)</p>
+<p>有超过 65505 的，这就意味着必须要有损了。</p>
+<hr />
+<p>FP16（半精度浮点数）是一种16位的浮点数表示法，其结构包括1位符号位、5位指数位和10位尾数
+- 符号位：符号位为0表示正数，为1表示负数。对于最大正数，符号位为0。 -
+指数位：指数位是5位，可以表示从0到31的整数。在FP16中，指数位采用偏移表示法，偏移量为15。因此，指数位的值减去15得到实际的指数。对于最大正数，指数位为31，实际指数为
+<code>31 - 15 = 16</code>。 -
+尾数位：尾数位是10位，可以表示从0到1023的整数。在FP16中，尾数位表示的是二进制小数，即1
++ 尾数/1024。对于最大正数，尾数位为1023，表示的二进制小数为 <span
+class="math inline">\(1 + 1023/1024 = 1.9990234375\)</span> 。 -
+计算最大正数：将上述得到的值组合起来，最大正数为 <span
+class="math inline">\(1.9990234375 × 2^{16}\)</span>。计算得到：</p>
+<pre><code>$1.9990234375×2^&#123;16&#125;=1.9990234375×65536=65504$</code></pre>
 <h1 id="总结">总结</h1>
 <p>难怪二者能差一倍的性能，<code>h16816gemm</code> 用的 half precision
 (FP16) 的 gemm， <code>s16816gemm</code> 用的是 single precision (FP32)
