@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-08-11T08:53:11.055Z</updated>
+  <updated>2025-08-11T08:54:34.395Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://example.com/2025/08/01/126_Acceleration_on_RTX4090/"/>
     <id>http://example.com/2025/08/01/126_Acceleration_on_RTX4090/</id>
     <published>2025-08-01T08:27:00.000Z</published>
-    <updated>2025-08-11T08:53:11.055Z</updated>
+    <updated>2025-08-11T08:54:34.395Z</updated>
     
     
     <summary type="html">&lt;p&gt;RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用
@@ -33,9 +33,13 @@ fp32 accum 的 matmul 的两倍。&lt;/p&gt;
     <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
+    
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
-    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    <category term="flash attention" scheme="http://example.com/tags/flash-attention/"/>
     
   </entry>
   
