@@ -28,7 +28,7 @@
 <meta property="og:description" content="学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了 C++ Templates - The Complete Guide, 2nd Edition 之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-07-17T01:09:00.000Z">
-<meta property="article:modified_time" content="2025-07-17T03:13:32.315Z">
+<meta property="article:modified_time" content="2025-08-13T06:44:27.617Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta property="article:tag" content="未完成的垃圾">
@@ -236,10 +236,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2025-07-17 09:09:00 / Modified: 11:13:32" itemprop="dateCreated datePublished" datetime="2025-07-17T09:09:00+08:00">2025-07-17</time>
+              <time title="Created: 2025-07-17 09:09:00" itemprop="dateCreated datePublished" datetime="2025-07-17T09:09:00+08:00">2025-07-17</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2025-08-13 14:44:27" itemprop="dateModified" datetime="2025-08-13T14:44:27+08:00">2025-08-13</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -263,14 +269,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3.5k</span>
+              <span>4.2k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>3 mins.</span>
+              <span>4 mins.</span>
             </span>
 
         </div>
@@ -429,6 +435,41 @@ flexibility.</p>
 <h1 id="c-templates---the-complete-guide-2nd-edition"><a
 target="_blank" rel="noopener" href="https://github.com/xuchen-tech/Books/blob/main/C%2B%2B%20Templates%20The%20Complete%20Guide%2C%202nd%20Edition%20%5BBooxRack%5D.pdf">C++
 Templates - The Complete Guide, 2nd Edition</a></h1>
+<h2 id="第-1-章-函数模板function-templates">第 1 章 函数模板（Function
+Templates）</h2>
+<p>函数模板是被参数化的函数，因此他们代表的是一组具有相似行为的函数。</p>
+<p>严格地从语言角度来看，inline
+只意味着在程序中函数的定义可以出现很多次。不过它也给了编译器一个暗示，在调用该函数的地方函数应该被展开成
+inline
+的：这样做在某些情况下可以提高效率，但是在另一些情况下也可能降低效率。</p>
+<p>从 C++11 开始，你可以通过使用关键字 constexpr
+来在编译阶段进行某些计算。</p>
+<p>总结： 函数模板定义了一组适用于不同类型的函数。</p>
+<ul>
+<li>当向模板函数传递变量时，函数模板会自行推断模板参数的类型，来决定去实例化出那种类型的函数。</li>
+<li>你也可以显式的指出模板参数的类型。</li>
+<li>你可以定义模板参数的默认值。这个默认值可以使用该模板参数前面的模板参数的类型，而且其后面的模板参数可以没有默认值。</li>
+<li>函数模板可以被重载。</li>
+<li>当定义新的函数模板来重载已有的函数模板时，必须要确保在任何调用情况下都只有一个模板是最匹配的。</li>
+<li>当你重载函数模板的时候，最好只是显式地指出了模板参数得了类型。</li>
+<li>确保在调用某个函数模板之前，编译器已经看到了相对应的模板定义。</li>
+</ul>
+<h2 id="第-2-章-类模板class-templates">第 2 章 类模板（Class
+Templates）</h2>
+<p>总结</p>
+<p>类模板是一个被实现为有一个或多个类型参数待定的类。</p>
+<ul>
+<li>使用类模板时，需要显式或者隐式地传递相应的待定类型参数作为模板参数。之后类模板会被按照传入的模板参数实例化（并且被编译）。</li>
+<li>对于类模板，只有其被用到的成员函数才会被实例化。</li>
+<li>可以针对某些特定类型对类模板进行特化。</li>
+<li>也可以针对某些特定类型对类模板进行部分特化。</li>
+<li>从 C++17
+开始，可以（不是一定可以）通过类模板的构造函数来推断模板参数的类型。</li>
+<li>可以定义聚合类的类模板。</li>
+<li>调用参数如果是按值传递的，那么相应的模板类型会 decay。</li>
+<li>模板只能被声明以及定义在 global 或者 namespace
+作用域，或者是定义在其它类的定义里面。</li>
+</ul>
 <h1 id="在纷繁多变的世界里茁壮成长c-20062020"><a
 target="_blank" rel="noopener" href="https://github.com/Cpp-Club/Cxx_HOPL4_zh/tree/main">在纷繁多变的世界里茁壮成长：C+‍+
 2006–2020</a></h1>
@@ -557,7 +598,9 @@ templates, concepts, and aliases.</p>
 C++ 模板</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#code-generation"><span class="nav-number">1.1.</span> <span class="nav-text">Code Generation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E8%AF%95%E7%89%9B%E5%88%80-templates-in-c"><span class="nav-number">2.</span> <span class="nav-text">小试牛刀
 Templates in C++</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#templates-vs-function-overloading"><span class="nav-number">2.1.</span> <span class="nav-text">Templates
 vs Function Overloading</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#c-templates---the-complete-guide-2nd-edition"><span class="nav-number">3.</span> <span class="nav-text">C++
-Templates - The Complete Guide, 2nd Edition</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E7%BA%B7%E7%B9%81%E5%A4%9A%E5%8F%98%E7%9A%84%E4%B8%96%E7%95%8C%E9%87%8C%E8%8C%81%E5%A3%AE%E6%88%90%E9%95%BFc-20062020"><span class="nav-number">4.</span> <span class="nav-text">在纷繁多变的世界里茁壮成长：C+‍+
+Templates - The Complete Guide, 2nd Edition</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-1-%E7%AB%A0-%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BFfunction-templates"><span class="nav-number">3.1.</span> <span class="nav-text">第 1 章 函数模板（Function
+Templates）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-2-%E7%AB%A0-%E7%B1%BB%E6%A8%A1%E6%9D%BFclass-templates"><span class="nav-number">3.2.</span> <span class="nav-text">第 2 章 类模板（Class
+Templates）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E7%BA%B7%E7%B9%81%E5%A4%9A%E5%8F%98%E7%9A%84%E4%B8%96%E7%95%8C%E9%87%8C%E8%8C%81%E5%A3%AE%E6%88%90%E9%95%BFc-20062020"><span class="nav-number">4.</span> <span class="nav-text">在纷繁多变的世界里茁壮成长：C+‍+
 2006–2020</span></a></li></ol></div>
       </div>
       <!--/noindex-->
@@ -643,7 +686,7 @@ Templates - The Complete Guide, 2nd Edition</span></a></li><li class="nav-item n
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">231k</span>
+    <span title="Symbols count total">232k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
