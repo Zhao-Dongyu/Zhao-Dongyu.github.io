@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前几天 openai 隆重推出 gpt-oss，模型的 MoE 部分采用了 MXFP4 格式让人震惊，这大大减少了对内存的依赖。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在RTX4090上做加速">
+<meta property="og:url" content="http://example.com/2025/08/13/127_MXFP4/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="前几天 openai 隆重推出 gpt-oss，模型的 MoE 部分采用了 MXFP4 格式让人震惊，这大大减少了对内存的依赖。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/127/FP4.png">
+<meta property="og:image" content="http://example.com/2025/08/13/127_MXFP4/conversion.png">
+<meta property="og:image" content="http://example.com/images/127/FP4.png">
+<meta property="og:image" content="http://example.com/images/127/MXformat.png">
+<meta property="og:image" content="http://example.com/images/127/E8M0.png">
+<meta property="og:image" content="http://example.com/images/127/dot_product.png">
+<meta property="og:image" content="http://example.com/images/127/NVFP4.png">
+<meta property="og:image" content="http://example.com/images/127/gpt-oss.png">
+<meta property="article:published_time" content="2025-08-13T05:01:00.000Z">
+<meta property="article:modified_time" content="2025-08-13T05:09:31.469Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="HPC">
+<meta property="article:tag" content="Tech">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/127/FP4.png">
+
+<link rel="canonical" href="http://example.com/2025/08/13/127_MXFP4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>在RTX4090上做加速 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/08/13/127_MXFP4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在RTX4090上做加速
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2025-08-13 13:01:00 / Modified: 13:09:31" itemprop="dateCreated datePublished" datetime="2025-08-13T13:01:00+08:00">2025-08-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>3.8k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>3 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>前几天 openai <a
+target="_blank" rel="noopener" href="https://openai.com/zh-Hans-CN/index/introducing-gpt-oss/">隆重推出
+gpt-oss</a>，模型的 MoE 部分采用了 MXFP4
+格式让人震惊，这大大减少了对内存的依赖。</p>
+<span id="more"></span>
+<h1 id="什么是-mxfp4">什么是 MXFP4</h1>
+<p>FP4在<a
+target="_blank" rel="noopener" href="https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf">Open
+Compute Project, 2023.</a>中有所定义</p>
+<p><img src="/images/127/FP4.png" width="100%"></p>
+<ul>
+<li>FP4 支持 subnormals 非正规数。</li>
+<li>FP4 中没有为无穷大（Inf）或非数字（NaN）保留编码。</li>
+<li>必须支持将值转换为 FP4
+时的“roundTiesToEven”（偶数舍入）舍入模式。</li>
+<li>在将值转换为 FP4 时，如果值在舍入后超出了 FP4
+的可表示范围，实现必须支持将值钳制（饱和）到 FP4
+的最大幅度，同时保留符号。</li>
+<li>在将值转换为 FP4 时，如果值在舍入后小于 FP4
+的最小非正规数幅度，实现必须将该值转换为零。</li>
+</ul>
+<p>非正规数（Subnormal
+Numbers，也称为次正规数或非规格化数）是浮点数表示中的一种特殊形式，用于表示那些非常接近零但小于正规数（Normalized
+Numbers）最小值的数。它们的引入是为了填补浮点数表示范围中接近零的部分，从而避免在数值计算中因数值过小而直接变为零，从而提高数值精度。</p>
+<p>对于一个标准的浮点数（如 IEEE 754 格式），其表示形式为：</p>
+<p><span class="math inline">\(Value = (-1)^{sign} * 1.mantissa *
+2^{exponent}\)</span></p>
+<p>其中，尾数部分通常被规范化为一个介于 1 和 2 之间的数（即形式为 <span
+class="math inline">\(1.mantissa\)</span>）。这种表示方式称为<strong>正规数</strong>。</p>
+<p>当指数部分的值为最小可能值时（即所有指数位都为
+0），浮点数不再使用隐含的前导
+1，而是直接使用尾数部分的值。这种表示方式称为<strong>非正规数</strong>，其形式为：</p>
+<p><span class="math inline">\(Value = (-1)^{sign} * 0.mantissa *
+2^{exponent\_bias}\)</span></p>
+<p>其中，<span class="math inline">\(exponent\_bias\)</span>
+是一个偏移量，用于调整指数的实际值。对于非正规数，指数部分的值固定为最小可能值（通常是偏移量减去
+1）。</p>
+<p><strong>非正规数的优缺点</strong></p>
+<ul>
+<li><strong>优点</strong>：
+<ul>
+<li>提高了接近零的数值的精度。</li>
+<li>使得浮点数的表示范围更加连续。</li>
+</ul></li>
+<li><strong>缺点</strong>：
+<ul>
+<li>非正规数的计算速度通常比正规数慢，因为它们需要特殊的处理逻辑。</li>
+<li>在某些应用中，非正规数可能会导致性能问题，因为它们需要额外的计算开销。</li>
+</ul></li>
+</ul>
+<p><strong>MXFP4 is a micro-scaling block floating-point format, hence
+the name MXFP4 rather than just FP4.</strong></p>
+<p>这种 micro-scaling function 非常重要，因为 FP4
+本身并不能提供很高的分辨率。它仅用四位（一位表示符号位，两位表示指数位，一位表示尾数）就可以表示
+16 个不同的值：八个正值和八个负值。相比之下，BF16 可以表示 65,536
+个值。<a
+target="_blank" rel="noopener" href="https://www.theregister.com/2025/08/10/openai_mxfp4/">openai_mxfp4</a></p>
+<p>MXFP4
+不是将缩放因子应用于整个张量，而是将其应用于张量内的较小块，从而允许值之间具有更大的粒度。</p>
+<p>MXFP4 很重要，因为权重越小，运行模型所需的
+VRAM、内存带宽以及潜在的计算能力就越少。换句话说，MXFP4 让 genAI
+的成本大大降低。</p>
+<h2
+id="conversion-from-vector-of-scalar-elements-to-mx-compliant-format">Conversion
+from Vector of Scalar Elements to MX-compliant Format</h2>
+<figure>
+<img src="./conversion.png" alt="conversion" />
+<figcaption aria-hidden="true">conversion</figcaption>
+</figure>
+<p><img src="/images/127/FP4.png" width="100%"></p>
+<p>A power-of-two is a number of the form <span
+class="math inline">\(2^n\)</span> where n is a positive integer,
+negative integer, or zero.</p>
+<p><img src="/images/127/MXformat.png" width="100%">
+<img src="/images/127/E8M0.png" width="100%">
+<img src="/images/127/dot_product.png" width="100%"></p>
+<p>这种计算方式很有意思，应该能减少一些scale乘法，之后可以评估一下有没有收益</p>
+<p><a
+target="_blank" rel="noopener" href="https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/">Introducing
+NVFP4 for Efficient and Accurate Low-Precision Inference</a></p>
+<p><img src="/images/127/NVFP4.png" width="100%"></p>
+<p>整体感受，如果能保住效果，MXFP4更加简洁高效，否则就要考虑NVFP4。虽然
+MXFP4 远优于标准 FP4，但它并非灵丹妙药。Nvidia 认为， 与 FP8
+相比，该数据类型的性能仍可能下降，部分原因是其 32
+位值块大小不够精细。为了解决这个问题，这家 GPU
+巨头推出了自己的微缩放数据类型 NVFP4，旨在通过使用 16 位值块和 FP8
+缩放因子来提高质量。</p>
+<blockquote>
+<p>MXFP4 isn’t just “smaller numbers” it’s the bridge between impossible
+and possible in AI. By packing more intelligence into fewer bits, and by
+making sure anyone can train and deploy powerful models, MXFP4 signals
+the democratization of AI is truly here. <a
+target="_blank" rel="noopener" href="https://huggingface.co/blog/RakshitAralimatti/learn-ai-with-me">来源</a></p>
+</blockquote>
+<h1 id="training-llms-with-mxfp4"><a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2502.20586">Training LLMs with
+MXFP4</a></h1>
+<p>建立在 IEEE 浮点数的基础上，通过向基本 IEEE 浮点数添加分组缩放</p>
+<p>此缩放允许 MXFP
+张量采用更广泛的值范围，而不会显著增加总比特率，但需要注意的是，组中的条目应大致具有相同的数量级才能使缩放有用。实际上，随着基本数据类型比特率的降低，MX
+缩放变得更加重要。</p>
+<p>FP8 E4M3 的动态范围为 <span
+class="math inline">\(448/2^{−9}=2.3×10^6\)</span> ，而 FP4 的动态范围为
+<span class="math inline">\(6/0.5=12\)</span> 。MX 缩放使 MXFP4
+能够跨块表示更大范围的值。</p>
+<p>使用随机舍入 (SR) 和随机 Hadamard 变换 (RHT)。 - 随机舍入stochastic
+rounding (SR)可产生无偏梯度估计 - SR 增加的开销不到 10% - random
+Hadamard transform (RHT) 可降低 SR
+的方差并降低因下溢而丢失梯度信息的可能性。</p>
+<hr />
+<p>开始实践</p>
+<p>OpenAI 的 gpt-oss 模型是首批利用 MXFP4 的主流 LLM 之一。<a
+target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/419b6906-9da6-406c-a19d-1bb078ac7637/oai_gpt-oss_model_card.pdf">oai_gpt-oss_model_card</a></p>
+<p><img src="/images/127/gpt-oss.png" width="100%"></p>
+<p>下载模型：https://huggingface.co/openai/gpt-oss-20b/tree/main</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/openai/gpt-oss-20b</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>sglang的 <a
+target="_blank" rel="noopener" href="https://github.com/sgl-project/sglang/issues/8833#issuecomment-3157168129">Benchmark</a></p>
+<p>Benchmark commands: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">curl http://127.0.0.1:30000/flush_cache           </span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 5 --max-concurrency 1 --output-file res.jsonl     </span><br><span class="line">curl http://127.0.0.1:30000/flush_cache   </span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 20 --max-concurrency 4 --output-file res.jsonl </span><br><span class="line">curl http://127.0.0.1:30000/flush_cache</span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 80 --max-concurrency 16 --output-file res.jsonl</span><br><span class="line">curl http://127.0.0.1:30000/flush_cache</span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 160 --max-concurrency 32 --output-file res.jsonl</span><br><span class="line"></span><br><span class="line">python3 test/srt/parse_results.py res.jsonl</span><br></pre></td></tr></table></figure></p>
+<p>w_bf16 = dequant_mxfp4(w_block=w_blocks, w_scale=w_scales,
+out_dtype=torch.bfloat16)</p>
+<p>sglang里面是将mxfp4 dequant到 bf16之后计算的</p>
+<p>结论：</p>
+<ol type="1">
+<li><p>gpt-oss 的 MoE weights 量化成了MXFP4 格式，4.25 bits per
+parameter（因为每32个为一个block，有一个E8M0的scale）</p></li>
+<li><p>MoE 权重占总参数数量的 90% 以上。</p></li>
+</ol>
+<ul>
+<li>GPT-OSS-120B：每个 MoE 模块包含 128 个专家，每个 token 激活 4
+个专家。</li>
+<li>GPT-OSS-20B：每个 MoE 模块包含 32 个专家，每个 token 激活 4
+个专家。</li>
+</ul>
+<ol start="3" type="1">
+<li>sglang的MXFP4推理是将mxfp4 dequant到
+bf16之后计算的，转换方式位于<code>class MXFP4QuantizeUtil</code>，采用了一些位运算和查表的方式。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/HPC/" rel="tag"># HPC</a>
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/08/01/126_Acceleration_on_RTX4090/" rel="prev" title="在RTX4090上做加速">
+      <i class="fa fa-chevron-left"></i> 在RTX4090上做加速
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-mxfp4"><span class="nav-number">1.</span> <span class="nav-text">什么是 MXFP4</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#conversion-from-vector-of-scalar-elements-to-mx-compliant-format"><span class="nav-number">1.1.</span> <span class="nav-text">Conversion
+from Vector of Scalar Elements to MX-compliant Format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#training-llms-with-mxfp4"><span class="nav-number">2.</span> <span class="nav-text">Training LLMs with
+MXFP4</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">232k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:31</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : 'be348a53965565ecb0659cc0bfe6f29d',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>

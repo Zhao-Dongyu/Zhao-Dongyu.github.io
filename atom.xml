@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-08-12T14:40:55.157Z</updated>
+  <updated>2025-08-13T05:09:31.469Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,30 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>在RTX4090上做加速</title>
+    <link href="http://example.com/2025/08/13/127_MXFP4/"/>
+    <id>http://example.com/2025/08/13/127_MXFP4/</id>
+    <published>2025-08-13T05:01:00.000Z</published>
+    <updated>2025-08-13T05:09:31.469Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;前几天 openai &lt;a
+href=&quot;https://openai.com/zh-Hans-CN/index/introducing-gpt-oss/&quot;&gt;隆重推出
+gpt-oss&lt;/a&gt;，模型的 MoE 部分采用了 MXFP4
+格式让人震惊，这大大减少了对内存的依赖。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
   
   <entry>
     <title>在RTX4090上做加速</title>
@@ -436,31 +460,6 @@ and performance.&lt;/p&gt;</summary>
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
     <category term="KV Cache" scheme="http://example.com/tags/KV-Cache/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>ComfyUI</title>
-    <link href="http://example.com/2024/10/31/106_ComfyUI/"/>
-    <id>http://example.com/2024/10/31/106_ComfyUI/</id>
-    <published>2024-10-30T16:00:00.000Z</published>
-    <updated>2024-12-23T03:35:56.884Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;开始学习 ComfyUI，学学文生图相关的知识&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="ComfyUI" scheme="http://example.com/tags/ComfyUI/"/>
-    
-    <category term="Diffusion" scheme="http://example.com/tags/Diffusion/"/>
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
     
   </entry>
   
