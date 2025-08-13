@@ -10067,7 +10067,7 @@ gpt-oss</a>，模型的 MoE 部分采用了 MXFP4
 <p>FP4在<a
 href="https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf">Open
 Compute Project, 2023.</a>中有所定义</p>
-<p><img src="/images/127/FP4.png" width="100%"></p>
+<p><img src="/images/127/FP4.png" width="70%"></p>
 <ul>
 <li>FP4 支持 subnormals 非正规数。</li>
 <li>FP4 中没有为无穷大（Inf）或非数字（NaN）保留编码。</li>
@@ -10079,9 +10079,7 @@ Compute Project, 2023.</a>中有所定义</p>
 <li>在将值转换为 FP4 时，如果值在舍入后小于 FP4
 的最小非正规数幅度，实现必须将该值转换为零。</li>
 </ul>
-<p>非正规数（Subnormal
-Numbers，也称为次正规数或非规格化数）是浮点数表示中的一种特殊形式，用于表示那些非常接近零但小于正规数（Normalized
-Numbers）最小值的数。它们的引入是为了填补浮点数表示范围中接近零的部分，从而避免在数值计算中因数值过小而直接变为零，从而提高数值精度。</p>
+<p>非正规数（<code>Subnormal Numbers</code>，也称为次正规数或非规格化数）是浮点数表示中的一种特殊形式，用于表示那些非常接近零但小于正规数（<code>Normalized Numbers</code>）最小值的数。它们的引入是为了填补浮点数表示范围中接近零的部分，从而避免在数值计算中因数值过小而直接变为零，从而提高数值精度。</p>
 <p>对于一个标准的浮点数（如 IEEE 754 格式），其表示形式为：</p>
 <p><span class="math inline">\(Value = (-1)^{sign} * 1.mantissa *
 2^{exponent}\)</span></p>
@@ -10123,11 +10121,7 @@ VRAM、内存带宽以及潜在的计算能力就越少。换句话说，MXFP4 �
 <h2
 id="conversion-from-vector-of-scalar-elements-to-mx-compliant-format">Conversion
 from Vector of Scalar Elements to MX-compliant Format</h2>
-<figure>
-<img src="./conversion.png" alt="conversion" />
-<figcaption aria-hidden="true">conversion</figcaption>
-</figure>
-<p><img src="/images/127/FP4.png" width="100%"></p>
+<p><img src="/images/127/conversion.png" width="100%"></p>
 <p>A power-of-two is a number of the form <span
 class="math inline">\(2^n\)</span> where n is a positive integer,
 negative integer, or zero.</p>
@@ -10164,20 +10158,23 @@ MXFP4</a></h1>
 class="math inline">\(448/2^{−9}=2.3×10^6\)</span> ，而 FP4 的动态范围为
 <span class="math inline">\(6/0.5=12\)</span> 。MX 缩放使 MXFP4
 能够跨块表示更大范围的值。</p>
-<p>使用随机舍入 (SR) 和随机 Hadamard 变换 (RHT)。 - 随机舍入stochastic
-rounding (SR)可产生无偏梯度估计 - SR 增加的开销不到 10% - random
-Hadamard transform (RHT) 可降低 SR
-的方差并降低因下溢而丢失梯度信息的可能性。</p>
+<p>使用随机舍入 (SR) 和随机 Hadamard 变换 (RHT)。</p>
+<ul>
+<li>随机舍入stochastic rounding (SR)可产生无偏梯度估计
+<ul>
+<li>SR 增加的开销不到 10%</li>
+</ul></li>
+<li>random Hadamard transform (RHT) 可降低 SR
+的方差并降低因下溢而丢失梯度信息的可能性。</li>
+</ul>
 <h1 id="开始实践">开始实践</h1>
 <p>OpenAI 的 gpt-oss 模型是首批利用 MXFP4 的主流 LLM 之一。<a
 href="https://cdn.openai.com/pdf/419b6906-9da6-406c-a19d-1bb078ac7637/oai_gpt-oss_model_card.pdf">oai_gpt-oss_model_card</a></p>
 <p><img src="/images/127/gpt-oss.png" width="100%"></p>
 <p>下载模型：https://huggingface.co/openai/gpt-oss-20b/tree/main</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/openai/gpt-oss-20b</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>sglang的 <a
 href="https://github.com/sgl-project/sglang/issues/8833#issuecomment-3157168129">Benchmark</a></p>
-<p>w_bf16 = dequant_mxfp4(w_block=w_blocks, w_scale=w_scales,
-out_dtype=torch.bfloat16)</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">w_bf16 = dequant_mxfp4(w_block=w_blocks, w_scale=w_scales, out_dtype=torch.bfloat16)</span><br></pre></td></tr></table></figure>
 <p>sglang里面是将mxfp4 dequant到 bf16之后计算的</p>
 <p>sglang小结论：</p>
 <ol type="1">
