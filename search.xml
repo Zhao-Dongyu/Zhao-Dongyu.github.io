@@ -10131,10 +10131,11 @@ from Vector of Scalar Elements to MX-compliant Format</h2>
 <p>A power-of-two is a number of the form <span
 class="math inline">\(2^n\)</span> where n is a positive integer,
 negative integer, or zero.</p>
-<p><img src="/images/127/MXformat.png" width="100%">
-<img src="/images/127/E8M0.png" width="100%">
-<img src="/images/127/dot_product.png" width="100%"></p>
+<p><img src="/images/127/MXformat.png" width="100%"></p>
+<p><img src="/images/127/E8M0.png" width="100%"></p>
+<p><img src="/images/127/dot_product.png" width="100%"></p>
 <p>这种计算方式很有意思，应该能减少一些scale乘法，之后可以评估一下有没有收益</p>
+<h1 id="nvfp4">NVFP4</h1>
 <p><a
 href="https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/">Introducing
 NVFP4 for Efficient and Accurate Low-Precision Inference</a></p>
@@ -10167,8 +10168,7 @@ class="math inline">\(448/2^{−9}=2.3×10^6\)</span> ，而 FP4 的动态范围
 rounding (SR)可产生无偏梯度估计 - SR 增加的开销不到 10% - random
 Hadamard transform (RHT) 可降低 SR
 的方差并降低因下溢而丢失梯度信息的可能性。</p>
-<hr />
-<p>开始实践</p>
+<h1 id="开始实践">开始实践</h1>
 <p>OpenAI 的 gpt-oss 模型是首批利用 MXFP4 的主流 LLM 之一。<a
 href="https://cdn.openai.com/pdf/419b6906-9da6-406c-a19d-1bb078ac7637/oai_gpt-oss_model_card.pdf">oai_gpt-oss_model_card</a></p>
 <p><img src="/images/127/gpt-oss.png" width="100%"></p>
@@ -10176,11 +10176,10 @@ href="https://cdn.openai.com/pdf/419b6906-9da6-406c-a19d-1bb078ac7637/oai_gpt-os
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/openai/gpt-oss-20b</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>sglang的 <a
 href="https://github.com/sgl-project/sglang/issues/8833#issuecomment-3157168129">Benchmark</a></p>
-<p>Benchmark commands: <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl http://127.0.0.1:30000/flush_cache           </span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 5 --max-concurrency 1 --output-file res.jsonl     </span><br><span class="line">curl http://127.0.0.1:30000/flush_cache   </span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 20 --max-concurrency 4 --output-file res.jsonl </span><br><span class="line">curl http://127.0.0.1:30000/flush_cache</span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 80 --max-concurrency 16 --output-file res.jsonl</span><br><span class="line">curl http://127.0.0.1:30000/flush_cache</span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 160 --max-concurrency 32 --output-file res.jsonl</span><br><span class="line"></span><br><span class="line">python3 test/srt/parse_results.py res.jsonl</span><br></pre></td></tr></table></figure></p>
 <p>w_bf16 = dequant_mxfp4(w_block=w_blocks, w_scale=w_scales,
 out_dtype=torch.bfloat16)</p>
 <p>sglang里面是将mxfp4 dequant到 bf16之后计算的</p>
-<p>结论：</p>
+<p>sglang小结论：</p>
 <ol type="1">
 <li><p>gpt-oss 的 MoE weights 量化成了MXFP4 格式，4.25 bits per
 parameter（因为每32个为一个block，有一个E8M0的scale）</p></li>
@@ -10196,6 +10195,8 @@ parameter（因为每32个为一个block，有一个E8M0的scale）</p></li>
 <li>sglang的MXFP4推理是将mxfp4 dequant到
 bf16之后计算的，转换方式位于<code>class MXFP4QuantizeUtil</code>，采用了一些位运算和查表的方式。</li>
 </ol>
+<p>后续可以看看写专门针对 MXFP4 的算子？不过手里也没有 Blackwell
+的机器，难以推进，不过可以考虑转成fp8来加速。但是MoE的计算比较少，可能没有太大的意义。</p>
 ]]></content>
       <categories>
         <category>技术</category>

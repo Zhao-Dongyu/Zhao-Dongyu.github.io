@@ -36,7 +36,7 @@
 <meta property="og:image" content="http://example.com/images/127/NVFP4.png">
 <meta property="og:image" content="http://example.com/images/127/gpt-oss.png">
 <meta property="article:published_time" content="2025-08-13T05:01:00.000Z">
-<meta property="article:modified_time" content="2025-08-13T05:09:31.469Z">
+<meta property="article:modified_time" content="2025-08-13T05:14:19.438Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="HPC">
 <meta property="article:tag" content="Tech">
@@ -247,7 +247,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2025-08-13 13:01:00 / Modified: 13:09:31" itemprop="dateCreated datePublished" datetime="2025-08-13T13:01:00+08:00">2025-08-13</time>
+              <time title="Created: 2025-08-13 13:01:00 / Modified: 13:14:19" itemprop="dateCreated datePublished" datetime="2025-08-13T13:01:00+08:00">2025-08-13</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -272,7 +272,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3.8k</span>
+              <span>2.9k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
@@ -364,10 +364,11 @@ from Vector of Scalar Elements to MX-compliant Format</h2>
 <p>A power-of-two is a number of the form <span
 class="math inline">\(2^n\)</span> where n is a positive integer,
 negative integer, or zero.</p>
-<p><img src="/images/127/MXformat.png" width="100%">
-<img src="/images/127/E8M0.png" width="100%">
-<img src="/images/127/dot_product.png" width="100%"></p>
+<p><img src="/images/127/MXformat.png" width="100%"></p>
+<p><img src="/images/127/E8M0.png" width="100%"></p>
+<p><img src="/images/127/dot_product.png" width="100%"></p>
 <p>这种计算方式很有意思，应该能减少一些scale乘法，之后可以评估一下有没有收益</p>
+<h1 id="nvfp4">NVFP4</h1>
 <p><a
 target="_blank" rel="noopener" href="https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/">Introducing
 NVFP4 for Efficient and Accurate Low-Precision Inference</a></p>
@@ -400,8 +401,7 @@ class="math inline">\(448/2^{−9}=2.3×10^6\)</span> ，而 FP4 的动态范围
 rounding (SR)可产生无偏梯度估计 - SR 增加的开销不到 10% - random
 Hadamard transform (RHT) 可降低 SR
 的方差并降低因下溢而丢失梯度信息的可能性。</p>
-<hr />
-<p>开始实践</p>
+<h1 id="开始实践">开始实践</h1>
 <p>OpenAI 的 gpt-oss 模型是首批利用 MXFP4 的主流 LLM 之一。<a
 target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/419b6906-9da6-406c-a19d-1bb078ac7637/oai_gpt-oss_model_card.pdf">oai_gpt-oss_model_card</a></p>
 <p><img src="/images/127/gpt-oss.png" width="100%"></p>
@@ -409,11 +409,10 @@ target="_blank" rel="noopener" href="https://cdn.openai.com/pdf/419b6906-9da6-40
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/openai/gpt-oss-20b</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>sglang的 <a
 target="_blank" rel="noopener" href="https://github.com/sgl-project/sglang/issues/8833#issuecomment-3157168129">Benchmark</a></p>
-<p>Benchmark commands: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">curl http://127.0.0.1:30000/flush_cache           </span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 5 --max-concurrency 1 --output-file res.jsonl     </span><br><span class="line">curl http://127.0.0.1:30000/flush_cache   </span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 20 --max-concurrency 4 --output-file res.jsonl </span><br><span class="line">curl http://127.0.0.1:30000/flush_cache</span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 80 --max-concurrency 16 --output-file res.jsonl</span><br><span class="line">curl http://127.0.0.1:30000/flush_cache</span><br><span class="line">python3 -m sglang.bench_serving --backend sglang-oai  --dataset-name random --random-input-len 512 --random-output-len 1024 --random-range-ratio 1 --num-prompts 160 --max-concurrency 32 --output-file res.jsonl</span><br><span class="line"></span><br><span class="line">python3 test/srt/parse_results.py res.jsonl</span><br></pre></td></tr></table></figure></p>
 <p>w_bf16 = dequant_mxfp4(w_block=w_blocks, w_scale=w_scales,
 out_dtype=torch.bfloat16)</p>
 <p>sglang里面是将mxfp4 dequant到 bf16之后计算的</p>
-<p>结论：</p>
+<p>sglang小结论：</p>
 <ol type="1">
 <li><p>gpt-oss 的 MoE weights 量化成了MXFP4 格式，4.25 bits per
 parameter（因为每32个为一个block，有一个E8M0的scale）</p></li>
@@ -429,6 +428,8 @@ parameter（因为每32个为一个block，有一个E8M0的scale）</p></li>
 <li>sglang的MXFP4推理是将mxfp4 dequant到
 bf16之后计算的，转换方式位于<code>class MXFP4QuantizeUtil</code>，采用了一些位运算和查表的方式。</li>
 </ol>
+<p>后续可以看看写专门针对 MXFP4 的算子？不过手里也没有 Blackwell
+的机器，难以推进，不过可以考虑转成fp8来加速。但是MoE的计算比较少，可能没有太大的意义。</p>
 
     </div>
 
@@ -536,8 +537,8 @@ bf16之后计算的，转换方式位于<code>class MXFP4QuantizeUtil</code>，�
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
           <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-mxfp4"><span class="nav-number">1.</span> <span class="nav-text">什么是 MXFP4</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#conversion-from-vector-of-scalar-elements-to-mx-compliant-format"><span class="nav-number">1.1.</span> <span class="nav-text">Conversion
-from Vector of Scalar Elements to MX-compliant Format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#training-llms-with-mxfp4"><span class="nav-number">2.</span> <span class="nav-text">Training LLMs with
-MXFP4</span></a></li></ol></div>
+from Vector of Scalar Elements to MX-compliant Format</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nvfp4"><span class="nav-number">2.</span> <span class="nav-text">NVFP4</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#training-llms-with-mxfp4"><span class="nav-number">3.</span> <span class="nav-text">Training LLMs with
+MXFP4</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E5%AE%9E%E8%B7%B5"><span class="nav-number">4.</span> <span class="nav-text">开始实践</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -622,13 +623,13 @@ MXFP4</span></a></li></ol></div>
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">232k</span>
+    <span title="Symbols count total">231k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">3:31</span>
+    <span title="Reading time total">3:30</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
