@@ -28,7 +28,7 @@
 <meta property="og:description" content="学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了 C++ Templates - The Complete Guide, 2nd Edition 之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-07-17T01:09:00.000Z">
-<meta property="article:modified_time" content="2025-08-13T06:44:27.617Z">
+<meta property="article:modified_time" content="2025-08-13T07:55:09.808Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Tech">
 <meta property="article:tag" content="未完成的垃圾">
@@ -244,7 +244,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-08-13 14:44:27" itemprop="dateModified" datetime="2025-08-13T14:44:27+08:00">2025-08-13</time>
+                <time title="Modified: 2025-08-13 15:55:09" itemprop="dateModified" datetime="2025-08-13T15:55:09+08:00">2025-08-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -269,14 +269,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>4.2k</span>
+              <span>7.5k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>4 mins.</span>
+              <span>7 mins.</span>
             </span>
 
         </div>
@@ -470,6 +470,111 @@ Templates）</h2>
 <li>模板只能被声明以及定义在 global 或者 namespace
 作用域，或者是定义在其它类的定义里面。</li>
 </ul>
+<h2 id="第-3-章-非类型模板参数">第 3 章 非类型模板参数</h2>
+<ul>
+<li>模板的参数不只可以是类型，也可以是数值。</li>
+<li>不可以将浮点型或者 class
+类型的对象用于非类型模板参数。使用指向字符串常量，临时变量和子对象的指针或引用也有一些限制。</li>
+<li>通过使用关键字 auto，可以使非类型模板参数的类型更为泛化。</li>
+</ul>
+<h2 id="第-4-章-变参模板">第 4 章 变参模板</h2>
+<ul>
+<li>通过使用参数包，模板可以有任意多个任意类型的参数。</li>
+<li>为了处理这些参数，需要使用递归，而且需要一个非变参函数终结递归（如果使用编译期判断，则不需要非变参函数来终结递归）。</li>
+<li>运算符 sizeof...用来计算参数包中模板参数的数目。</li>
+<li>变参模板的一个典型应用是用来发送（forward）任意多个任意类型的模板参数。</li>
+<li>通过使用折叠表达式，可以将某种运算应用于参数包中的所有参数。</li>
+</ul>
+<h2 id="第-5-章-基础技巧">第 5 章 基础技巧</h2>
+<ul>
+<li><p>typename 关键字</p>
+<p>关键字 typename 在
+C++标准化过程中被引入进来，用来澄清模板内部的一个标识符代表的是某种类型，而不是数据成员。</p>
+<p>通常而言，当一个依赖于模板参数的名称代表的是某种类型的时候，就必须使用typename。</p></li>
+<li><p>zero initialization</p>
+<p>在定义模板时，如果想让一个模板类型的变量被初始化成一个默认值，那么只是简单的定义是不够的，因为对内置类型，它们不会被初始化</p>
+<p>对于内置类型，最好显式的调用其默认构造函数来将它们初始化成0（对于bool
+类型，初始化为 false，对于指针类型，初始化成 nullptr）</p></li>
+<li><p>使用 this-&gt;</p>
+<p>对于类模板，如果它的基类也是依赖于模板参数的，那么对它而言即使x
+是继承而来的，使用 this-&gt;x 和 x 也不一定是等效的。</p></li>
+<li><p>使用裸数组或者字符串常量的模板</p>
+<p>如果参数是按引用传递的，那么参数类型不会退化（decay）。也就是说当传递”hello”
+作为参数时，模板类型会被推断为 char
+const[6]。这样当向模板传递长度不同的裸数组或者字符串常量时就可能遇到问题，因为它们对应的模板类型不一样。只有当按值传递参数时，模板类型才会退化（decay），这样字符串常量会被推断为
+char const *。</p></li>
+<li><p>为了使用依赖于模板参数的类型名称，需要用 typename
+修饰该名称。</p></li>
+<li><p>为了访问依赖于模板参数的父类中的成员，需要用
+this-&gt;或者类名修饰该成员。</p></li>
+<li><p>嵌套类或者成员函数也可以是模板。一种应用场景是实现可以进行内部类型转换的泛型代码。</p></li>
+<li><p>模板化的构造函数或者赋值运算符不会取代预定义的构造函数和赋值运算符。</p></li>
+<li><p>使用花括号初始化或者显式地调用默认构造函数，可以保证变量或者成员模板即使被内置类型实例化，也可以被初始化成默认值。</p></li>
+<li><p>可以为裸数组提供专门的特化模板，它也可以被用于字符串常量。</p></li>
+<li><p>只有在裸数组和字符串常量不是被按引用传递的时候，参数类型推断才会退化。（裸数组退化成指针）</p></li>
+<li><p>可以定义变量模板（从 C++14 开始）。</p></li>
+<li><p>模板参数也可以是类模板，称为模板参数模板（template template
+parameters）。</p></li>
+<li><p>模板参数模板的参数类型必须得到严格匹配。</p></li>
+</ul>
+<h2 id="第-6-章-移动语义和enable_if">第 6 章
+移动语义和enable_if&lt;&gt;</h2>
+<p>移动语义（move semantics）是 C++11 引入的一个重要特性。在 copy
+或者赋值的时候，可以通过它将源对象中的内部资源
+move（“steal”）到目标对象，而不是copy
+这些内容。当然这样做的前提是源对象不在需要这些内部资源或者状态（因为源对象将会被丢弃）。移动语义对模板的设计有重要影响，在泛型代码中也引入了一些特殊的规则来支持移动语义。本</p>
+<h2 id="第-7-章-按值传递还是按引用传递">第 7 章
+按值传递还是按引用传递？</h2>
+<p>从一开始，C++就提供了按值传递（call-by-value）和按引用传递（call-by-reference）两种参数传递方式，但是具体该怎么选择，有时并不容易确定：通常对复杂类型用按引用传递的成本更低，但是也更复杂。C++11
+又引入了移动语义（move
+semantics），也就是说又多了一种按引用传递的方式</p>
+<p>当按值传递参数时，原则上所有的参数都会被拷贝。因此每一个参数都会是被传递实参的一份拷贝。对于
+class 的对象，参数会通过 class
+的拷贝构造函数来做初始化。调用拷贝构造函数的成本可能很高。但是有多种方法可以避免按值传递的高昂成本：事实上编译器可以通过移动语义（move
+semantics）来优化掉对象的拷贝，这样即使是对复杂类型的拷贝，其成本也不会很高。</p>
+<p>当按值传递参数时，参数类型会退化（decay）。也就是说，裸数组会退化成指针，const
+和 volatile 等限制符会被删除（就像用一个值去初始化一个用 auto
+声明的对象那样）</p>
+<p>按引用传递不会拷贝对象（因为形参将引用被传递的实参）。而且，按引用传递时参数类型也不会退化（decay）。不过，并不是在所有情况下都能使用按引用传递，即使在能使用的地方，有时候被推断出来的模板参数类型也会带来不少问题</p>
+<p>为在底层实现上，按引用传递还是通过传递参数的地址实现的。地址会被简单编码，这样可以提高从调用者向被调用者传递地址的效率。不过按地址传递可能会使编译器在编译调用者的代码时有一些困惑：被调用者会怎么处理这个地址？理论上被调用者可以随意更改该地址指向的内容。</p>
+<h2 id="第-8-章-编译期编程">第 8 章 编译期编程</h2>
+<p>模板的实例化发生在编译期间（而动态语言的泛型是在程序运行期间决定的）。事实证明C++模板的某些特性可以和实例化过程相结合，这样就产生了一种
+C++自己内部的原始递归的“编程语言”。因此模板可以用来“计算一个程序的结果”。</p>
+<p>C++11 引入了一个叫做 constexpr
+的新特性，它大大简化了各种类型的编译期计算。如果给定了合适的输入，constexpr
+函数就可以在编译期间完成相应的计算。虽然C++11 对constexpr
+函数的使用有诸多限制（比如 constexpt 函数的定义通常都只能包含一个return
+语句），但是在 C++14
+中这些限制中的大部分都被移除了。当然，为了能够成功地进行constexpr
+函数中的计算，依然要求各个计算步骤都能在编译期进行：目前堆内存分配和异常抛出都不被支持。</p>
+<ul>
+<li>模板提供了在编译器进行计算的能力（比如使用递归进行迭代以及使用部分特例化或者?:进行选择）。</li>
+<li>通过使用 constexpr
+函数，可以用在编译期上下文中能够被调用的“常规函数（要有constexpr）”替代大部分的编译期计算工作。</li>
+<li>通过使用部分特例化，可以基于某些编译期条件在不同的类模板实现之间做选择。</li>
+<li>模板只有在被需要的时候才会被使用，对函数模板声明进行替换不会产生有效的代码。这一原理被称为
+SFINAE。</li>
+<li>SFINAE 可以被用来专门为某些类型或者限制条件提供函数模板。</li>
+<li>从 C++17 开始，可以通过使用编译期 if
+基于某些编译期条件启用或者禁用某些语句。</li>
+</ul>
+<h2 id="第-9-章-在实践中使用模板">第 9 章 在实践中使用模板</h2>
+<p>模板代码和常规代码有些不同。从某种程度上而言，模板介于宏和常规函数声明之间。虽然这样说可能过分简化了。它不仅会影响到我们用模板实现算法和数据结构的方法，也会影响到我们日常对包含模板的程序的分析和表达。</p>
+<p>将源代码分成头文件和 CPP 文件是为了遵守唯一定义法则（one-definition
+rule, ODR）</p>
+<p>破译大篇幅的错误信息</p>
+<h2 id="第-10-章-模板基本术语">第 10 章 模板基本术语</h2>
+<p>对那些是模板的类，函数和变量，我们称之为类模板，函数模板和变量模板。</p>
+<p>模板实例化过程是一个用实参取代模板参数，从而创建常规类或者函数的过程。最终产生的实体是一个特化。</p>
+<p>类型可以是完整的或者非完整的。</p>
+<p>根据唯一定义法则（ODR），非 inline
+函数，成员函数，全局变量和静态数据成员在整个程序中只能被定义一次。</p>
+<h2 id="第-23-章-元编程">第 23 章 元编程</h2>
+<p>为什么需要元编程？和其它编程技术一样，目的是用尽可能少的“付出”，换取尽可能多的功能，其中“付出”可以用代码长度、维护成本之类的事情来衡量。元编程的特性之一是在编译期间（at
+translation
+time，翻译是否准确？）就可以进行一部分用户定义的计算。其动机通常是性能（在
+translation time
+执行的计算通常可以被优化掉）或者简化接口（元-程序通常要比其展开后的结果短小一些），或者两者兼而有之。</p>
 <h1 id="在纷繁多变的世界里茁壮成长c-20062020"><a
 target="_blank" rel="noopener" href="https://github.com/Cpp-Club/Cxx_HOPL4_zh/tree/main">在纷繁多变的世界里茁壮成长：C+‍+
 2006–2020</a></h1>
@@ -600,7 +705,9 @@ Templates in C++</span></a><ol class="nav-child"><li class="nav-item nav-level-2
 vs Function Overloading</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#c-templates---the-complete-guide-2nd-edition"><span class="nav-number">3.</span> <span class="nav-text">C++
 Templates - The Complete Guide, 2nd Edition</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-1-%E7%AB%A0-%E5%87%BD%E6%95%B0%E6%A8%A1%E6%9D%BFfunction-templates"><span class="nav-number">3.1.</span> <span class="nav-text">第 1 章 函数模板（Function
 Templates）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-2-%E7%AB%A0-%E7%B1%BB%E6%A8%A1%E6%9D%BFclass-templates"><span class="nav-number">3.2.</span> <span class="nav-text">第 2 章 类模板（Class
-Templates）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E7%BA%B7%E7%B9%81%E5%A4%9A%E5%8F%98%E7%9A%84%E4%B8%96%E7%95%8C%E9%87%8C%E8%8C%81%E5%A3%AE%E6%88%90%E9%95%BFc-20062020"><span class="nav-number">4.</span> <span class="nav-text">在纷繁多变的世界里茁壮成长：C+‍+
+Templates）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-3-%E7%AB%A0-%E9%9D%9E%E7%B1%BB%E5%9E%8B%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">3.3.</span> <span class="nav-text">第 3 章 非类型模板参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-4-%E7%AB%A0-%E5%8F%98%E5%8F%82%E6%A8%A1%E6%9D%BF"><span class="nav-number">3.4.</span> <span class="nav-text">第 4 章 变参模板</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-5-%E7%AB%A0-%E5%9F%BA%E7%A1%80%E6%8A%80%E5%B7%A7"><span class="nav-number">3.5.</span> <span class="nav-text">第 5 章 基础技巧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-6-%E7%AB%A0-%E7%A7%BB%E5%8A%A8%E8%AF%AD%E4%B9%89%E5%92%8Cenable_if"><span class="nav-number">3.6.</span> <span class="nav-text">第 6 章
+移动语义和enable_if&lt;&gt;</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-7-%E7%AB%A0-%E6%8C%89%E5%80%BC%E4%BC%A0%E9%80%92%E8%BF%98%E6%98%AF%E6%8C%89%E5%BC%95%E7%94%A8%E4%BC%A0%E9%80%92"><span class="nav-number">3.7.</span> <span class="nav-text">第 7 章
+按值传递还是按引用传递？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-8-%E7%AB%A0-%E7%BC%96%E8%AF%91%E6%9C%9F%E7%BC%96%E7%A8%8B"><span class="nav-number">3.8.</span> <span class="nav-text">第 8 章 编译期编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-9-%E7%AB%A0-%E5%9C%A8%E5%AE%9E%E8%B7%B5%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%A8%A1%E6%9D%BF"><span class="nav-number">3.9.</span> <span class="nav-text">第 9 章 在实践中使用模板</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-10-%E7%AB%A0-%E6%A8%A1%E6%9D%BF%E5%9F%BA%E6%9C%AC%E6%9C%AF%E8%AF%AD"><span class="nav-number">3.10.</span> <span class="nav-text">第 10 章 模板基本术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC-23-%E7%AB%A0-%E5%85%83%E7%BC%96%E7%A8%8B"><span class="nav-number">3.11.</span> <span class="nav-text">第 23 章 元编程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8%E7%BA%B7%E7%B9%81%E5%A4%9A%E5%8F%98%E7%9A%84%E4%B8%96%E7%95%8C%E9%87%8C%E8%8C%81%E5%A3%AE%E6%88%90%E9%95%BFc-20062020"><span class="nav-number">4.</span> <span class="nav-text">在纷繁多变的世界里茁壮成长：C+‍+
 2006–2020</span></a></li></ol></div>
       </div>
       <!--/noindex-->
@@ -686,13 +793,13 @@ Templates）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class=
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">232k</span>
+    <span title="Symbols count total">235k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">3:30</span>
+    <span title="Reading time total">3:33</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>

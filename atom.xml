@@ -45,7 +45,7 @@ gpt-oss&lt;/a&gt;，模型的 MoE 部分采用了 MXFP4
     <link href="http://example.com/2025/08/01/126_Acceleration_on_RTX4090/"/>
     <id>http://example.com/2025/08/01/126_Acceleration_on_RTX4090/</id>
     <published>2025-08-01T08:27:00.000Z</published>
-    <updated>2025-08-12T14:40:55.157Z</updated>
+    <updated>2025-08-13T08:19:14.592Z</updated>
     
     
     <summary type="html">&lt;p&gt;RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用
@@ -72,7 +72,7 @@ fp32 accum 的 matmul 的两倍。&lt;/p&gt;
     <link href="http://example.com/2025/07/17/125_c++template/"/>
     <id>http://example.com/2025/07/17/125_c++template/</id>
     <published>2025-07-17T01:09:00.000Z</published>
-    <updated>2025-08-13T06:44:27.617Z</updated>
+    <updated>2025-08-13T07:55:09.808Z</updated>
     
     
     <summary type="html">&lt;p&gt;学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了
