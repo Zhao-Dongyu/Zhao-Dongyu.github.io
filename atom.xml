@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Zhao Dongyu&#39;s Blog</title>
+  <icon>http://example.com/icon.png</icon>
+  <subtitle>A life which is unexamined is not worth living.</subtitle>
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2026-04-13T01:22:08.136Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>Zhao Dongyu</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Pi0 结构解析</title>
+    <link href="http://example.com/2026/01/28/128_Pi0_model/"/>
+    <id>http://example.com/2026/01/28/128_Pi0_model/</id>
+    <published>2026-01-28T15:46:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://www.pi.website/blog/pi0&quot;&gt;π0&lt;/a&gt;(pi-zero) 是 Physical
+Intelligence的 First Generalist
+Policy，一个通用的机器人基础模型，堪称经典之作。&lt;/p&gt;
+&lt;p&gt;π0
+通过从一个预训练的视觉语言模型（VLM）开始，继承了互联网规模预训练的语义知识和视觉理解，有效的将网络上的语义知识迁移过来，输出离散的
+language tokens。通过流匹配（扩散模型的一种变体）来增强预训练
+VLMs，使其能够输出连续的动作。&lt;/p&gt;
+&lt;p&gt;最近做了一些 Pi0 模型的部署和加速，对 Pi0
+的结构算是比较了解了，在此整理总结一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="VLA" scheme="http://example.com/tags/VLA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>MXFP4 初探</title>
+    <link href="http://example.com/2025/08/13/127_MXFP4/"/>
+    <id>http://example.com/2025/08/13/127_MXFP4/</id>
+    <published>2025-08-13T05:01:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;前几天 openai &lt;a
+href=&quot;https://openai.com/zh-Hans-CN/index/introducing-gpt-oss/&quot;&gt;隆重推出
+gpt-oss&lt;/a&gt;，模型的 MoE 部分采用了 MXFP4
+格式让人震惊，这大大减少了对内存的依赖。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>在RTX4090上做加速</title>
+    <link href="http://example.com/2025/08/01/126_Acceleration_on_RTX4090/"/>
+    <id>http://example.com/2025/08/01/126_Acceleration_on_RTX4090/</id>
+    <published>2025-08-01T08:27:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用
+fp32 accum 的 matmul 的两倍。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;这是非常诱人的加速！&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="CUDA" scheme="http://example.com/tags/CUDA/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="flash attention" scheme="http://example.com/tags/flash-attention/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>c++模版</title>
+    <link href="http://example.com/2025/07/17/125_c++template/"/>
+    <id>http://example.com/2025/07/17/125_c++template/</id>
+    <published>2025-07-17T01:09:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了
+C++ Templates - The Complete Guide, 2nd Edition
+之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>P/D 分离</title>
+    <link href="http://example.com/2025/04/21/123_PD%E5%88%86%E7%A6%BB/"/>
+    <id>http://example.com/2025/04/21/123_PD%E5%88%86%E7%A6%BB/</id>
+    <published>2025-04-21T07:58:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录 Dynamo 学习实践 P/D 分离。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>强化学习框架</title>
+    <link href="http://example.com/2025/04/21/124_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/"/>
+    <id>http://example.com/2025/04/21/124_%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/</id>
+    <published>2025-04-21T07:58:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;记录学习实践强化学习框架。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>CUDA学习</title>
+    <link href="http://example.com/2025/03/31/122_CUDA/"/>
+    <id>http://example.com/2025/03/31/122_CUDA/</id>
+    <published>2025-03-31T01:49:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;CUDA 学习记录&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>torch.compile</title>
+    <link href="http://example.com/2025/03/25/121_Torch_compile/"/>
+    <id>http://example.com/2025/03/25/121_Torch_compile/</id>
+    <published>2025-03-25T07:31:00.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;pre&gt;&lt;code&gt;“`torch.compile“` speeds the flame,
+Trade-offs linger, but worth the game.
+Train or infer, it cuts the line,
+With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>DeepGEMM</title>
+    <link href="http://example.com/2025/03/12/120_DeepGEMM/"/>
+    <id>http://example.com/2025/03/12/120_DeepGEMM/</id>
+    <published>2025-03-12T02:16:10.000Z</published>
+    <updated>2026-04-13T01:22:08.136Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在 Hopper H20 平台优化 FlashMLA。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>FlashMLA 实践</title>
+    <link href="http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/"/>
+    <id>http://example.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/</id>
+    <published>2025-03-03T03:26:13.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;之前在 &lt;a
+href=&quot;https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/&quot;&gt;FlashMLA
+源码分析&lt;/a&gt; 分析了 FlashMLA
+的源码，后来我又实践了一下，在此记录一下进一步的学习成果。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>FlashMLA 源码分析</title>
+    <link href="http://example.com/2025/02/24/117_FlashMLA/"/>
+    <id>http://example.com/2025/02/24/117_FlashMLA/</id>
+    <published>2025-02-24T05:45:13.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天Deepseek开源 &lt;a
+href=&quot;https://github.com/deepseek-ai/FlashMLA&quot;&gt;FlashMLA&lt;/a&gt;，之前看过一些
+MLA 相关知识了，感觉这是一个很好的学习 Cuda
+加速的机会，于是实践学习记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>116_learning_records</title>
+    <link href="http://example.com/2025/02/07/116_learning_records/"/>
+    <id>http://example.com/2025/02/07/116_learning_records/</id>
+    <published>2025-02-07T01:51:10.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;扎实基础，系统学习。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>115_Video_Generative</title>
+    <link href="http://example.com/2025/01/07/115_Video_Generative/"/>
+    <id>http://example.com/2025/01/07/115_Video_Generative/</id>
+    <published>2025-01-07T01:49:10.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习研究文生视频&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="T2V" scheme="http://example.com/tags/T2V/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>结绳记事</title>
+    <link href="http://example.com/2025/01/01/1_%E6%97%A0%E4%B8%8B%E6%96%87/"/>
+    <id>http://example.com/2025/01/01/1_%E6%97%A0%E4%B8%8B%E6%96%87/</id>
+    <published>2024-12-31T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.137Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;一些没有下文的文档汇总。本身没什么价值，但是结绳记事一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="结绳记事" scheme="http://example.com/categories/%E7%BB%93%E7%BB%B3%E8%AE%B0%E4%BA%8B/"/>
+    
+    
+    <category term="未完成的垃圾" scheme="http://example.com/tags/%E6%9C%AA%E5%AE%8C%E6%88%90%E7%9A%84%E5%9E%83%E5%9C%BE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>113_tensorflow实现量化softmax算子</title>
+    <link href="http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/"/>
+    <id>http://example.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</id>
+    <published>2024-12-01T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;研究了一下 tensorflow 实现 int8 量化的 softmax 算子&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="tensorflow" scheme="http://example.com/tags/tensorflow/"/>
+    
+    <category term="softmax" scheme="http://example.com/tags/softmax/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Mac M1 安装 Tensorflow</title>
+    <link href="http://example.com/2024/11/22/113_MacM1_tensorflow/"/>
+    <id>http://example.com/2024/11/22/113_MacM1_tensorflow/</id>
+    <published>2024-11-21T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;近期在Mac M1上使用tensorflow，发现不能用了。报错：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;The TensorFlow library was compiled to use AVX instructions, but these aren&#39;t available on your machine.&lt;/code&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Mac" scheme="http://example.com/tags/Mac/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>树莓派Zero实验</title>
+    <link href="http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
+    <id>http://example.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.134Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt;
+上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="Raspberry" scheme="http://example.com/tags/Raspberry/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>triton</title>
+    <link href="http://example.com/2024/11/14/112_triton/"/>
+    <id>http://example.com/2024/11/14/112_triton/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.135Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
+&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a
+href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="HPC" scheme="http://example.com/tags/HPC/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>C++Primer学习</title>
+    <link href="http://example.com/2024/11/13/110_C++Primer/"/>
+    <id>http://example.com/2024/11/13/110_C++Primer/</id>
+    <published>2024-11-12T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.134Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习C++&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="C++" scheme="http://example.com/tags/C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>TinyML and Efficient Deep Learning Computing</title>
+    <link href="http://example.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/"/>
+    <id>http://example.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/</id>
+    <published>2024-11-03T16:00:00.000Z</published>
+    <updated>2026-04-13T01:22:08.134Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在&lt;a
+href=&quot;https://www.zhihu.com/question/668077638/answer/4043039987&quot;&gt;知乎&lt;/a&gt;看到这么一句话：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;跟着好好上韩松的课程，把 lab 都自己认真做一遍，特别是 AWQ 那套算法和推理的框架 （quantizaiton），只要能读懂整套代码，就能自己回答你问的问题了～&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;感觉自己其实没有一个系统的学习，于是跟着&lt;a
+href=&quot;https://hanlab.mit.edu/courses/2024-fall-65940&quot;&gt;韩松&lt;/a&gt;学习一遍，在此记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
+    
+  </entry>
+  
+</feed>

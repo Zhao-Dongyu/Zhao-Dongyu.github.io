@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="学习研究文生视频">
+<meta property="og:type" content="article">
+<meta property="og:title" content="115_Video_Generative">
+<meta property="og:url" content="http://example.com/2025/01/07/115_Video_Generative/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="学习研究文生视频">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/115/Teacache.png">
+<meta property="article:published_time" content="2025-01-07T01:49:10.000Z">
+<meta property="article:modified_time" content="2026-04-13T01:22:08.135Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Tech">
+<meta property="article:tag" content="T2V">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/115/Teacache.png">
+
+<link rel="canonical" href="http://example.com/2025/01/07/115_Video_Generative/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>115_Video_Generative | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/07/115_Video_Generative/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          115_Video_Generative
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-01-07 09:49:10" itemprop="dateCreated datePublished" datetime="2025-01-07T09:49:10+08:00">2025-01-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-04-13 09:22:08" itemprop="dateModified" datetime="2026-04-13T09:22:08+08:00">2026-04-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.2k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>学习研究文生视频</p>
+<span id="more"></span>
+<p>Effective scaling strategy
+将计算资源需求减少最多5倍，同时实现预期的模型性能。</p>
+<p>13 billion parameters 130亿参数 pre-training it on internet-scale
+images and videos. 在互联网规模的图像和视频上进行了预训练。</p>
+<p>在视频生成的四个关键方面表现出色： - 视觉质量 visual quality -
+运动动态 motion dynamics - 视频与文本对齐 video-text alignment -
+语义场景切换 semantic scene cut</p>
+<p>第3部分介绍了我们的数据预处理技术，包括数据过滤和重新标注模型。
+第4部分详细介绍了鸿源视频所有组件的架构，以及我们的训练和推理策略。
+第5部分讨论了加速模型训练和推理的方法，从而支持130亿参数的大型模型开发。
+第6部分评估了我们的文本到视频基础模型的性能，并将其与开源和闭源的顶尖视频生成模型进行比较。</p>
+<p>image-video joint training strategy 图像-视频联合训练策略</p>
+<p>对于形状为 (T + 1) × 3 × H × W 的视频，我们的3D VAE将其压缩为形状为
+(T/ct + 1) × C × (H/cs) × (W/cs) 的潜在特征。</p>
+<p>This compression significantly reduces the number of tokens for the
+subsequent diffusion transformer model, allowing us to train videos at
+the original resolution and frame rate.</p>
+<p>中文:
+这种压缩显著减少了后续扩散Transformer模型的Token数量，使我们能够在原始分辨率和帧率下训练视频。</p>
+<p>在单个GPU上编码和解码高分辨率长视频可能会导致内存不足（OOM）错误。为了解决这个问题，我们使用了时空切片策略spatial-temporal
+tiling strategy，将输入视频在空间和时间维度上分割为重叠的切片。
+每个切片分别进行编码/解码，然后将输出拼接在一起。对于重叠区域，我们使用线性组合
+linear combination 进行融合。
+这种切片策略使我们能够在单个GPU上编码/解码任意分辨率和时长的视频。</p>
+<p>推理过程中直接使用切片策略可能会由于训练和推理的不一致性而导致明显的伪影。
+为了解决这个问题，我们引入了一个额外的微调阶段，在训练过程中随机启用或禁用切片策略。</p>
+<p>对于文本分支，我们首先使用先进的大语言模型（LLM）将文本编码为捕捉细粒度语义信息的嵌入序列。
+同时，我们使用CLIP模型提取包含全局信息的池化文本表示。这种表示随后在维度上进行扩展，并在输入模型前添加到时间步
+timestep embedding 嵌入中。 CLIP model:
+一种预训练模型，可生成文本和图像的嵌入表示。</p>
+<p>为了有效整合文本和视觉信息，我们采用了与[47]中视频生成类似的“双流到单流Dual-stream
+to Single-stream”混合模型设计策略。
+在双流阶段，视频和文本Token通过多个Transformer块独立处理，使每种模态能够学习各自适当的调节机制，而不受干扰。
+在单流阶段，我们将视频和文本Token拼接后输入后续Transformer块，以实现有效的多模态信息融合。
+这种设计捕捉了视觉和语义信息之间的复杂交互，提升了整体模型性能。</p>
+<p>在其生成模型中使用了基于扩散的骨干网络，建立在扩散概率模型的最新进展之上。
+骨干网络在潜在空间中运行，处理由3DVAE编码器提取的Token序列。
+核心网络结构采用基于Transformer的U-Net设计，集成了时空注意力层和前馈模块。</p>
+<p>对于文本分支，我们采用了一种双层方法，将大规模预训练语言模型（LLM）与CLIP模型结合起来。
+第一层使用LLM提取细粒度的文本特征，捕捉详细的语义信息。
+接下来是CLIP模型，将嵌入池化为一个全局文本表示，用于总结输入文本的整体语境。
+两种模型的组合嵌入随后作为输入，传递给视频生成骨干网络。
+通过整合两层特征，文本编码器有效平衡了细粒度细节和全局语境，实现了精确的文本与视频对齐。</p>
+<p><code>dist.init_process_group("nccl")</code></p>
+<p>初始化分布式训练过程，设置进程间的通信方式，特别是使用
+<strong>NCCL</strong>（NVIDIA Collective Communications
+Library）作为通信后端。</p>
+<p>是 PyTorch
+分布式训练中的一个重要步骤，用于初始化分布式环境，使得多个进程可以通过通信框架互相协调工作。</p>
+<p>NCCL 是一个高效的分布式通信库，特别优化了在 NVIDIA GPU
+上进行数据传输和集合操作（如
+<code>all-reduce</code>，<code>all-gather</code>）的性能。它能够利用 GPU
+内部的高速互联（如
+NVLink、PCIe）进行通信，提供低延迟、高带宽的数据交换。</p>
+<p>工作原理 -
+<strong>多机训练</strong>：如果有多个机器，每个机器上可能有多个
+GPU，这时 <code>init_process_group("nccl")</code>
+会通过网络将各机器上的进程连接起来。 -
+<strong>单机多卡训练</strong>：如果只在一台机器上使用多个
+GPU，这个初始化过程会使得不同 GPU 之间可以高效地共享数据。 -
+<strong>通信模式</strong>：在 NCCL 后端的帮助下，PyTorch 可以进行高效的
+<code>all-reduce</code>（将多个 GPU
+上的梯度合并），<code>broadcast</code>（将一个 GPU 的数据广播到其他
+GPU）等操作。</p>
+<p>ring_degree ulysses_degree
+https://github.com/xdit-project/xDiT/tree/main</p>
+<p>𝒑: Number of pixels;<br />
+𝒉𝒔: Model hidden size;<br />
+𝑳: Number of model layers;<br />
+𝑷: Total model parameters;<br />
+𝑵: Number of parallel devices;<br />
+𝑴: Number of patch splits;<br />
+𝑸𝑶: Query and Output parameter count;<br />
+𝑲𝑽: KV Activation parameter count;<br />
+𝑨 = 𝑸 = 𝑶 = 𝑲 = 𝑽: Equal parameters for Attention, Query, Output, Key,
+and Value;</p>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 6%" />
+<col style="width: 20%" />
+<col style="width: 10%" />
+<col style="width: 21%" />
+<col style="width: 24%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"></th>
+<th style="text-align: center;">attn-KV</th>
+<th style="text-align: center;">communication cost</th>
+<th style="text-align: center;">param memory</th>
+<th style="text-align: center;">activations memory</th>
+<th style="text-align: center;">extra buff memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">Tensor Parallel</td>
+<td style="text-align: center;">fresh</td>
+<td style="text-align: center;"><span class="math inline">\(4O(p \times
+hs)L\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(\frac{1}{N}P\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}QO\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}KV\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">DistriFusion*</td>
+<td style="text-align: center;">stale</td>
+<td style="text-align: center;"><span class="math inline">\(2O(p \times
+hs)L\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(P\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}QO\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(2AL =
+(KV)L\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">Ring Sequence Parallel*</td>
+<td style="text-align: center;">fresh</td>
+<td style="text-align: center;"><span class="math inline">\(2O(p \times
+hs)L\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(P\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}QO\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}KV\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">Ulysses Sequence Parallel</td>
+<td style="text-align: center;">fresh</td>
+<td style="text-align: center;"><span
+class="math inline">\(\frac{4}{N}O(p \times hs)L\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(P\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}QO\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{N}A
+= \frac{1}{N}KV\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;">PipeFusion*</td>
+<td style="text-align: center;">stale-</td>
+<td style="text-align: center;"><span class="math inline">\(2O(p \times
+hs)\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(\frac{1}{N}P\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\frac{2}{M}A
+= \frac{1}{M}QO\)</span></td>
+<td style="text-align: center;"><span
+class="math inline">\(\frac{2L}{N}A = \frac{1}{N}(KV)L\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>看 communication cost 的话， Ulysses Sequence Parallel 更小一些，</p>
+<p>Ring Sequence Parallel 和 Ulysses Sequence Parallel
+是分布式计算中用于并行化序列模型（如
+Transformer）的两种策略。它们的主要区别在于如何分割和处理数据流，以及它们在模型中的实现方式。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>特性</th>
+<th>Ring Sequence Parallel</th>
+<th>Ulysses Sequence Parallel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据分割方式</td>
+<td>小块，按时间步或序列依赖分割</td>
+<td>较大块，按长序列分割</td>
+</tr>
+<tr>
+<td>设备间依赖性</td>
+<td>强依赖，顺序传递</td>
+<td>较弱依赖，尽量独立处理</td>
+</tr>
+<tr>
+<td>通信模式</td>
+<td>环形通信，设备间按序依赖</td>
+<td>较少通信，设备间松耦合</td>
+</tr>
+<tr>
+<td>适用任务</td>
+<td>时间步序列任务（RNN-like）</td>
+<td>长序列模型（Transformer-like）</td>
+</tr>
+<tr>
+<td>计算效率</td>
+<td>较低，因需等待前一设备完成</td>
+<td>较高，因设备独立并行工作</td>
+</tr>
+<tr>
+<td>实现复杂度</td>
+<td>较低，容易实现</td>
+<td>较高，需复杂的分割与同步策略</td>
+</tr>
+</tbody>
+</table>
+<p>选择的考量 - 如果模型需要严格的时间步依赖（如
+RNN）且通信开销可以接受，Ring Sequence Parallel 是一个适合的选择。 -
+如果模型是基于长序列（如 GPT 或 BERT
+的长文档处理），并且需要最大化并行效率，Ulysses Sequence Parallel
+更为理想。</p>
+<p>args = Namespace(model='HYVideo-T/2-cfgdistill', latent_channels=16,
+precision='bf16', rope_theta=256, vae='884-16c-hy',
+vae_precision='fp16', vae_tiling=True, text_encoder='llm',
+text_encoder_precision='fp16', text_states_dim=4096, text_len=256,
+tokenizer='llm', prompt_template='dit-llm-encode',
+prompt_template_video='dit-llm-encode-video', hidden_state_skip_layer=2,
+apply_final_norm=False, text_encoder_2='clipL',
+text_encoder_precision_2='fp16', text_states_dim_2=768,
+tokenizer_2='clipL', text_len_2=77, denoise_type='flow', flow_shift=7.0,
+flow_reverse=True, flow_solver='euler',
+use_linear_quadratic_schedule=False, linear_schedule_end=25,
+model_base='ckpts',
+dit_weight='ckpts/hunyuan-video-t2v-720p/transformers/mp_rank_00_model_states_fp8.pt',
+model_resolution='540p', load_key='module', use_cpu_offload=True,
+batch_size=1, infer_steps=50, disable_autocast=False,
+save_path='./results', save_path_suffix='', name_suffix='',
+num_videos=1, video_size=[960, 544], video_length=129, prompt='A cat
+walks on the grass, realistic style.', seed_type='auto', seed=42,
+neg_prompt=None, cfg_scale=1.0, embedded_cfg_scale=6.0, use_fp8=True,
+reproduce=False, ulysses_degree=1, ring_degree=1)</p>
+<p>VAE学习 https://www.gwylab.com/note-vae.html</p>
+<p>llava-llama-3-8b-v1_1-hf is a LLaVA model fine-tuned from
+meta-llama/Meta-Llama-3-8B-Instruct and CLIP-ViT-Large-patch14-336 with
+ShareGPT4V-PT and InternVL-SFT by XTuner.</p>
+<p>是的，llava-llama-3-8b-v1_1-hf 是一个典型的
+MLLM（多模态大语言模型）的实例。</p>
+<p>为什么是 MLLM？</p>
+<p>这个模型的架构和功能体现了多模态大语言模型的特点： 1. 多模态能力： •
+它结合了文本（LLaMA 模型）和视觉信息（CLIP
+模型），能够处理图像和文本两种模态的数据。 • 通过 CLIP
+的视觉编码器（CLIP-ViT-Large-patch14-336）来提取图像特征，文本部分由
+Meta-Llama-3-8B-Instruct 处理。 2. 大语言模型（LLM）能力： • 使用 Meta
+的 Llama 3
+模型，这是一种强大的文本生成和理解语言模型，经过指令微调（Instruct
+Tuning），适合对话和任务式问答。 3. 多模态数据的联合微调： • 使用数据集
+ShareGPT4V-PT 和 InternVL-SFT，对多模态输入（图像+文本）进行强化训练。 •
+ShareGPT4V-PT：包含 ChatGPT 和 GPT-4 Vision 提供的多模态对话数据。 •
+InternVL-SFT：一种视觉-语言领域的任务微调数据集。 4. 模型设计： • 结合
+LLaVA（Large Language and Vision Assistant）
+框架，用于多模态问答（Multimodal
+Q&amp;A），可以同时处理图像和文本输入，生成多模态输出。</p>
+<p>LLaVA 是 MLLM 的典型实现</p>
+<p>LLaVA（Large Language and Vision Assistant）
+系列模型本身就是多模态大语言模型（MLLM）的重要代表之一，结合了强大的视觉编码器（如
+CLIP）和语言模型（如 LLaMA）的能力，能够在以下多模态任务中表现优异： •
+图文问答（Visual Question Answering, VQA）： •
+输入图片和问题，回答与图片相关的问题。 • 图像描述生成（Image
+Captioning）： • 输入图片，生成详细的文字描述。 • 图文对话（Multimodal
+Dialogue）： • 在对话中理解并回应图像内容与文本问题的混合输入。</p>
+<p>llava-llama-3-8b-v1_1-hf 就是这个方向的具体实现之一。</p>
+<p>总结</p>
+<p>llava-llama-3-8b-v1_1-hf
+是一个典型的多模态大语言模型（MLLM），它结合了强大的文本生成能力和视觉理解能力，是
+LLaVA 框架的一个应用实例。</p>
+<p>如果你正在探索 MLLM
+或者具体想知道它的实现原理、训练过程或应用场景，可以进一步探讨！</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=MzxPBzLSJh4">Teacache
+Caching:提速200%，质量无损秘诀！ | Speed Boost 200%, No Quality Loss
+Secrets!</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/welltop-cn/ComfyUI-TeaCache">ComfyUI-TeaCache</a></p>
+<p>工作流：<a
+target="_blank" rel="noopener" href="https://github.com/amao2001/ganloss-latent-space">ganloss-latent-space</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ali-vilab/TeaCache">TeaCache技术</a> <a
+target="_blank" rel="noopener" href="https://arxiv.org/pdf/2411.19108">paper</a></p>
+<p><img src="/images/115/Teacache.png" width="80%"></p>
+<p>Uniform Cache: 均匀的缓存技术 - 毫无重点 - 没有优化的技术</p>
+<p>TeaCache: 非均匀 多次重用 输出取决于输入，输入变化很小 -&gt;
+输出变化可以接受，重用缓存，提高缓存效率</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LLM/" rel="tag"># LLM</a>
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+              <a href="/tags/T2V/" rel="tag"># T2V</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/01/1_%E6%97%A0%E4%B8%8B%E6%96%87/" rel="prev" title="结绳记事">
+      <i class="fa fa-chevron-left"></i> 结绳记事
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/02/07/116_learning_records/" rel="next" title="116_learning_records">
+      116_learning_records <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">248k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:45</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : '17b4108f6b2444ce4c68e5a846765fae',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA kernel的反量化。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析">
+<meta property="og:url" content="http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA kernel的反量化。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/101/1.jpeg">
+<meta property="og:image" content="http://example.com/images/101/2.jpeg">
+<meta property="og:image" content="http://example.com/images/101/3.jpeg">
+<meta property="og:image" content="http://example.com/images/101/4.jpeg">
+<meta property="og:image" content="http://example.com/images/101/5.jpeg">
+<meta property="og:image" content="http://example.com/images/101/6.jpeg">
+<meta property="og:image" content="http://example.com/images/101/7.jpeg">
+<meta property="og:image" content="http://example.com/images/101/8.jpeg">
+<meta property="og:image" content="http://example.com/images/101/9.jpeg">
+<meta property="og:image" content="http://example.com/images/101/10.jpeg">
+<meta property="og:image" content="http://example.com/images/101/11.jpeg">
+<meta property="og:image" content="http://example.com/images/101/12.jpeg">
+<meta property="og:image" content="http://example.com/images/101/13.png">
+<meta property="article:published_time" content="2024-08-12T01:52:02.000Z">
+<meta property="article:modified_time" content="2026-04-13T01:22:08.133Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="AWQ">
+<meta property="article:tag" content="dequantize">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/101/1.jpeg">
+
+<link rel="canonical" href="http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WeightonlyGEMM:dequantize_s4_to_fp16x2代码解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2024-08-12 09:52:02" itemprop="dateCreated datePublished" datetime="2024-08-12T09:52:02+08:00">2024-08-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-04-13 09:22:08" itemprop="dateModified" datetime="2026-04-13T09:22:08+08:00">2026-04-13</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>8.9k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>8 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文聚焦于AWQ的W4A16 (4-bit weight, 16-bit activation) CUDA
+kernel的反量化。</p>
+<span id="more"></span>
+<h1 id="背景">背景</h1>
+<p>在 ZZK大佬的文章 <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/675427125">可能是讲的最清楚的WeightonlyGEMM博客</a>
+中学到很多知识</p>
+<hr />
+<p>最近在学AWQ的量化，<a
+target="_blank" rel="noopener" href="https://arxiv.org/pdf/2306.00978">AWQ论文</a></p>
+<p>其中我比较关注GPU的部分，其中数据排布这块很有意思：</p>
+<p><img src="/images/101/1.jpeg" width="60%"></p>
+<p>于是到<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2211.10017">Who Says Elephants
+Can’t Run</a> 这篇论文看了一下，<strong>WeightOnly GEMM</strong>
+技术就是在这里提出的，其中权重反量化是这么操作的：</p>
+<p><img src="/images/101/2.jpeg" width="60%"></p>
+<p>这个论文提出了一种 `IntToFloat
+的巧妙的方式，可以大大提速反量化速度。</p>
+<p><img src="/images/101/3.jpeg" width="60%"></p>
+<p>背景介绍结束，更详细的讲解可以直接看ZZK大佬的文章，接下来解释
+<code>dequantize_s4_to_fp16x2</code> 代码。</p>
+<h1 id="代码">代码</h1>
+<p>首先放出完整代码（80行）： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span> &#123;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  uint4 result;</span><br><span class="line"></span><br><span class="line">  <span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line">  <span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// First, we extract the i4s and construct an intermediate fp16 number.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Note that the entire sequence only requires 1 shift instruction. This is</span></span><br><span class="line">  <span class="comment">// thanks to the register packing format and the fact that we force our</span></span><br><span class="line">  <span class="comment">// integers to be unsigned, and account for this in the fp16 subtractions. In</span></span><br><span class="line">  <span class="comment">// addition, I exploit the fact that sub and fma have the same throughput in</span></span><br><span class="line">  <span class="comment">// order to convert elt_23 and elt_67 to fp16 without having to shift them to</span></span><br><span class="line">  <span class="comment">// the bottom bits before hand.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// Shift right by 8 to now consider elt_45 and elt_67. Issue first to hide RAW</span></span><br><span class="line">  <span class="comment">// dependency if we issue immediately before required.</span></span><br><span class="line">  <span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br><span class="line">  <span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_45 (top_i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line">  <span class="comment">// Extract elt_67 (top_i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(top_i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// I use inline PTX below because I am not sure if the compiler will emit</span></span><br><span class="line">  <span class="comment">// float2half instructions if I use the half2 ctor. In this case, I chose</span></span><br><span class="line">  <span class="comment">// performance reliability over code readability.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// This is the half2 &#123;1032, 1032&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t FP16_TOP_MAGIC_NUM = 0x64086408;</span></span><br><span class="line">  <span class="comment">// Haotian: subtract &#123;1024, 1024&#125; instead, we do not need to map to [-8, 7]</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> FP16_TOP_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;1 / 16, 1 / 16&#125; represented as an integer.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> ONE_SIXTEENTH = <span class="number">0x2c002c00</span>;</span><br><span class="line">  <span class="comment">// This is the half2 &#123;-72, -72&#125; represented as an integer.</span></span><br><span class="line">  <span class="comment">// static constexpr uint32_t NEG_72 = 0xd480d480;</span></span><br><span class="line">  <span class="comment">// Haotian: Let&#x27;s use &#123;-64, -64&#125;.</span></span><br><span class="line">  <span class="type">static</span> constexpr <span class="type">uint32_t</span> NEG_64 = <span class="number">0xd400d400</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Finally, we construct the output numbers.</span></span><br><span class="line">  <span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_45</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">2</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">2</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br><span class="line">  <span class="comment">// Convert elt_67</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">3</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">3</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="代码解析">代码解析</h1>
+<p>接下来逐句分析： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__device__ uint4 <span class="title function_">dequantize_s4_to_fp16x2</span><span class="params">(<span class="type">uint32_t</span> <span class="type">const</span>&amp; source)</span></span><br></pre></td></tr></table></figure></p>
+<p>这行代码定义了一个名为 <code>dequantize_s4_to_fp16x2</code>
+的函数，这个函数是一个 CUDA 设备函数
+(<strong>device</strong>)，它的输入是一个常量引用 <code>uint32_t</code>
+类型的 <code>source</code>，返回值是 <code>uint4</code> 类型。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__) &amp;&amp; __CUDA_ARCH__ &lt; 750</span></span><br><span class="line">  assert(<span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br></pre></td></tr></table></figure>
+<p>这段预处理指令检查 CUDA 架构版本是否小于
+750。如果是，则触发断言错误，表明该代码不适用于 CUDA 750
+以下的架构。否则，继续执行后面的代码。 比如这个函数里面用到了
+<code>lop3.b32</code> 函数，可以在 <a
+target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>
+查到</p>
+<pre><code>Requires sm_50 or higher.
+Qualifier .BoolOp requires sm_70 or higher.</code></pre>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">uint4 result;</span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span>* h = reinterpret_cast&lt;<span class="type">uint32_t</span>*&gt;(&amp;result);</span><br><span class="line"><span class="type">uint32_t</span> <span class="type">const</span> i4s = reinterpret_cast&lt;<span class="type">uint32_t</span> <span class="type">const</span>&amp;&gt;(source);</span><br></pre></td></tr></table></figure>
+<p>这里定义了一个 <code>uint4</code> 类型的变量
+<code>result</code>。</p>
+<p>接着将 <code>result</code> 的地址转换为 <code>uint32_t*</code>
+类型的指针 <code>h</code>，以便后续的位操作。</p>
+<p>然后将 <code>source</code> 重新解释为 <code>uint32_t</code>
+类型并赋值给 <code>i4s</code>。</p>
+<p>通过类型转换和指针操作，使得对这些整数的访问和操作更加便捷。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> immLut = (<span class="number">0xf0</span> &amp; <span class="number">0xcc</span>) | <span class="number">0xaa</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> BOTTOM_MASK = <span class="number">0x000f000f</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> TOP_MASK = <span class="number">0x00f000f0</span>;</span><br><span class="line"><span class="type">static</span> constexpr <span class="type">uint32_t</span> I4s_TO_F16s_MAGIC_NUM = <span class="number">0x64006400</span>;</span><br></pre></td></tr></table></figure>
+<p>这里定义了一些用于位操作的常量：</p>
+<ul>
+<li><p><code>immLut</code> 是一个查找表的立即数。</p></li>
+<li><p><code>BOTTOM_MASK</code> 是用于提取较低位的掩码。</p></li>
+<li><p><code>TOP_MASK</code> 是用于提取较高位的掩码。</p></li>
+<li><p><code>I4s_TO_F16s_MAGIC_NUM</code>
+是用于整数转换为半精度浮点数的魔数。</p></li>
+</ul>
+<p><img src="/images/101/4.jpeg" width="95%"></p>
+<p>这几个数在内存中是这么表示的，后面用到的时候会仔细说，那时候会发现这几个数可真妙啊。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/5.jpeg" width="95%"></p>
+<p>这里是将 <code>i4s</code> 向右移位8位，以便处理 <code>elt_45</code>
+和 <code>elt_67</code>。暂时先不要管为什么这么做。
+到这里，预备工作都做好了，接下来开始重头戏。</p>
+<h2 id="处理e0-e1元素">处理e0 e1元素</h2>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p>使用内联 PTX 指令 <code>lop3.b32</code> 执行逻辑操作，将
+<code>i4s</code> 的低位（<code>BOTTOM_MASK</code> 掩码）与
+<code>I4s_TO_F16s_MAGIC_NUM</code> 结合并存储在 <code>h[0]</code>
+中。</p>
+<p>首先看一下 <code>lop3.b32</code> 执行了什么操作，这个
+<code>lop3.b32</code> 是一种CUDA汇编指令，用于执行
+三元逻辑运算。它利用查找表（immLut）来简化逻辑操作。这个函数可以在<a
+target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/parallel-thread-execution/">这里</a>查到.</p>
+<pre><code>For a logical operation F(a, b, c) the value of immLut can be computed by applying the same operation to three predefined constant values as follows:
+
+ta = 0xF0;
+tb = 0xCC;
+tc = 0xAA;
+
+immLut = F(ta, tb, tc);</code></pre>
+<p>比如： <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">If F = (a &amp; b &amp; c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; <span class="number">0xAA</span> = <span class="number">0x80</span></span><br><span class="line"></span><br><span class="line">If F = (a | b | c);</span><br><span class="line">immLut = <span class="number">0xF0</span> | <span class="number">0xCC</span> | <span class="number">0xAA</span> = <span class="number">0xFE</span></span><br><span class="line"></span><br><span class="line">If F = (a &amp; b &amp; ~c);</span><br><span class="line">immLut = <span class="number">0xF0</span> &amp; <span class="number">0xCC</span> &amp; (~<span class="number">0xAA</span>) = <span class="number">0x40</span></span><br><span class="line"></span><br><span class="line">If F = ((a &amp; b | c) ^ a);</span><br><span class="line">immLut = (<span class="number">0xF0</span> &amp; <span class="number">0xCC</span> | <span class="number">0xAA</span>) ^ <span class="number">0xF0</span> = <span class="number">0x1A</span></span><br></pre></td></tr></table></figure></p>
+<p>现在我们可以看一下刚才定义的
+<code>immLut = (0xf0 &amp; 0xcc) | 0xaa;</code> 那我们得到的操作就是
+<code>(a &amp; b) | c</code>，也就是<code>( i4s &amp; BOTTOM_MASK) | I4s_TO_F16s_MAGIC_NUM</code>.</p>
+<p>这里先插一句，这个<code>immLut</code>设置的实在是太妙了！首先，abc这三个数可以形成一个
+3 bit 的编码，可以表示 8 种状态，</p>
+<p><img src="/images/101/6.jpeg" width="80%"></p>
+<p>然后无论abc进行什么样的三元逻辑操作，得到的结果都是唯一的，这也就形成了immLut的表。实在是妙啊。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Extract elt_01 - (i4s &amp; 0x000f000f) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(BOTTOM_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p>然后结合具体数值看一下是怎么操作的：</p>
+<p><img src="/images/101/7.jpeg" width="95%"></p>
+<p>这一步操作是提取元素0和元素1的，这里设置元素0是<code>0000</code>，即
+0，元素1是<code>0001</code>，即 1。</p>
+<p><code>i4s</code>与<code>BOTTOM_MASK</code>进行位与操作后，实际上就是把<code>e0</code>和<code>e1</code>筛选了出来，和<code>I4s_TO_F16s_MAGIC_NUM</code>进行位或操作后，是给指数位进行了赋值。</p>
+<p>现在看这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
+，<code>0x64006400</code>，只看这个指数位部分是
+<code>11001</code>，对应数字 25，fp16指数位的偏移量为
+<code>2**4−1=15</code>, 那么偏移后指数为 <code>25 - 15 = 10</code>。</p>
+<p>以e1为例，</p>
+<p>尾数位是<code>0.0000000001</code>，加上1，那就是<code>1.0000000001</code>。</p>
+<p>指数位是10，所以结果是<code>1.00000001*2^10 = 10000000001</code>。也就是小数点向后移动10位。</p>
+<p>这个结果的十进制是 1025。</p>
+<p>这时候就可以理解这个 <code>I4s_TO_F16s_MAGIC_NUM</code>
+为什么这么设置了——原来的数值类型是<code>int4</code>，肯定是整数，那么问题的关键就是要把尾数放大到一定程度，使新的数值是整数。那么，显而易见，要把小数点向右移动10位（因为尾数位有10位），也就反推出了<code>magic number</code>的具体数值，妙啊。</p>
+<p>显然，此时的结果并不正确，因为加了1并且右移了10位，也就是加了1024，所以我们要把结果减去1024才可以，所以还需要进行这一步操作：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Convert elt_01</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sub.f16x2 %0, %1, %2;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">0</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">0</span>]), <span class="string">&quot;r&quot;</span>(FP16_TOP_MAGIC_NUM))</span>;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code></p>
+<p>这句代码实现了减1024这个操作，于是最终得到fp16格式的<code>e1=1</code>，
+<code>e0=0</code>，数据无误。</p>
+<p>需要注意的是，<code>FP16_TOP_MAGIC_NUM = 0x64006400;</code>这个数代表的其实是fp16格式的
+1024。</p>
+<p>我最开始在这里感到疑惑，心想为什么要减这么一个数，这也不是1024啊，直到后来意识到现在是在做fp16的减法，那么当然也要是fp16的格式。</p>
+<p>ok，到现在为止，最难的部分就理解完了。接下来看一下别的情况：</p>
+<h2 id="处理e2-e3元素">处理e2 e3元素</h2>
+<p><img src="/images/101/8.jpeg" width="95%"></p>
+<p>对于e2、e3而言，这时候就不能用 <code>BOTTOM_MASK</code>
+来进行位与操作了，应该改为 <code>TOP_MASK</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Extract elt_23 (i4s &amp; 0x00f000f0) | 0x64006400</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lop3.b32 %0, %1, %2, %3, %4;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(i4s), <span class="string">&quot;n&quot;</span>(TOP_MASK), <span class="string">&quot;n&quot;</span>(I4s_TO_F16s_MAGIC_NUM),</span></span><br><span class="line"><span class="params">                 <span class="string">&quot;n&quot;</span>(immLut))</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/9.jpeg" width="95%"></p>
+<p>如果减去1024，呢么得到<code>e3=48</code>，<code>e2=32</code>，这和刚才不太一样，事情变得不太简单。</p>
+<p>问题在哪？以e3为例，这时候小数点右移10位意味着把e3乘了<code>2^4=16</code>，所以当前的结果是<code>1024 + X * 16</code>。</p>
+<p>所以针对e2、e3的下一步操作稍有不同：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Convert elt_23</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;fma.rn.f16x2 %0, %1, %2, %3;\\n&quot;</span></span></span><br><span class="line"><span class="params">               : <span class="string">&quot;=r&quot;</span>(h[<span class="number">1</span>])</span></span><br><span class="line"><span class="params">               : <span class="string">&quot;r&quot;</span>(h[<span class="number">1</span>]), <span class="string">&quot;r&quot;</span>(ONE_SIXTEENTH), <span class="string">&quot;r&quot;</span>(NEG_64))</span>;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>ONE_SIXTEENTH = 0x2c002c00; NEG_64 = 0xd400d400;</code></p>
+<p>这是做了什么操作？可以理解为</p>
+<p><code>(1024 + X * 16) * (1/16) - 64 = X</code></p>
+<p>ok，到现在为止，e0e1e2e3都搞定了，最后看一下e4e5，</p>
+<h2 id="处理e4-e5元素">处理e4 e5元素</h2>
+<p><img src="/images/101/10.jpeg" width="95%"></p>
+<p>e4 e5元素怎么提取呢？可以先认真思考一下。</p>
+<p>我最开始的想法是，针对e4
+e5的位置，再写一个mask进行位与操作不就好了，然后和前面做一样的操作。</p>
+<p>但是这样是不可行的，以e5为例，这时候e5在16位的高8位，与fp16的指数位有冲突。</p>
+<p>那么，处理方式就很简单了，文章最开始的时候提到过这个操作：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">uint32_t</span> top_i4s = i4s &gt;&gt; <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/101/11.jpeg" width="95%"></p>
+<p>这里是将 i4s 向右移位8位，以便处理 <code>elt_45</code> 和
+<code>elt_67</code>。</p>
+<p>这样一来，就可以按照e0 e1的方式处理e4 e5了。</p>
+<p>ok，到现在为止，e0 e1 e2 e3 e4 e5都搞定了，有了前面的基础，e6
+e7理解起来就很简单，这里不做过多赘述。</p>
+<p>整个代码实现到这里也就讲完了。</p>
+<hr />
+<h2 id="写在最后">写在最后</h2>
+<p>最后，补充几点</p>
+<ul>
+<li><p>对于e2e3而言，为什么不像e5e6那样，向右移动8位，然后做e0e1相同的操作？</p>
+<p>这样的操作从逻辑上确实更好理解，也避免了后面的乘1/16的操作，看上去似乎更简单。</p>
+<p>但是要明白一点，e5e6那样，向右移动8位，是不得不这么做。</p>
+<p>为了性能，e2e3没必要额外增加一个移位操作。所以关键点只剩一个：<code>fma.rn.f16x2</code>指令和<code>sub.f16x2</code>指令的区别，如果
+移位+sub指令 快于
+<code>fma.rn</code>指令，那就是赚的。代码中的注释标明了这一点：</p>
+<pre><code>  In addition, I exploit the fact that sub and fma have the same throughput in order to convert elt_23 and elt_67 to fp16 without having to shift them to the bottom bits before hand.</code></pre>
+<p>sub（减法）和
+fma（乘法累加）具有相同的吞吐量，这意味着它们的性能相当。</p></li>
+<li><p>为什么要做<code>interleave</code>？</p>
+<p>本文缘起就是因为研究这个权重排布</p>
+<p><img src="/images/101/12.jpeg" width="60%"></p>
+<p>前文中一直没有提这件事——为什么权重是<code>interleave</code>排布？</p>
+<p><img src="/images/101/13.png" width="95%"></p>
+<p>按照zzk大佬的观点，对于<code>Int8</code>来说，本来就是不需要<code>Interleave</code>的，但是<code>Int4</code>快速转换不能使用PRMT指令，需要通过一些trick，进而需要这个交错权重的格式</p>
+<p>也就是说，<code>int8</code>快速反量化中，使用了<code>PRMT</code>指令，这个指令的操作粒度是字节<code>byte</code>；而int4是<code>sub-byte</code>，不足一个字节；因此，原来在<code>INT8</code>快速反量化的那一套无法直接用在<code>int4</code>上。</p>
+<p>所以针对<code>int4</code>，使用指令<code>LOP3</code>来替代<code>PRMT</code>，从而完成了<code>int4</code>快速反量化到<code>fp16</code>的核心逻辑。通过交错权重，可以减少<code>shift</code>指令，提高性能。关于这一点，我认为<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/657073857?utm_medium=social&amp;utm_oi=56635854684160&amp;utm_psn=1692002696943525888&amp;utm_source=wechat_session&amp;s_r=0">[LLM推理优化]🔥WINT8/4-(03):
+LOP3指令详解及INT4转FP16/BF16分析</a> 讲解的比较详细。</p></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LLM/" rel="tag"># LLM</a>
+              <a href="/tags/AWQ/" rel="tag"># AWQ</a>
+              <a href="/tags/dequantize/" rel="tag"># dequantize</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/02/26/102_sgemm_riscv_cn/" rel="prev" title="在riscv平台优化SGEMM">
+      <i class="fa fa-chevron-left"></i> 在riscv平台优化SGEMM
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2024/09/26/104_marlin/" rel="next" title="Marlin代码解读">
+      Marlin代码解读 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">代码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86e0-e1%E5%85%83%E7%B4%A0"><span class="nav-number">3.1.</span> <span class="nav-text">处理e0 e1元素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86e2-e3%E5%85%83%E7%B4%A0"><span class="nav-number">3.2.</span> <span class="nav-text">处理e2 e3元素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86e4-e5%E5%85%83%E7%B4%A0"><span class="nav-number">3.3.</span> <span class="nav-text">处理e4 e5元素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="nav-number">3.4.</span> <span class="nav-text">写在最后</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">248k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:45</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : '6eb186197f6d902bff5c1b2c43f890fd',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>

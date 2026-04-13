@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="今天Deepseek开源 FlashMLA，之前看过一些 MLA 相关知识了，感觉这是一个很好的学习 Cuda 加速的机会，于是实践学习记录一下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FlashMLA 源码分析">
+<meta property="og:url" content="http://example.com/2025/02/24/117_FlashMLA/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="今天Deepseek开源 FlashMLA，之前看过一些 MLA 相关知识了，感觉这是一个很好的学习 Cuda 加速的机会，于是实践学习记录一下。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/117/attention.png">
+<meta property="og:image" content="http://example.com/images/117/metadata.png">
+<meta property="og:image" content="http://example.com/images/117/metadata.png">
+<meta property="og:image" content="http://example.com/images/117/pipeline.png">
+<meta property="og:image" content="http://example.com/images/117/warp_group.png">
+<meta property="og:image" content="http://example.com/images/117/metadata.png">
+<meta property="og:image" content="http://example.com/images/117/nsys_1.png">
+<meta property="og:image" content="http://example.com/images/117/nsys_2.png">
+<meta property="article:published_time" content="2025-02-24T05:45:13.000Z">
+<meta property="article:modified_time" content="2026-04-13T01:22:08.135Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="Tech">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/117/attention.png">
+
+<link rel="canonical" href="http://example.com/2025/02/24/117_FlashMLA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>FlashMLA 源码分析 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/24/117_FlashMLA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FlashMLA 源码分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2025-02-24 13:45:13" itemprop="dateCreated datePublished" datetime="2025-02-24T13:45:13+08:00">2025-02-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-04-13 09:22:08" itemprop="dateModified" datetime="2026-04-13T09:22:08+08:00">2026-04-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>36k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>33 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>今天Deepseek开源 <a
+target="_blank" rel="noopener" href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a>，之前看过一些
+MLA 相关知识了，感觉这是一个很好的学习 Cuda
+加速的机会，于是实践学习记录一下。</p>
+<span id="more"></span>
+<h1 id="准备工作">0.准备工作</h1>
+<h2 id="实验平台">0.1 实验平台</h2>
+<p>如FlashMLA所讲：</p>
+<blockquote>
+<p>FlashMLA is an efficient MLA decoding kernel for Hopper GPUs,
+optimized for variable-length sequences serving.</p>
+</blockquote>
+<p>所以实验平台选择 Hopper 架构的 GPU。</p>
+<details>
+<summary>
+实验平台信息
+</summary>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">Mon Feb 24 13:56:23 2025       </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| NVIDIA-SMI 535.216.03             Driver Version: 535.216.03   CUDA Version: 12.4     |</span><br><span class="line">|:-----------------------------------------+----------------------+----------------------+</span><br><span class="line">| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |</span><br><span class="line">| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |</span><br><span class="line">|                                         |                      |               MIG M. |</span><br><span class="line">|=========================================+======================+======================|</span><br><span class="line">|   0  NVIDIA H20                     On  | 00000000:16:00.0 Off |                    0 |</span><br><span class="line">| N/A   27C    P0              74W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   1  NVIDIA H20                     On  | 00000000:17:00.0 Off |                    0 |</span><br><span class="line">| N/A   29C    P0              75W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   2  NVIDIA H20                     On  | 00000000:40:00.0 Off |                    0 |</span><br><span class="line">| N/A   28C    P0              74W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   3  NVIDIA H20                     On  | 00000000:41:00.0 Off |                    0 |</span><br><span class="line">| N/A   28C    P0              74W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   4  NVIDIA H20                     On  | 00000000:96:00.0 Off |                    0 |</span><br><span class="line">| N/A   27C    P0              73W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   5  NVIDIA H20                     On  | 00000000:97:00.0 Off |                    0 |</span><br><span class="line">| N/A   28C    P0              72W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   6  NVIDIA H20                     On  | 00000000:C0:00.0 Off |                    0 |</span><br><span class="line">| N/A   26C    P0              72W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">|   7  NVIDIA H20                     On  | 00000000:C1:00.0 Off |                    0 |</span><br><span class="line">| N/A   29C    P0              73W / 500W |      0MiB / 97871MiB |      0%      Default |</span><br><span class="line">|                                         |                      |             Disabled |</span><br><span class="line">+-----------------------------------------+----------------------+----------------------+</span><br><span class="line">                                                                                         </span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br><span class="line">| Processes:                                                                            |</span><br><span class="line">|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |</span><br><span class="line">|        ID   ID                                                             Usage      |</span><br><span class="line">|=======================================================================================|</span><br><span class="line">|  No running processes found                                                           |</span><br><span class="line">+---------------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+</details>
+<h2 id="安装">0.2 安装</h2>
+<p><code>git clone https://github.com/deepseek-ai/FlashMLA.git</code></p>
+<p><code>git submodule update --init csrc/cutlass/</code></p>
+<p><code>python setup.py install</code></p>
+<details>
+<summary>
+安装过程log
+</summary>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># python setup.py install</span></span><br><span class="line">running install</span><br><span class="line">/usr/local/lib/python3<span class="number">.10</span>/dist-packages/setuptools/_distutils/cmd.py:<span class="number">79</span>: SetuptoolsDeprecationWarning: setup.py install <span class="keyword">is</span> deprecated.</span><br><span class="line">!!</span><br><span class="line"></span><br><span class="line">        ********************************************************************************</span><br><span class="line">        Please avoid running ``setup.py`` directly.</span><br><span class="line">        Instead, use pypa/build, pypa/installer <span class="keyword">or</span> other</span><br><span class="line">        standards-based tools.</span><br><span class="line"></span><br><span class="line">        See https://blog.ganssle.io/articles/<span class="number">2021</span>/<span class="number">10</span>/setup-py-deprecated.html <span class="keyword">for</span> details.</span><br><span class="line">        ********************************************************************************</span><br><span class="line"></span><br><span class="line">!!</span><br><span class="line">  self.initialize_options()</span><br><span class="line">/usr/local/lib/python3<span class="number">.10</span>/dist-packages/setuptools/_distutils/cmd.py:<span class="number">79</span>: EasyInstallDeprecationWarning: easy_install command <span class="keyword">is</span> deprecated.</span><br><span class="line">!!</span><br><span class="line"></span><br><span class="line">        ********************************************************************************</span><br><span class="line">        Please avoid running ``setup.py`` <span class="keyword">and</span> ``easy_install``.</span><br><span class="line">        Instead, use pypa/build, pypa/installer <span class="keyword">or</span> other</span><br><span class="line">        standards-based tools.</span><br><span class="line"></span><br><span class="line">        See https://github.com/pypa/setuptools/issues/<span class="number">917</span> <span class="keyword">for</span> details.</span><br><span class="line">        ********************************************************************************</span><br><span class="line"></span><br><span class="line">!!</span><br><span class="line">  self.initialize_options()</span><br><span class="line">running bdist_egg</span><br><span class="line">running egg_info</span><br><span class="line">creating flash_mla.egg-info</span><br><span class="line">writing flash_mla.egg-info/PKG-INFO</span><br><span class="line">writing dependency_links to flash_mla.egg-info/dependency_links.txt</span><br><span class="line">writing top-level names to flash_mla.egg-info/top_level.txt</span><br><span class="line">writing manifest file <span class="string">&#x27;flash_mla.egg-info/SOURCES.txt&#x27;</span></span><br><span class="line">adding license file <span class="string">&#x27;LICENSE&#x27;</span></span><br><span class="line">writing manifest file <span class="string">&#x27;flash_mla.egg-info/SOURCES.txt&#x27;</span></span><br><span class="line">installing library code to build/bdist.linux-x86_64/egg</span><br><span class="line">running install_lib</span><br><span class="line">running build_py</span><br><span class="line">creating build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla</span><br><span class="line">copying flash_mla/__init__.py -&gt; build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla</span><br><span class="line">copying flash_mla/flash_mla_interface.py -&gt; build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla</span><br><span class="line">running build_ext</span><br><span class="line">/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/utils/cpp_extension.py:<span class="number">426</span>: UserWarning: There are no x86_64-linux-gnu-g++ version bounds defined <span class="keyword">for</span> CUDA version <span class="number">12.4</span></span><br><span class="line">  warnings.warn(<span class="string">f&#x27;There are no <span class="subst">&#123;compiler_name&#125;</span> version bounds defined for CUDA version <span class="subst">&#123;cuda_str_version&#125;</span>&#x27;</span>)</span><br><span class="line">building <span class="string">&#x27;flash_mla_cuda&#x27;</span> extension</span><br><span class="line">creating /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc</span><br><span class="line">Emitting ninja build file /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/build.ninja...</span><br><span class="line">Compiling objects...</span><br><span class="line">Allowing ninja to <span class="built_in">set</span> a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)</span><br><span class="line">[<span class="number">1</span>/<span class="number">2</span>] c++ -MMD -MF /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_api.o.d -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=<span class="built_in">format</span>-security -g -fwrapv -O2 -fPIC -I/data/private/zhaodongyu/FlashMLA/csrc -I/data/private/zhaodongyu/FlashMLA/csrc/cutlass/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/TH -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3<span class="number">.10</span> -c -c /data/private/zhaodongyu/FlashMLA/csrc/flash_api.cpp -o /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_api.o -O3 -std=c++<span class="number">17</span> -DNDEBUG -Wno-deprecated-declarations -DTORCH_API_INCLUDE_EXTENSION_H <span class="string">&#x27;-DPYBIND11_COMPILER_TYPE=&quot;_gcc&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_STDLIB=&quot;_libstdcpp&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_BUILD_ABI=&quot;_cxxabi1011&quot;&#x27;</span> -DTORCH_EXTENSION_NAME=flash_mla_cuda -D_GLIBCXX_USE_CXX11_ABI=<span class="number">0</span></span><br><span class="line">[<span class="number">2</span>/<span class="number">2</span>] /usr/local/cuda/<span class="built_in">bin</span>/nvcc --generate-dependencies-<span class="keyword">with</span>-<span class="built_in">compile</span> --dependency-output /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_fwd_mla_bf16_sm90.o.d -I/data/private/zhaodongyu/FlashMLA/csrc -I/data/private/zhaodongyu/FlashMLA/csrc/cutlass/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/torch/csrc/api/include -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/TH -I/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/include/THC -I/usr/local/cuda/include -I/usr/include/python3<span class="number">.10</span> -c -c /data/private/zhaodongyu/FlashMLA/csrc/flash_fwd_mla_bf16_sm90.cu -o /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_fwd_mla_bf16_sm90.o -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options <span class="string">&#x27;&#x27;</span><span class="string">&quot;&#x27;&quot;</span><span class="string">&#x27;-fPIC&#x27;</span><span class="string">&quot;&#x27;&quot;</span><span class="string">&#x27;&#x27;</span> -O3 -std=c++<span class="number">17</span> -DNDEBUG -D_USE_MATH_DEFINES -Wno-deprecated-declarations -U__CUDA_NO_HALF_OPERATORS__ -U__CUDA_NO_HALF_CONVERSIONS__ -U__CUDA_NO_HALF2_OPERATORS__ -U__CUDA_NO_BFLOAT16_CONVERSIONS__ --expt-relaxed-constexpr --expt-extended-<span class="keyword">lambda</span> --use_fast_math --ptxas-options=-v,--register-usage-level=<span class="number">10</span> -gencode arch=compute_90a,code=sm_90a --threads <span class="number">32</span> -DTORCH_API_INCLUDE_EXTENSION_H <span class="string">&#x27;-DPYBIND11_COMPILER_TYPE=&quot;_gcc&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_STDLIB=&quot;_libstdcpp&quot;&#x27;</span> <span class="string">&#x27;-DPYBIND11_BUILD_ABI=&quot;_cxxabi1011&quot;&#x27;</span> -DTORCH_EXTENSION_NAME=flash_mla_cuda -D_GLIBCXX_USE_CXX11_ABI=<span class="number">0</span></span><br><span class="line">ptxas info    : <span class="number">192</span> <span class="built_in">bytes</span> gmem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi160EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi160EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">640</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi128EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi128EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">512</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi96EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi96EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">384</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi64EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi64EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">256</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi32EEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash36flash_fwd_splitkv_mla_combine_kernelIN7cutlass10bfloat16_tEflLi512ELi32EEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">48</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">128</span> <span class="built_in">bytes</span> smem</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb0ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb0ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">104</span> <span class="built_in">bytes</span> stack frame, <span class="number">112</span> <span class="built_in">bytes</span> spill stores, <span class="number">124</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">255</span> registers, <span class="number">104</span> <span class="built_in">bytes</span> cumulative stack size</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb1ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _ZN5flash28flash_fwd_splitkv_mla_kernelI27Flash_fwd_kernel_traits_mlaILi576ELi64ELi64ELi8EN7cutlass10bfloat16_tELi512EELb1ENS_16SharedStorageMLAIS4_EEEEv20Flash_fwd_mla_params</span><br><span class="line">    <span class="number">104</span> <span class="built_in">bytes</span> stack frame, <span class="number">116</span> <span class="built_in">bytes</span> spill stores, <span class="number">136</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">255</span> registers, <span class="number">104</span> <span class="built_in">bytes</span> cumulative stack size</span><br><span class="line">ptxas info    : Compiling entry function <span class="string">&#x27;_Z23get_mla_metadata_kernel19Mla_metadata_params&#x27;</span> <span class="keyword">for</span> <span class="string">&#x27;sm_90a&#x27;</span></span><br><span class="line">ptxas info    : Function properties <span class="keyword">for</span> _Z23get_mla_metadata_kernel19Mla_metadata_params</span><br><span class="line">    <span class="number">24</span> <span class="built_in">bytes</span> stack frame, <span class="number">0</span> <span class="built_in">bytes</span> spill stores, <span class="number">0</span> <span class="built_in">bytes</span> spill loads</span><br><span class="line">ptxas info    : Used <span class="number">32</span> registers, <span class="number">24</span> <span class="built_in">bytes</span> cumulative stack size, <span class="number">32768</span> <span class="built_in">bytes</span> smem</span><br><span class="line">x86_64-linux-gnu-g++ -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=<span class="built_in">format</span>-security -g -fwrapv -O2 -shared -Wl,-O1 -Wl,-Bsymbolic-functions /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_api.o /data/private/zhaodongyu/FlashMLA/build/temp.linux-x86_64-cpython-<span class="number">310</span>/csrc/flash_fwd_mla_bf16_sm90.o -L/usr/local/lib/python3<span class="number">.10</span>/dist-packages/torch/lib -L/usr/local/cuda/lib64 -L/usr/lib/x86_64-linux-gnu -lc10 -ltorch -ltorch_cpu -ltorch_python -lcudart -lc10_cuda -ltorch_cuda -o build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla_cuda.cpython-<span class="number">310</span>-x86_64-linux-gnu.so</span><br><span class="line">creating build/bdist.linux-x86_64/egg</span><br><span class="line">creating build/bdist.linux-x86_64/egg/flash_mla</span><br><span class="line">copying build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla/__init__.py -&gt; build/bdist.linux-x86_64/egg/flash_mla</span><br><span class="line">copying build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla/flash_mla_interface.py -&gt; build/bdist.linux-x86_64/egg/flash_mla</span><br><span class="line">copying build/lib.linux-x86_64-cpython-<span class="number">310</span>/flash_mla_cuda.cpython-<span class="number">310</span>-x86_64-linux-gnu.so -&gt; build/bdist.linux-x86_64/egg</span><br><span class="line">byte-compiling build/bdist.linux-x86_64/egg/flash_mla/__init__.py to __init__.cpython-<span class="number">310.</span>pyc</span><br><span class="line">byte-compiling build/bdist.linux-x86_64/egg/flash_mla/flash_mla_interface.py to flash_mla_interface.cpython-<span class="number">310.</span>pyc</span><br><span class="line">creating stub loader <span class="keyword">for</span> flash_mla_cuda.cpython-<span class="number">310</span>-x86_64-linux-gnu.so</span><br><span class="line">byte-compiling build/bdist.linux-x86_64/egg/flash_mla_cuda.py to flash_mla_cuda.cpython-<span class="number">310.</span>pyc</span><br><span class="line">creating build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/PKG-INFO -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/SOURCES.txt -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/dependency_links.txt -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">copying flash_mla.egg-info/top_level.txt -&gt; build/bdist.linux-x86_64/egg/EGG-INFO</span><br><span class="line">writing build/bdist.linux-x86_64/egg/EGG-INFO/native_libs.txt</span><br><span class="line">zip_safe flag <span class="keyword">not</span> <span class="built_in">set</span>; analyzing archive contents...</span><br><span class="line">__pycache__.flash_mla_cuda.cpython-<span class="number">310</span>: module references __file__</span><br><span class="line">creating dist</span><br><span class="line">creating <span class="string">&#x27;dist/flash_mla-1.0.0+bcb90f2-py3.10-linux-x86_64.egg&#x27;</span> <span class="keyword">and</span> adding <span class="string">&#x27;build/bdist.linux-x86_64/egg&#x27;</span> to it</span><br><span class="line">removing <span class="string">&#x27;build/bdist.linux-x86_64/egg&#x27;</span> (<span class="keyword">and</span> everything under it)</span><br><span class="line">Processing flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg</span><br><span class="line">creating /usr/local/lib/python3<span class="number">.10</span>/dist-packages/flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg</span><br><span class="line">Extracting flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg to /usr/local/lib/python3<span class="number">.10</span>/dist-packages</span><br><span class="line">Adding flash-mla <span class="number">1.0</span><span class="number">.0</span>+bcb90f2 to easy-install.pth file</span><br><span class="line"></span><br><span class="line">Installed /usr/local/lib/python3<span class="number">.10</span>/dist-packages/flash_mla-<span class="number">1.0</span><span class="number">.0</span>+bcb90f2-py3<span class="number">.10</span>-linux-x86_64.egg</span><br><span class="line">Processing dependencies <span class="keyword">for</span> flash-mla==<span class="number">1.0</span><span class="number">.0</span>+bcb90f2</span><br><span class="line">Finished processing dependencies <span class="keyword">for</span> flash-mla==<span class="number">1.0</span><span class="number">.0</span>+bcb90f2</span><br></pre></td></tr></table></figure>
+</details>
+<h2 id="测试结果">0.3 测试结果</h2>
+<ul>
+<li>b：batch size（批大小）。</li>
+<li>s_q：query 序列长度。</li>
+<li>mean_sk：每个 batch 平均 key 长度。</li>
+<li>h_q：query 头数（head 数）。</li>
+<li>h_kv：key-value 头数。</li>
+<li>d：head 维度（查询、键的维度）。</li>
+<li>dv：value 维度。</li>
+<li>causal：是否启用因果掩码（Causal Masking）。</li>
+<li>varlen：是否使用可变序列长度。</li>
+</ul>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 6%" />
+<col style="width: 12%" />
+<col style="width: 6%" />
+<col style="width: 8%" />
+<col style="width: 9%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 9%" />
+<col style="width: 10%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;">b</th>
+<th style="text-align: center;">s_q</th>
+<th style="text-align: center;">mean_sk</th>
+<th style="text-align: center;">h_q</th>
+<th style="text-align: center;">h_kv</th>
+<th style="text-align: center;">d</th>
+<th style="text-align: center;">dv</th>
+<th style="text-align: center;">Causal</th>
+<th style="text-align: center;">Varlen</th>
+<th style="text-align: center;">TFLOPS</th>
+<th style="text-align: center;">GB/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">0.609</td>
+<td style="text-align: center;">998</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">0.634</td>
+<td style="text-align: center;">965</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">0.610</td>
+<td style="text-align: center;">1004</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">0.634</td>
+<td style="text-align: center;">1001</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">0.613</td>
+<td style="text-align: center;">1000</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">0.645</td>
+<td style="text-align: center;">998</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">0.618</td>
+<td style="text-align: center;">1005</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">0.622</td>
+<td style="text-align: center;">995</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">0.621</td>
+<td style="text-align: center;">1002</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">0.631</td>
+<td style="text-align: center;">965</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.186</td>
+<td style="text-align: center;">539</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.261</td>
+<td style="text-align: center;">528</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.191</td>
+<td style="text-align: center;">537</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.235</td>
+<td style="text-align: center;">523</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">2.394</td>
+<td style="text-align: center;">282</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">2.516</td>
+<td style="text-align: center;">276</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.175</td>
+<td style="text-align: center;">1032</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.198</td>
+<td style="text-align: center;">1012</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.173</td>
+<td style="text-align: center;">1037</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.271</td>
+<td style="text-align: center;">1024</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.178</td>
+<td style="text-align: center;">1033</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.147</td>
+<td style="text-align: center;">1012</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.183</td>
+<td style="text-align: center;">1036</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">32</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.151</td>
+<td style="text-align: center;">1017</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">1.190</td>
+<td style="text-align: center;">1030</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">1.162</td>
+<td style="text-align: center;">1011</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">2.305</td>
+<td style="text-align: center;">539</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">2.408</td>
+<td style="text-align: center;">532</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">2.314</td>
+<td style="text-align: center;">537</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">2.508</td>
+<td style="text-align: center;">529</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">False</td>
+<td style="text-align: center;">4.698</td>
+<td style="text-align: center;">272</td>
+</tr>
+<tr>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">8192</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">576</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">True</td>
+<td style="text-align: center;">4.648</td>
+<td style="text-align: center;">270</td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>
+测试结果log
+</summary>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># python tests/test_flash_mla.py</span></span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 36, n_repeat: 144</span><br><span class="line">0.609 ms, 30 TFLOPS, 998 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 140</span><br><span class="line">0.634 ms, 29 TFLOPS, 965 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 36, n_repeat: 145</span><br><span class="line">0.610 ms, 60 TFLOPS, 1004 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 140</span><br><span class="line">0.634 ms, 60 TFLOPS, 1001 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 36, n_repeat: 145</span><br><span class="line">0.613 ms, 60 TFLOPS, 1000 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 34, n_repeat: 138</span><br><span class="line">0.645 ms, 59 TFLOPS, 998 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 35, n_repeat: 143</span><br><span class="line">0.618 ms, 118 TFLOPS, 1005 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 143</span><br><span class="line">0.622 ms, 117 TFLOPS, 995 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 35, n_repeat: 143</span><br><span class="line">0.621 ms, 118 TFLOPS, 1002 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 35, n_repeat: 141</span><br><span class="line">0.631 ms, 113 TFLOPS, 965 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.186 ms, 123 TFLOPS, 539 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 18, n_repeat: 74</span><br><span class="line">1.261 ms, 121 TFLOPS, 528 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.191 ms, 123 TFLOPS, 537 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 19, n_repeat: 76</span><br><span class="line">1.235 ms, 120 TFLOPS, 523 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 10, n_repeat: 40</span><br><span class="line">2.394 ms, 122 TFLOPS, 282 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=4096, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 9, n_repeat: 38</span><br><span class="line">2.516 ms, 120 TFLOPS, 276 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.175 ms, 31 TFLOPS, 1032 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 19, n_repeat: 78</span><br><span class="line">1.198 ms, 30 TFLOPS, 1012 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 20, n_repeat: 80</span><br><span class="line">1.173 ms, 62 TFLOPS, 1037 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=16, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 18, n_repeat: 74</span><br><span class="line">1.271 ms, 61 TFLOPS, 1024 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.178 ms, 62 TFLOPS, 1033 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 20, n_repeat: 81</span><br><span class="line">1.147 ms, 61 TFLOPS, 1012 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.183 ms, 123 TFLOPS, 1036 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=32, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 20, n_repeat: 81</span><br><span class="line">1.151 ms, 121 TFLOPS, 1017 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 19, n_repeat: 79</span><br><span class="line">1.190 ms, 123 TFLOPS, 1030 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 20, n_repeat: 80</span><br><span class="line">1.162 ms, 120 TFLOPS, 1011 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 10, n_repeat: 41</span><br><span class="line">2.305 ms, 127 TFLOPS, 539 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=64, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 10, n_repeat: 40</span><br><span class="line">2.408 ms, 125 TFLOPS, 532 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 10, n_repeat: 41</span><br><span class="line">2.314 ms, 126 TFLOPS, 537 GB/s</span><br><span class="line">b=128, s_q=1, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 9, n_repeat: 38</span><br><span class="line">2.508 ms, 125 TFLOPS, 529 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=False</span><br><span class="line">n_warmup: 5, n_repeat: 20</span><br><span class="line">4.698 ms, 124 TFLOPS, 272 GB/s</span><br><span class="line">b=128, s_q=2, mean_sk=8192, h_q=128, h_kv=1, d=576, dv=512, causal=True, varlen=True</span><br><span class="line">n_warmup: 5, n_repeat: 21</span><br><span class="line">4.648 ms, 123 TFLOPS, 270 GB/s</span><br></pre></td></tr></table></figure>
+</details>
+<hr />
+<h1 id="学习分析">1.学习分析</h1>
+<p>接下来开始学习分析源码，本文以下面的配置为例：</p>
+<ul>
+<li>b = 128</li>
+<li>s = 4096</li>
+<li>h_q = 32 (TP=4)</li>
+<li>s_q = 1 (MTP = 1)</li>
+<li>varlen = False</li>
+</ul>
+<p>进入<code>tests/test_flash_mla.py</code> 的
+<code>test_flash_mla()</code> 函数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cache_seqlens = torch.full((b,), mean_sk, dtype=torch.int32) <span class="comment"># 初始化一个长度为 b 的张量，每个 batch 样本的 key-value 序列长度均设为 mean_sk。</span></span><br><span class="line"><span class="keyword">if</span> varlen: <span class="comment"># 如果 varlen 为 True，则为每个样本生成一个服从正态分布 N(mean_sk, mean_sk/2) 的 key-value 序列长度，并确保 ≥ s_q（即 query 长度）。</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">        cache_seqlens[i] = <span class="built_in">max</span>(random.normalvariate(mean_sk, mean_sk / <span class="number">2</span>), s_q)</span><br><span class="line">total_seqlens = cache_seqlens.<span class="built_in">sum</span>().item()              <span class="comment"># batch 内所有 key-value 序列长度之和。     524288 = 4096 * 128</span></span><br><span class="line">mean_seqlens = cache_seqlens.<span class="built_in">float</span>().mean().<span class="built_in">int</span>().item()<span class="comment"># batch 内 key-value 序列的平均长度。       4096</span></span><br><span class="line">max_seqlen = cache_seqlens.<span class="built_in">max</span>().item()                 <span class="comment"># batch 内 key-value 序列的最大长度。       4096</span></span><br><span class="line">max_seqlen_pad = triton.cdiv(max_seqlen, <span class="number">256</span>) * <span class="number">256</span>     <span class="comment"># 对 max_seqlen 进行 256 对齐（向上取整）。   4096</span></span><br><span class="line"><span class="comment"># print(f&quot;&#123;total_seqlens=&#125;, &#123;mean_seqlens=&#125;, &#123;max_seqlen=&#125;&quot;)</span></span><br><span class="line"></span><br><span class="line">q = torch.randn(b, s_q, h_q, d)</span><br><span class="line">block_size = <span class="number">64</span> <span class="comment"># 设定块大小为 64（用于分块存储 key-value）。</span></span><br><span class="line">block_table = torch.arange(b * max_seqlen_pad // block_size, dtype=torch.int32).view(b, max_seqlen_pad // block_size) <span class="comment"># [128, 64] 64 = 4096 // 64</span></span><br><span class="line">blocked_k = torch.randn(block_table.numel(), block_size, h_kv, d) <span class="comment"># [8192, 64, 1, 576]</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b):</span><br><span class="line">    blocked_k.view(b, max_seqlen_pad, h_kv, d)[i, cache_seqlens[i].item():] = <span class="built_in">float</span>(<span class="string">&quot;nan&quot;</span>)</span><br><span class="line">blocked_v = blocked_k[..., :dv] <span class="comment"># 取 blocked_k 的前 dv 维作为 value</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>从 key 张量中取前 dv 维作为 value，避免额外分配新的 blocked_v
+张量，提高内存效率，提高数据局部性。</p>
+<p>在注意力计算中，key (K) 的维度 d 可能比 value (V) 的维度 dv
+更大：</p>
+<ul>
+<li>K 主要用于计算注意力权重（与 query (Q) 进行 softmax(QK^T)
+计算）。</li>
+<li>V 仅用于加权求和，所以 dv 可以小于 d，减少计算量。</li>
+</ul>
+<p>在目前的例子中，</p>
+<ul>
+<li>blocked_k 维度 [8192, 64, 1, 576]</li>
+<li>blocked_v 维度 [8192, 64, 1, 512]</li>
+</ul>
+<p>其中，8192 = 128(batch) * 4096(max_seqlen_pad) // 64(block_size), 64
+为 block_size</p>
+<p>要实现的是如下计算:</p>
+<p><img src="/images/117/attention.png" width="70%"></p>
+<p>图中 V 和 K 中的一部分是浅绿色，表示这部分共享相同的数据。将
+<code>QK=P</code> 定义为<code>gemm 1</code>，<code>PV=O</code>
+定义为<code>gemm 2</code>。本图参考了<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a>.</p>
+<h2 id="基础实现-ref_mla">1.1 基础实现 <code>ref_mla</code></h2>
+<p>先看一下基础的 pytorch 的实现，已经熟悉 attention
+计算的可以直接跳过这部分～</p>
+<p><code>ref_mla</code> 要实现的就是</p>
+<p>$ Attention(Q,K,V) = softmax() V $</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">ref_mla</span>():</span><br><span class="line">    out = torch.empty(b, s_q, h_q, dv, dtype=torch.float32) <span class="comment"># 初始化张量，用于存储结果</span></span><br><span class="line">    lse = torch.empty(b, h_q, s_q, dtype=torch.float32)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(b): <span class="comment"># 逐 batch 计算</span></span><br><span class="line">        begin = i * max_seqlen_pad <span class="comment"># 计算 Key-Value 范围索引</span></span><br><span class="line">        end = begin + cache_seqlens[i]</span><br><span class="line">        O, LSE = scaled_dot_product_attention( <span class="comment"># 计算 注意力输出 和 softmax 归一化因子(logsumexp)</span></span><br><span class="line">            q[i].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_k.view(-<span class="number">1</span>, h_kv, d)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            blocked_v.view(-<span class="number">1</span>, h_kv, dv)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">            h_q=h_q,</span><br><span class="line">            h_kv=h_kv,</span><br><span class="line">            is_causal=causal,</span><br><span class="line">        )</span><br><span class="line">        out[i] = O.transpose(<span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">        lse[i] = LSE</span><br><span class="line">    <span class="keyword">return</span> out, lse</span><br></pre></td></tr></table></figure>
+<p>out 维度 [b, s_q, h_q, dv]</p>
+<p>lse 维度 [b, h_q, s_q]</p>
+<p>只看一个batch</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">q[i].transpose(<span class="number">0</span>, <span class="number">1</span>).shape = torch.Size([<span class="number">32</span>, <span class="number">1</span>, <span class="number">576</span>])</span><br><span class="line">blocked_k.view(-<span class="number">1</span>, h_kv, d)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>).shape = torch.Size([<span class="number">1</span>, <span class="number">4096</span>, <span class="number">576</span>])</span><br><span class="line">blocked_v.view(-<span class="number">1</span>, h_kv, dv)[begin:end].transpose(<span class="number">0</span>, <span class="number">1</span>).shape = torch.Size([<span class="number">1</span>, <span class="number">4096</span>, <span class="number">512</span>])</span><br><span class="line">h_q = <span class="number">32</span></span><br><span class="line">h_kv = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>接下来看 <code>scaled_dot_product_attention</code> 函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">scaled_dot_product_attention</span>(<span class="params">query, key, value, h_q, h_kv, is_causal=<span class="literal">False</span></span>):</span><br><span class="line">    query = query.<span class="built_in">float</span>() <span class="comment"># 之前是 bfloat16 格式，转为 float32 数据格式</span></span><br><span class="line">    key = key.<span class="built_in">float</span>()</span><br><span class="line">    value = value.<span class="built_in">float</span>()</span><br><span class="line">    key = key.repeat_interleave(h_q // h_kv, dim=<span class="number">0</span>) <span class="comment"># KV扩展，适用于多头注意力</span></span><br><span class="line">    value = value.repeat_interleave(h_q // h_kv, dim=<span class="number">0</span>) <span class="comment"># [1, 4096, 512] -&gt; [32, 4096, 512]</span></span><br><span class="line">    attn_weight = query @ key.transpose(-<span class="number">2</span>, -<span class="number">1</span>) / math.sqrt(query.size(-<span class="number">1</span>))</span><br><span class="line">    <span class="keyword">if</span> is_causal: <span class="comment"># 适用于自回归 Transformer</span></span><br><span class="line">        s_q = query.shape[-<span class="number">2</span>] <span class="comment"># 1</span></span><br><span class="line">        s_k = key.shape[-<span class="number">2</span>]   <span class="comment"># 4096</span></span><br><span class="line">        attn_bias = torch.zeros(s_q, s_k, dtype=query.dtype)</span><br><span class="line">        temp_mask = torch.ones(s_q, s_k, dtype=torch.<span class="built_in">bool</span>).tril(diagonal=s_k - s_q) <span class="comment"># 生成下三角掩码，保证每个 token 只能关注它之前的 token</span></span><br><span class="line">        attn_bias.masked_fill_(temp_mask.logical_not(), <span class="built_in">float</span>(<span class="string">&quot;-inf&quot;</span>))</span><br><span class="line">        attn_bias.to(query.dtype) <span class="comment"># 因为 s_q=1，所以这里全是0，没生效</span></span><br><span class="line">        attn_weight += attn_bias</span><br><span class="line">    lse = attn_weight.logsumexp(dim=-<span class="number">1</span>) <span class="comment"># 计算lse，用于后续的归一化调整</span></span><br><span class="line">    attn_weight = torch.softmax(attn_weight, dim=-<span class="number">1</span>, dtype=torch.float32) <span class="comment"># 转换为概率分布</span></span><br><span class="line">    <span class="keyword">return</span> attn_weight @ value, lse <span class="comment"># 计算注意力加权结果</span></span><br></pre></td></tr></table></figure>
+<p>其中，</p>
+<p><code>attn_weight = query @ key.transpose(-2, -1) / math.sqrt(query.size(-1))</code></p>
+<p>实现的是计算注意力权重</p>
+<ul>
+<li><p><strong>点积注意力计算公式</strong>：</p>
+<p><span class="math display">\[\text{attn\_weight} =
+\frac{QK^T}{\sqrt{d_k}}\]</span></p>
+<p>其中 <span class="math inline">\(d_k\)</span> 是 <code>query</code>
+的最后一维大小，用于 <strong>缩放（Scaling）</strong>
+以防梯度爆炸。</p></li>
+</ul>
+<h2 id="主角登场-flash_mla">1.2 主角登场 <code>flash_mla</code></h2>
+<p>开始步入正题！</p>
+<p>整体来看，flash_mla 包含两个函数：</p>
+<ul>
+<li>get_mla_metadata
+<ul>
+<li>负责 token 级别负载均衡</li>
+<li>计算 <code>tile_scheduler_metadata</code> 和 <code>num_splits</code>
+信息，用于后续高效计算</li>
+</ul></li>
+<li>flash_mla_with_kvcache
+<ul>
+<li>负责paged attention计算</li>
+</ul></li>
+</ul>
+<h3 id="负载均衡-get_mla_metadata">1.2.1 负载均衡
+<code>get_mla_metadata</code></h3>
+<blockquote>
+<p>一个 batch 里面有很多 seq， 每个 seq 的 len 都不一样，如果启动 kernel
+的时候 grid size 设置成 batch size计算就不均衡，所以先算出 seq
+的总长然后按照 sm
+数量进行均匀的分配。这样就有句子会切断，<code>get_mla_metadata</code>
+就记录这些分割点的信息。这些是所有 <code>flashxxx</code> 的通用做法。
+来源：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26262350225">刘俊是</a></p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tile_scheduler_metadata, num_splits = get_mla_metadata(cache_seqlens, s_q * h_q // h_kv, h_kv)</span><br></pre></td></tr></table></figure>
+<p>输入：</p>
+<ul>
+<li>cache_seqlens
+<ul>
+<li>即 batch_size 本文中是 torch.Size([128])</li>
+</ul></li>
+<li>s_q * h_q // h_kv
+<ul>
+<li>num_heads_per_head_k = 1 * 32 // 1</li>
+</ul></li>
+<li>h_kv
+<ul>
+<li>num_heads_k = 1</li>
+</ul></li>
+</ul>
+<p>输出：</p>
+<ul>
+<li>tile_scheduler_metadata
+<ul>
+<li>(num_sm_parts, TileSchedulerMetaDataSize = 8)</li>
+<li>torch.Size([78, 8])</li>
+</ul></li>
+<li>num_splits
+<ul>
+<li>batch_size + 1</li>
+<li>orch.Size([129])</li>
+<li>记录第batch_id 的batch在k seqlen 被拆分了几个thread block</li>
+</ul></li>
+</ul>
+<p>这个函数的实现位于 flash_api.cpp
+，计算元数据用于GPU加速推理和计算，为 num_heads_k 个头部划分 SM
+资源，确保计算负载均衡。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">num_sm_parts = sm_count / num_heads_k / cutlass::ceil_div(num_heads_per_head_k, block_size_m);</span><br><span class="line">     <span class="number">78</span>      =    <span class="number">78</span>    /      <span class="number">1</span>      / cutlass::ceil_div(         <span class="number">32</span>         ,     <span class="number">64</span>      )</span><br></pre></td></tr></table></figure>
+<p><code>num_sm_parts</code>为在k seqlen 维度并行的thread
+block数目（类似flash decoding），撑满 wave 的并行度，提高GPU的利用率。
+--from <a
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/13181801180/answer/109491192884">CalebDu</a></p>
+<p>具体计算在 csrc/flash_fwd_mla_kernel.h 的
+<code>get_mla_metadata_func</code>函数的
+<code>get_mla_metadata_kernel</code>.</p>
+<p>要注意的是， <code>tile_scheduler_metadata</code>
+的其中一个维度虽然是
+<code>TileSchedulerMetaDataSize = 8</code>，但是只用到了其中的5个，设置为8是为了
+int4(16B) 对齐。</p>
+<p>这5个分别是：每个sm要处理的起始seq idx，起始seq的token idx， 结束seq
+idx， 结束seq的token idx， 起始的seq是否被分割了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tile_scheduler_metadata0[<span class="number">0</span>] = now_idx;</span><br><span class="line">tile_scheduler_metadata0[<span class="number">1</span>] = now_block * block_size_n; <span class="comment">// static constexpr int block_size_n = 64;</span></span><br><span class="line">tile_scheduler_metadata0[<span class="number">2</span>] = now_block &gt; <span class="number">0</span> ? now_idx : now_idx - <span class="number">1</span>;</span><br><span class="line">tile_scheduler_metadata0[<span class="number">3</span>] = now_block &gt; <span class="number">0</span> ? now_block * block_size_n : seqlens_k_ptr[now_idx - <span class="number">1</span>];</span><br><span class="line">tile_scheduler_metadata1    = now_n_split_idx;</span><br></pre></td></tr></table></figure>
+<p>打印 <code>tile_scheduler_metadata</code> 看一下：</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr>
+<th>sm</th>
+<th>begin_idx</th>
+<th>begin_seqlen</th>
+<th>end_idx</th>
+<th>end_seqlen</th>
+<th>n_split_idx</th>
+<th>unused</th>
+<th>unused</th>
+<th>unused</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>2880</td>
+<td>3</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>3</td>
+<td>1344</td>
+<td>4</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>3</td>
+<td>5</td>
+<td>0</td>
+<td>6</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>6</td>
+<td>2880</td>
+<td>8</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>8</td>
+<td>1344</td>
+<td>9</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>6</td>
+<td>10</td>
+<td>0</td>
+<td>11</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>7</td>
+<td>11</td>
+<td>2880</td>
+<td>13</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>8</td>
+<td>13</td>
+<td>1344</td>
+<td>14</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>9</td>
+<td>15</td>
+<td>0</td>
+<td>16</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>10</td>
+<td>16</td>
+<td>2880</td>
+<td>18</td>
+<td>1344</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>74</td>
+<td>123</td>
+<td>1344</td>
+<td>124</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>75</td>
+<td>125</td>
+<td>0</td>
+<td>126</td>
+<td>2880</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>76</td>
+<td>126</td>
+<td>2880</td>
+<td>127</td>
+<td>4096</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>77</td>
+<td>128</td>
+<td>0</td>
+<td>127</td>
+<td>4096</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>可以看到metadata记录了每个thread
+block的开始和结束信息。这里有点像之前看的 Marlin gemm 算子的 streamK
+的思想，进行了任务的分割，实现不同 patch 的 k seqlen 并行的thread
+block之间的负载均衡。</p>
+<p><img src="/images/117/metadata.png" width="100%"></p>
+<p>别的都好懂，结合源码理解一下 <code>n_split_idx</code> 的意思：</p>
+<p>初始<code>payload = cutlass::ceil_div(total_num_blocks, num_sm_parts) + fixed_overhead_num_blocks;</code></p>
+<p>这是每个 SM 部分
+需要处理的任务块数量。向上取整保证任务块均匀分配，fixed_overhead_num_blocks是5，用途是
+（待补充） 。</p>
+<p>在这里我的计算结果是 ceil(8832 / 78) + 5 = 119</p>
+<p>第 0 个sm：</p>
+<ul>
+<li><p>now_inx = 0 --&gt; <strong>begin_idx = 0</strong></p></li>
+<li><p>now_block = 0 --&gt; <strong>begin_seqlen = 0 * 64 =
+0</strong></p></li>
+<li><p><strong>n_split_idx = 0</strong></p></li>
+<li><p>进入while：</p>
+<ul>
+<li>now_blocks = 0， num_blocks = 64 --&gt; now_remain_blocks = 64</li>
+<li>remain_payload = 119 VS now_remain_blocks +
+fixed_overhead_num_blocks = 69
+<ul>
+<li>足够覆盖，还有剩余 50 --&gt; cum_num_splits + 1 (累积拆分数量)</li>
+</ul></li>
+<li>remain_payload = 50 VS now_remain_blocks + fixed_overhead_num_blocks
+= 69
+<ul>
+<li>不够，now_block = remain_payload - fixed_overhead_num_blocks =
+45</li>
+<li>now_n_split_idx++ (这一行需要多拆一次)</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>第 1 个sm：</p>
+<ul>
+<li><p>now_inx = 1 --&gt; <strong>begin_idx = 1</strong></p></li>
+<li><p>now_block = 45 --&gt; <strong>begin_seqlen = 45 * 64 =
+2880</strong></p></li>
+<li><p><strong>n_split_idx =
+1</strong>（代表这是在处理拆分后的第1部分）</p></li>
+<li><p>进入while：</p>
+<ul>
+<li>now_blocks = 45， num_blocks = 64 --&gt; now_remain_blocks = 19
+（上一次的还有19个block没处理完）</li>
+<li>remain_payload = 119 VS now_remain_blocks +
+fixed_overhead_num_blocks = 24
+<ul>
+<li>足够覆盖，还有剩余 95 --&gt; cum_num_splits + 1 (累积拆分数量)</li>
+</ul></li>
+<li>remain_payload = 95 VS now_remain_blocks + fixed_overhead_num_blocks
+= 69
+<ul>
+<li>足够覆盖，还有剩余 26 --&gt; cum_num_splits + 1 (累积拆分数量)</li>
+</ul></li>
+<li>remain_payload = 26 VS now_remain_blocks + fixed_overhead_num_blocks
+= 69
+<ul>
+<li>不够，now_block = remain_payload - fixed_overhead_num_blocks =
+21</li>
+<li>now_n_split_idx++ (这一行需要多拆一次)</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>第 2 个sm：</p>
+<ul>
+<li><p>now_inx = 2 --&gt; <strong>begin_idx = 1</strong></p></li>
+<li><p>now_block = 21 --&gt; <strong>begin_seqlen = 21 * 64 =
+1344</strong></p></li>
+<li><p><strong>n_split_idx =
+1</strong>（代表这是在处理拆分后的第1部分）</p></li>
+</ul>
+<p>……</p>
+<p>也就是说，这里分了 78
+个sm_parts，在这个例子里，每个sm_parts会处理多行，如果有一行没处理完，就要
+n_split_idx + 1。也就是说，对于 SM 来说，n_split_idx
+表示的是n维度的第几块的索引。</p>
+<h3 id="paged-attention计算-flash_mla_with_kvcache">1.2.2 paged
+attention计算 <code>flash_mla_with_kvcache</code></h3>
+<p>回到主线，看<code>flash_mla_with_kvcache</code> 函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">flash_mla_with_kvcache(</span><br><span class="line">            q, blocked_k, block_table, cache_seqlens, dv,</span><br><span class="line">            tile_scheduler_metadata, num_splits, causal=causal,</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th></th>
+<th>shape(value)</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>q</code></td>
+<td>[128, 1, 32, 576]</td>
+<td>(batch_size, seq_len_q, num_heads_q, head_dim)</td>
+</tr>
+<tr>
+<td><code>blocked_k</code></td>
+<td>[8192, 64, 1, 576]</td>
+<td>(num_blocks, page_block_size, num_heads_k, head_dim)</td>
+</tr>
+<tr>
+<td><code>block_table</code></td>
+<td>[128, 64]</td>
+<td>(batch_size, max_num_blocks_per_seq), torch.int32</td>
+</tr>
+<tr>
+<td><code>cache_seqlens</code></td>
+<td>[128]</td>
+<td>(batch_size), torch.int32</td>
+</tr>
+<tr>
+<td><code>dv</code></td>
+<td>512</td>
+<td>Head_dim of v</td>
+</tr>
+<tr>
+<td><code>tile_scheduler_metadata</code></td>
+<td>[78, 8]</td>
+<td>(num_sm_parts, TileSchedulerMetaDataSize), torch.int32</td>
+</tr>
+<tr>
+<td><code>num_splits</code></td>
+<td>[129]</td>
+<td>(batch_size + 1), torch.int32</td>
+</tr>
+</tbody>
+</table>
+<p><strong>要注意，这里的 q
+已经吸收了kv的变换矩阵，所以后面可以直接对合并的 kvcache
+计算</strong></p>
+<p>在 flash_api.cpp 里，<code>mha_fwd_kvcache_mla</code> -&gt;
+<code>run_mha_fwd_splitkv_mla</code> -&gt;
+<code>run_flash_splitkv_fwd_mla</code> 函数 lunch 了两个 kernel:</p>
+<ul>
+<li>flash_fwd_splitkv_mla_kernel</li>
+<li>flash_fwd_splitkv_mla_combine_kernel</li>
+</ul>
+<p>这两个 kernel 是同一个 stream，是顺序执行的一个关系。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Kernel_traits, <span class="keyword">typename</span> SharedStorage&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">run_flash_splitkv_fwd_mla</span><span class="params">(Flash_fwd_mla_params &amp;params, cudaStream_t stream)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">FLASH_ASSERT</span>(params.page_block_size == Kernel_traits::kBlockN);</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> num_m_block = cute::<span class="built_in">ceil_div</span>(params.seqlen_q, Kernel_traits::kBlockM);</span><br><span class="line">    <span class="built_in">BOOL_SWITCH</span>(params.is_causal, Is_causal, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> kernel = &amp;flash::flash_fwd_splitkv_mla_kernel&lt;Kernel_traits, Is_causal, SharedStorage&gt;;</span><br><span class="line">        <span class="keyword">constexpr</span> <span class="type">size_t</span> smem_size = <span class="built_in">sizeof</span>(SharedStorage);</span><br><span class="line">        <span class="built_in">CHECK_CUDA</span>(<span class="built_in">cudaFuncSetAttribute</span>(kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_size));</span><br><span class="line">        kernel&lt;&lt;&lt;<span class="built_in">dim3</span>(num_m_block, params.h, params.num_sm_parts), Kernel_traits::kNThreads, smem_size, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line"></span><br><span class="line">    <span class="function">dim3 <span class="title">grid_combine</span><span class="params">(params.b * params.h * params.seqlen_q)</span></span>;</span><br><span class="line">    <span class="built_in">MLA_NUM_SPLITS_SWITCH</span>(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">        <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">                <span class="keyword">typename</span> Kernel_traits::Element, <span class="keyword">typename</span> Kernel_traits::ElementAccum, <span class="keyword">typename</span> Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">        combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="built_in">CHECK_CUDA_KERNEL_LAUNCH</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>逐句解析一下：</p>
+<ol type="1">
+<li>通过计算 <code>num_m_block</code> 计算在 M 维度上所需要的块数，
+计算是在M方向切分 block，在 seq len 方向进行 n_block
+的loop。其中，blockM=64，blockN=64。</li>
+</ol>
+<p><code>num_m_block = cute::ceil_div(params.seqlen_q, Kernel_traits::kBlockM);</code></p>
+<p>在我的例子中，h_q(即 params.seqlen_q) = 32，不够 blockM，
+所以计算出来的 num_m_block = 1.</p>
+<ol start="2" type="1">
+<li><p><code>flash_fwd_splitkv_mla_kernel</code> 这个内核函数会根据
+Kernel_traits 和 Is_causal 的值进行特化。</p></li>
+<li><p>smem_size: 计算共享内存的大小，<code>SharedStorage</code>
+是一个用于存储共享数据的结构体，大小通过 <code>sizeof</code>
+获取。然后通过 调用 <code>cudaFuncSetAttribute</code>
+函数为内核设置最大动态共享内存的大小。</p></li>
+</ol>
+<p>这里值得仔细算一下：smem_size = 230400 (224KB)</p>
+<pre><code>union&#123;
+    struct&#123;
+        - smem_q: 73728 
+            - 存放输入Q
+            - 576 * 64 * 2B / 1024 = 72 KB
+        - smem_k: 73728 * 2 = 147456 (Double buffer)
+            - 存放输入K（包含部分V）
+            - 64 * 576 * 2B * 2 / 1024 = 144KB
+        - smem_p: 8192
+            - 用于存放 gemm 1 的结果，用于 `wg 0` 和 `wg 1` 之间的数据中转
+            - 2 x 2 x 128 x 8 x 2B / 1024 = 8KB
+        - smem_scale: 1024
+    &#125;
+    struct&#123;
+        - smem_max: 1024
+        - smem_sum: 1024
+        - smem_o  : 131072
+    &#125;
+&#125;</code></pre>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"><strong>Data Center GPU</strong></th>
+<th style="text-align: center;">NVIDIA V100</th>
+<th style="text-align: center;">NVIDIA A100</th>
+<th style="text-align: center;">NVIDIA H100</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">GPU architecture</td>
+<td style="text-align: center;">NVIDIA Volta</td>
+<td style="text-align: center;">NVIDIA Ampere</td>
+<td style="text-align: center;">NVIDIA Hopper</td>
+</tr>
+<tr>
+<td style="text-align: center;">Compute capability</td>
+<td style="text-align: center;">7.0</td>
+<td style="text-align: center;">8.0</td>
+<td style="text-align: center;">9.0</td>
+</tr>
+<tr>
+<td style="text-align: center;">Shared memory size / SM</td>
+<td style="text-align: center;">Configurable up to 96 KB</td>
+<td style="text-align: center;">Configurable up to 164 KB</td>
+<td style="text-align: center;">Configurable up to <strong>228
+KB</strong></td>
+</tr>
+</tbody>
+</table>
+<p><a
+target="_blank" rel="noopener" href="https://developer.nvidia.com/zh-cn/blog/nvidia-hopper-architecture-in-depth/">表格数据来源</a></p>
+<p>smem_size 是 224KB，而 Hopper 架构的 Shared memory size 是228KB，
+这么看的话，确实只有 <strong>Hopper
+架构</strong>的卡能完美跑这个算法了。</p>
+<ol start="4" type="1">
+<li>kernel&lt;&lt;&lt;...&gt;&gt;&gt;: 启动 CUDA 核函数
+<code>kernel</code>，设置其 grid size 和 block size。</li>
+</ol>
+<ul>
+<li>dim3(num_m_block, params.h, params.num_sm_parts) 是执行的 grid 大小
+<ul>
+<li>dim3(1, num_heads = 1, 78)</li>
+</ul></li>
+<li>Kernel_traits::kNThreads 是每个线程块中的线程数量
+<ul>
+<li>256</li>
+</ul></li>
+<li>smem_size 是共享内存大小
+<ul>
+<li>230400</li>
+</ul></li>
+<li>stream 是 CUDA 流</li>
+</ul>
+<ol start="5" type="1">
+<li>因为 params.num_sm_parts 是 78，所以在
+<code>MLA_NUM_SPLITS_SWITCH</code> 中会将 <code>kMaxSplits</code> 设置为
+96。</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MLA_NUM_SPLITS_SWITCH(params.num_sm_parts, kMaxSplits, [&amp;] &#123;</span><br><span class="line">    <span class="keyword">auto</span> combine_kernel = &amp;flash::flash_fwd_splitkv_mla_combine_kernel&lt;</span><br><span class="line">            typename Kernel_traits::Element, typename Kernel_traits::ElementAccum, typename Kernel_traits::<span class="type">index_t</span>, Kernel_traits::kHeadDimV, kMaxSplits&gt;;</span><br><span class="line">    combine_kernel&lt;&lt;&lt;grid_combine, <span class="number">128</span>, <span class="number">0</span>, stream&gt;&gt;&gt;(params);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>启动 CUDA 核函数 <code>combine_kernel</code>，</p>
+<ul>
+<li>combine_kernel&lt;&lt;&lt;grid_combine, 128, 0, stream&gt;&gt;&gt;
+<ul>
+<li>grid_combine: 是一个一维的 dim3 类型，表示合并内核的网格大小。</li>
+<li>只给出一个数字时，CUDA 会默认将它映射到 x 维度，并将 y 和 z
+维度设置为 1</li>
+<li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 =
+<strong>4096</strong>, <strong>1</strong>, <strong>1</strong>)</li>
+<li>这个 combine_kernel 没有分配额外的动态共享内存</li>
+</ul></li>
+</ul>
+<hr />
+<p>接下来看这两个kernel。</p>
+<h4 id="flash_fwd_splitkv_mla_kernel">1.2.2.1
+flash_fwd_splitkv_mla_kernel</h4>
+<ul>
+<li>dim3(num_m_block, params.h, params.num_sm_parts)</li>
+<li>dim3(1, num_heads = 1, 78)</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">pragma</span> unroll 1</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> batch_id = begin_idx; batch_id &lt;= end_idx; ++batch_id) &#123;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> n_split_idx = batch_id == begin_idx ? begin_n_split_idx : <span class="number">0</span>;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> seqlen_k = __ldg(params.cu_seqlens_k + batch_id);</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> n_block_min = batch_id == begin_idx ? begin_seqlen / kBlockN : <span class="number">0</span>;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> n_block_max = batch_id == end_idx ? cute::ceil_div(end_seqlen, kBlockN) : cute::ceil_div(seqlen_k, kBlockN);</span><br><span class="line">        <span class="type">const</span> <span class="type">bool</span> NoSplit = n_block_min == <span class="number">0</span> &amp;&amp; n_block_max == cute::ceil_div(seqlen_k, kBlockN);</span><br><span class="line">        <span class="keyword">if</span> (batch_id &gt; begin_idx) &#123;</span><br><span class="line">            __syncthreads();  <span class="comment">// Barrier between two tiles.</span></span><br><span class="line">        &#125;</span><br><span class="line">        n_split_idx, seqlen_k, n_block_min, n_block_max, NoSplit);</span><br><span class="line">        flash::compute_attn_1rowblock_splitkv_mla&lt;Kernel_traits, Is_causal&gt;(params, batch_id, bidh, m_block, n_split_idx, seqlen_k, n_block_min, n_block_max, NoSplit, shared_storage);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/117/metadata.png" width="100%"></p>
+<p>我们聚焦在 SM1 上，对应的 begin_idx = 1, end_idx = 3，
+于是会进行3次循环：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">batch_id</th>
+<th style="text-align: center;">n_split_idx</th>
+<th style="text-align: center;">seqlen_k</th>
+<th style="text-align: center;">n_block_min</th>
+<th style="text-align: center;">n_block_max</th>
+<th style="text-align: center;">NoSplit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">45</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">64</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">4096</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+<p>进一步看 <code>compute_attn_1rowblock_splitkv_mla</code> 函数：</p>
+<p>首先是一些参数：</p>
+<ul>
+<li>kBlockM = 64</li>
+<li>kBlockN = 64</li>
+<li>kHeadDim = 576</li>
+<li>kHeadDimV = 512</li>
+<li>kNThreads = 256</li>
+<li>kNThreadsS = 128</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// Returns a warp-uniform value indicating the canonical warp group index of the calling threads.</span></span><br><span class="line"><span class="comment">/// Threads within the warp must be converged.</span></span><br><span class="line">CUTLASS_DEVICE</span><br><span class="line"><span class="type">int</span> <span class="title function_">canonical_warp_group_idx</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="meta">#<span class="keyword">if</span> defined(__CUDA_ARCH__)</span></span><br><span class="line">    <span class="keyword">return</span> __shfl_sync(<span class="number">0xffffffff</span>, threadIdx.x / NumThreadsPerWarpGroup, <span class="number">0</span>); <span class="comment">// NumThreadsPerWarpGroup = 128</span></span><br><span class="line">  <span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  <span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>cutlass::canonical_warp_group_idx();</code>
+函数对每个thread block 的 256 thread 进行了分组，分成了2个warp
+group。也就是 0-127 thread是 <code>wg0</code>， 128-255
+thread是<code>wg1</code>.</p>
+<p>接下来的代码逻辑，画图反而表达得比较清楚一些：</p>
+<p><img src="/images/117/pipeline.png" width="80%"></p>
+<p><img src="/images/117/warp_group.png" width="100%"></p>
+<h4 id="warp-group-0">warp group 0:</h4>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">typename Kernel_traits::TiledMma tiled_mma;</span><br><span class="line"><span class="keyword">auto</span> thr_mma = tiled_mma.get_thread_slice(tidx);</span><br><span class="line">Tensor tSrQ = thr_mma.partition_fragment_A(sQ);                           <span class="comment">// (MMA,MMA_M,MMA_K)</span></span><br><span class="line">Tensor tSrK = thr_mma.partition_fragment_B(sK);                           <span class="comment">// (MMA,MMA_N,MMA_K)</span></span><br></pre></td></tr></table></figure>
+<p>为线程分配矩阵片段，以便进行矩阵乘法（MMA）操作</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (n_block % <span class="number">2</span> == <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// Double buffer for sK</span></span><br><span class="line">    constexpr <span class="type">int</span> sK_offset = size(sK);</span><br><span class="line">    tSrK.data() = tSrK.data() + sK_offset / <span class="number">8</span>;</span><br><span class="line">    tOrVt.data() = tOrVt.data() + sK_offset / <span class="number">8</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里是 Double buffer 逻辑，如果 n_block 是奇数的话，要加上 sK_offset
+/ 8 的偏移。</p>
+<ul>
+<li>为什么是 sK_offset / 8 呢？我理解的是单个wgmma为64x64x16，这里的 8
+是 64 * 2 / 16。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> masking_step = n_masking_steps; n_block &gt;= n_block_min; --masking_step, --n_block) &#123;</span><br></pre></td></tr></table></figure>
+<p>for循环是沿着 n_block 做了一个遍历</p>
+<p>每一次循环分别做了 gemm1 的计算，mask操作，online softmax
+以及存储计算结果的操作。</p>
+<p>tiled_mma shape是64,64,576，单个wgmma为 64x64x16，k方向循环迭代。</p>
+<p>tiled_mma_o shape是64,512,64, 在 N
+的方向切成2个mma，单个wgmma为64x256x16，warp group
+0计算其中的一部分，</p>
+<h4 id="warp-group-1">warp group 1:</h4>
+<p>wg1 负责加载 Q K P，做 tiled_mma_o 的第二部分计算。</p>
+<blockquote>
+<p>有意思的是，wgmma最大支持N=256，刚好是headdimV的一半，因此两个warp
+group刚好完成一整个gemm 2的计算。<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
+</blockquote>
+<p>加载这个动作用 block_table 进行索引，通过 n_block 的奇偶性切换 KV 的
+buffer。</p>
+<p>在 n_block loop 结束完成后，通过 SoftmaxReady 做了一个 sum/max
+的同步，让两个warp group都取得相同的数据，最后一起做stroe output。</p>
+<p>MLA kernel 之后还有combine kernel，去 reduce num_sm_parts partial
+result 得到完整结果。</p>
+<h3 id="flash_fwd_splitkv_mla_combine_kernel">1.2.3
+flash_fwd_splitkv_mla_combine_kernel</h3>
+<ul>
+<li>dim3(batch_size * num_heads * seqlen_q = 128 * 1 * 32 =
+<strong>4096</strong>, <strong>1</strong>, <strong>1</strong>)</li>
+</ul>
+<p>这个 kernel 处理基于 splitkv 的计算，执行加法操作、softmax
+求和以及其他张量操作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> split_offset = __ldg(params.num_splits_ptr + batch_idx);</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> actual_num_splits = __ldg(params.num_splits_ptr + batch_idx + <span class="number">1</span>) - split_offset;</span><br><span class="line">FLASH_DEVICE_ASSERT(actual_num_splits &lt;= kMaxSplits);</span><br><span class="line"><span class="keyword">if</span> (actual_num_splits == <span class="number">1</span>) <span class="keyword">return</span>;</span><br></pre></td></tr></table></figure>
+<p>通过从 params.num_splits_ptr 中读取当前批次的 split 数量，并检查
+actual_num_splits 是否大于 kMaxSplits。 如果 actual_num_splits ==
+1，则提前返回，不做计算。</p>
+<p><img src="/images/117/metadata.png" width="100%"></p>
+<p>这要又一次结合这张图来看了</p>
+<ul>
+<li>batch_idx = 0 --&gt; actual_num_splits = 1 --&gt; return</li>
+<li>batch_idx = 1 --&gt; actual_num_splits = 2 --&gt; ...</li>
+<li>batch_idx = 2 --&gt; actual_num_splits = 1 --&gt; return</li>
+<li>batch_idx = 3 --&gt; actual_num_splits = 3 --&gt; ...</li>
+</ul>
+<p>这一块代码进行了 LSE 的计算：计算最大值， <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> warp_idx = cutlass::canonical_warp_idx_sync(); <span class="comment">// 32个线程一个warp</span></span><br><span class="line"><span class="keyword">if</span> (warp_idx == <span class="number">0</span>) &#123; <span class="comment">// 只有 0-31 线程</span></span><br><span class="line">    constexpr <span class="type">int</span> kNLsePerThread = cute::ceil_div(kMaxSplits, <span class="number">32</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> local_lse[kNLsePerThread];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) &#123;</span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> split = i * <span class="number">32</span> + tidx;</span><br><span class="line">        local_lse[i] = split &lt; actual_num_splits ? gLSEaccum(split) : -INFINITY;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> max_lse = -INFINITY;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) max_lse = max(max_lse, local_lse[i]);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> offset = <span class="number">16</span>; offset &gt;= <span class="number">1</span>; offset /= <span class="number">2</span>) max_lse = max(max_lse, __shfl_xor_sync(<span class="type">uint32_t</span>(<span class="number">-1</span>), max_lse, offset));</span><br><span class="line">    max_lse = max_lse == -INFINITY ? <span class="number">0.0f</span> : max_lse;  <span class="comment">// In case all local LSEs are -inf</span></span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> sum_lse = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) sum_lse = sum_lse + expf(local_lse[i] - max_lse);</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> offset = <span class="number">16</span>; offset &gt;= <span class="number">1</span>; offset /= <span class="number">2</span>) sum_lse = sum_lse + __shfl_xor_sync(<span class="type">uint32_t</span>(<span class="number">-1</span>), sum_lse, offset);</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> global_lse = (sum_lse == <span class="number">0.f</span> || sum_lse != sum_lse) ? INFINITY : logf(sum_lse) + max_lse;</span><br><span class="line">    <span class="keyword">if</span> (tidx == <span class="number">0</span>) gLSE(<span class="number">0</span>) = global_lse;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; kNLsePerThread; ++i) &#123; <span class="comment">//存储每个split的lse缩放系数到共享内存中</span></span><br><span class="line">        <span class="type">const</span> <span class="type">int</span> split = i * <span class="number">32</span> + tidx;</span><br><span class="line">        <span class="keyword">if</span> (split &lt; actual_num_splits) sLseScale[split] = expf(local_lse[i] - global_lse);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">__syncthreads();</span><br></pre></td></tr></table></figure></p>
+<p>对每个split进行加权求和，结果在 <code>tOrO</code> 张量中</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> split = <span class="number">0</span>; split &lt; actual_num_splits; ++split) &#123;</span><br><span class="line">    cute::copy(tOgOaccum, tOrOaccum);</span><br><span class="line">    ElementAccum lse_scale = sLseScale[split];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size(tOrO); ++i) &#123;</span><br><span class="line">        tOrO(i) += lse_scale * tOrOaccum(i);</span><br><span class="line">    &#125;</span><br><span class="line">    tOgOaccum.data() = tOgOaccum.data() + hs * kHeadDimV;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终对结果做一下类型转换和存储到 global memory 中。</p>
+<p>这个 kernel 主要就是在每个线程块内计算和合并多个 split 的结果，使用
+softmax 的 LSE 计算和缩放系数进行加权求和。</p>
+<h1 id="性能查看">2.性能查看</h1>
+<p>使用 nsight system 简单看一下 kernel 的耗时：</p>
+<p><code>nsys profile --trace=cuda,osrt -o flash_mla --force-overwrite true python tests/test_flash_mla.py</code></p>
+<p><img src="/images/117/nsys_1.png" width="100%"></p>
+<p><img src="/images/117/nsys_2.png" width="100%"></p>
+<h1 id="和mla有什么关系">和MLA有什么关系？</h1>
+<p>之前看了一些关于讲解 MLA 的文章，如 <a
+target="_blank" rel="noopener" href="https://spaces.ac.cn/archives/10091">苏剑林
+缓存与效果的极限拉扯：从MHA、MQA、GQA到MLA</a> 和 <a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/700214123">ZHANG Mingxing DeepSeek-V2
+高性能推理 (1)：通过矩阵吸收十倍提速 MLA 算子</a></p>
+<p>看算子的时候就一直在好奇，这不就是在算 attention 吗？W^UQ W^UK
+这些投影矩阵完全没出现啊，那这和 MLA 有什么关系呢？</p>
+<p>后来才知道，这些已经被矩阵吸收到 Q 矩阵了，这个 FlashMLA 就是在做针对
+MLA 维度的高效推理。</p>
+<h1 id="总结">总结</h1>
+<blockquote>
+<p>MLA本质上是一个KV部分共享的，升维的MQA。维度从一般的128升维到576/512，KV共享前512长度，另有64长度是K独有的。
+flashMLA只能在hopper架构上运行，几乎无法移植到其他平台。（除非有大于228KB的share
+memory，有N大于256的wgmma） flashMLA利用了online softmax算法、paged
+attn的分块和split-kv优化，叠加自己的计算mapping和两个warp
+group相配合的流水线，达到了很高的性能。<a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">LingYe</a></p>
+</blockquote>
+<p>在 <a target="_blank" rel="noopener" href="https://github.com/madsys-dev/deepseekv2-profile">ZHANG
+Mingxing 的 git</a> 里还有关于 <code>move_elision</code>
+的优化，效果显著，但是我看 FlashMLA
+没有用到，不知道用上的话会有什么影响。</p>
+<p>认真读完代码之后学习到很多 Cuda
+算子设计的巧妙之处，受益良多，接下来开始尝试将 FlashMLA 用起来，以及学习
+Deepseek 开源的其他工程。</p>
+<p>小白一枚，理解浅显，有问题的部分还希望大佬们指正～</p>
+<h1 id="参考">参考</h1>
+<p><a target="_blank" rel="noopener" href="https://github.com/deepseek-ai/FlashMLA">FlashMLA</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26080342823">flashMLA
+深度解析</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/13181801180">CalebDu</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26269071923">DeepSeek:
+FlashMLA代码解析</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/26262350225">Deepseek
+FlashMLA解析</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://www.zhihu.com/question/455419977/answer/3450179867">怎样评价NVIDIA新一代的Hopper
+GPU架构？</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://spaces.ac.cn/archives/10091">缓存与效果的极限拉扯：从MHA、MQA、GQA到MLA</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/66RING/tiny-flash-attention/blob/main/cutlass_cute_tutorial_zh.md">用cutlass
+cute实现flash attention</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://github.com/madsys-dev/deepseekv2-profile">deepseekv2-profile</a></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/02/07/116_learning_records/" rel="prev" title="116_learning_records">
+      <i class="fa fa-chevron-left"></i> 116_learning_records
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/" rel="next" title="FlashMLA 实践">
+      FlashMLA 实践 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">0.准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%B9%B3%E5%8F%B0"><span class="nav-number">1.1.</span> <span class="nav-text">0.1 实验平台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.2.</span> <span class="nav-text">0.2 安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="nav-number">1.3.</span> <span class="nav-text">0.3 测试结果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">1.学习分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E5%AE%9E%E7%8E%B0-ref_mla"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 基础实现 ref_mla</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A7%92%E7%99%BB%E5%9C%BA-flash_mla"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 主角登场 flash_mla</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1-get_mla_metadata"><span class="nav-number">2.2.1.</span> <span class="nav-text">1.2.1 负载均衡
+get_mla_metadata</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#paged-attention%E8%AE%A1%E7%AE%97-flash_mla_with_kvcache"><span class="nav-number">2.2.2.</span> <span class="nav-text">1.2.2 paged
+attention计算 flash_mla_with_kvcache</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#flash_fwd_splitkv_mla_kernel"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">1.2.2.1
+flash_fwd_splitkv_mla_kernel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-0"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">warp group 0:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#warp-group-1"><span class="nav-number">2.2.2.3.</span> <span class="nav-text">warp group 1:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flash_fwd_splitkv_mla_combine_kernel"><span class="nav-number">2.2.3.</span> <span class="nav-text">1.2.3
+flash_fwd_splitkv_mla_combine_kernel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E6%9F%A5%E7%9C%8B"><span class="nav-number">3.</span> <span class="nav-text">2.性能查看</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%92%8Cmla%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="nav-number">4.</span> <span class="nav-text">和MLA有什么关系？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">248k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:45</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : 'eb178bc82b2a049ab0a6a41b5682a643',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>
