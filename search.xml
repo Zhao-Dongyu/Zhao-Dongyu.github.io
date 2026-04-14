@@ -8779,17 +8779,70 @@ href="https://github.com/Dao-AILab/flash-attention/issues/543#issuecomment-31826
   <entry>
     <title>Pi0 结构解析</title>
     <url>/2026/01/28/128_Pi0_model/</url>
-    <content><![CDATA[<p><a href="https://www.pi.website/blog/pi0">π0</a>(pi-zero) 是 Physical
+    <content><![CDATA[<blockquote>
+<p>Physical Intelligence is bringing general-purpose AI into the
+physical world.</p>
+</blockquote>
+<p><a href="https://www.pi.website">π</a> 系列堪称经典。前段时间实践了
+π<sub>0</sub> 的真机部署与加速，最近又做了 π<sub>0.5</sub>
+的仿真，感觉是时候系统整理一波了。</p>
+<span id="more"></span>
+<h1 id="π0-相关内容">π0 相关内容</h1>
+<p><a href="https://www.pi.website/blog/pi0">π0</a>(pi-zero) 是 Physical
 Intelligence的 First Generalist
 Policy，一个通用的机器人基础模型，堪称经典之作。</p>
 <p>π0
 通过从一个预训练的视觉语言模型（VLM）开始，继承了互联网规模预训练的语义知识和视觉理解，有效的将网络上的语义知识迁移过来，输出离散的
 language tokens。通过流匹配（扩散模型的一种变体）来增强预训练
 VLMs，使其能够输出连续的动作。</p>
-<p>最近做了一些 Pi0 模型的部署和加速，对 Pi0
-的结构算是比较了解了，在此整理总结一下。</p>
-<span id="more"></span>
-<h1 id="π0-相关内容">π0 相关内容</h1>
+<h1 id="模型结构">模型结构</h1>
+<p>整体仍是「视觉 + 语言 + 动作」三路：V 为 SigLIP 图像编码；L 为 Gemma
+系语言 backbone；A 为 flow matching 的 action expert（与 VLM
+通过注意力掩码交互）。</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;">模型</th>
+<th style="text-align: center;"><strong>V</strong>（SigLIP）</th>
+<th style="text-align: center;"><strong>L</strong>（Gemma）</th>
+<th style="text-align: center;"><strong>A</strong>（action expert）</th>
+<th style="text-align: center;">合计（约）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">π<sub>0 </sub></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">2.6B</td>
+<td style="text-align: center;">300M</td>
+<td style="text-align: center;">~3.3B</td>
+</tr>
+<tr>
+<td style="text-align: center;">π<sub>0.5</sub></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">2.6B</td>
+<td style="text-align: center;">300M</td>
+<td style="text-align: center;">~3.3B</td>
+</tr>
+<tr>
+<td style="text-align: center;"><span
+class="math inline">\(\pi^{*}_{0.6}\)</span></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">4B</td>
+<td style="text-align: center;">860M</td>
+<td style="text-align: center;">~5.3B</td>
+</tr>
+</tbody>
+</table>
+<p>PI0.6比较特殊的是还带了star，其实就是用了强化学习，和类似的Q*一样。
+怎么把VLA+RL结合起来。</p>
 ]]></content>
       <categories>
         <category>技术</category>
