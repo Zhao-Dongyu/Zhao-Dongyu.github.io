@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":true,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Physical Intelligence is bringing general-purpose AI into the physical world.  π 系列堪称经典。前段时间实践了 π0 的真机部署与加速，最近又做了 π0.5 的仿真，感觉是时候系统整理一波了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="π 模型的实践和结构解析">
+<meta property="og:url" content="http://example.com/2026/01/28/128_Pi_model/index.html">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="Physical Intelligence is bringing general-purpose AI into the physical world.  π 系列堪称经典。前段时间实践了 π0 的真机部署与加速，最近又做了 π0.5 的仿真，感觉是时候系统整理一波了。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/128/pi0_framework.png">
+<meta property="og:image" content="http://example.com/images/128/test_flow.png">
+<meta property="og:image" content="http://example.com/images/128/test_flow_1.png">
+<meta property="og:image" content="http://example.com/images/128/sim_ready.png">
+<meta property="og:image" content="http://example.com/images/128/test_flow_2.png">
+<meta property="og:image" content="http://example.com/images/128/top_head.jpg">
+<meta property="og:image" content="http://example.com/images/128/hand_left.jpg">
+<meta property="og:image" content="http://example.com/images/128/hand_right.jpg">
+<meta property="og:image" content="http://example.com/images/128/top_head_resize.jpg">
+<meta property="og:image" content="http://example.com/images/128/hand_left_resize.jpg">
+<meta property="og:image" content="http://example.com/images/128/hand_right_resize.jpg">
+<meta property="og:image" content="http://example.com/images/128/test_flow_4.png">
+<meta property="og:image" content="http://example.com/images/128/last_action_raw_heatmap.png">
+<meta property="og:image" content="http://example.com/images/128/last_action_heatmap.png">
+<meta property="og:image" content="http://example.com/images/128/test_flow_3.png">
+<meta property="og:image" content="http://example.com/images/128/time.png">
+<meta property="og:image" content="http://example.com/images/128/prefix_embs.png">
+<meta property="og:image" content="http://example.com/images/128/ViT_conv.png">
+<meta property="og:image" content="http://example.com/images/128/commit_1.png">
+<meta property="og:image" content="http://example.com/images/128/commit_2.png">
+<meta property="og:image" content="http://example.com/images/128/denoise_process.gif">
+<meta property="og:image" content="http://example.com/images/128/last_action_stack4_heatmap.png">
+<meta property="og:image" content="http://example.com/images/128/robot.gif">
+<meta property="og:image" content="http://example.com/images/128/GR00T_N1_Model_Architecture.png">
+<meta property="og:image" content="http://example.com/images/128/pi07.png">
+<meta property="article:published_time" content="2026-01-28T15:46:00.000Z">
+<meta property="article:modified_time" content="2026-05-07T02:57:51.258Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="Tech">
+<meta property="article:tag" content="VLA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/128/pi0_framework.png">
+
+<link rel="canonical" href="http://example.com/2026/01/28/128_Pi_model/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>π 模型的实践和结构解析 | Zhao Dongyu's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-47NXH2LPKW"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-47NXH2LPKW');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zhao Dongyu's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-rss">
+
+    <a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/01/28/128_Pi_model/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          π 模型的实践和结构解析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2026-01-28 23:46:00" itemprop="dateCreated datePublished" datetime="2026-01-28T23:46:00+08:00">2026-01-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-05-07 10:57:51" itemprop="dateModified" datetime="2026-05-07T10:57:51+08:00">2026-05-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>22k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>20 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>Physical Intelligence is bringing general-purpose AI into the
+physical world.</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.pi.website">π</a> 系列堪称经典。前段时间实践了
+π<sub>0</sub> 的真机部署与加速，最近又做了 π<sub>0.5</sub>
+的仿真，感觉是时候系统整理一波了。</p>
+<span id="more"></span>
+<h1 id="π-相关背景">π 相关背景</h1>
+<ul>
+<li><p><strong>2025-02-04</strong> — <strong><a
+target="_blank" rel="noopener" href="https://www.pi.website/blog/pi0">π<sub>0</sub></a></strong>：Physical
+Intelligence 的首个 <strong>First Generalist
+Policy</strong>，面向通用操控的机器人基础模型，常被视作该系列的奠基之作。</p>
+<ul>
+<li>从预训练的视觉-语言模型（VLM）出发，继承互联网规模预训练带来的语义与视觉表征；借助<strong>流匹配</strong>（flow
+matching，可视为扩散的一类变体）输出<strong>连续动作</strong>。</li>
+<li><strong>典型结构</strong>
+<ul>
+<li><strong>双专家</strong>：VLM 专家 + 动作专家（action
+expert）分工协作；</li>
+<li><strong>流匹配</strong>：用向量场 / 去噪视角建模动作分布，与 VLM
+侧表征对齐。</li>
+</ul></li>
+</ul></li>
+<li><p><strong>2025-04-22</strong> — <strong><a
+target="_blank" rel="noopener" href="https://www.pi.website/blog/pi05">π<sub>0.5</sub></a></strong>：泛化与任务分解能力更强；官方表述为迈向更普及<strong>具身智能（embodied
+intelligence）</strong>的重要一步。</p>
+<ul>
+<li><strong>双专家交互重构</strong>
+<ul>
+<li>动作专家<strong>去掉本体感知状态作为独立输入</strong>，专注于动作序列建模；</li>
+<li>引入<strong>高层语义推理模块</strong>，可把抽象指令（例如「整理厨房」）拆解为子任务链（例如「拾取餐盘
+→ 丢弃垃圾」）。</li>
+</ul></li>
+<li><strong>数据</strong>：在异构数据上做<strong>共训练</strong>（co-training
+on heterogeneous data）。</li>
+</ul></li>
+<li><p><strong>2025-11-17</strong> — <strong><a
+target="_blank" rel="noopener" href="https://www.pi.website/blog/pistar06"><span
+class="math inline">\(\pi^{*}_{0.6}\)</span></a></strong>（<em>Learns
+from Experience</em>）：强调从经验中学习的 VLA。</p>
+<ul>
+<li><strong>规模</strong>：VLM 主干约 <strong>2.6B →
+4B</strong>，动作专家约 <strong>300M → 860M</strong>，以容纳更丰富的异构
+<strong>prompt / 条件信息</strong>。</li>
+<li><strong>RECAP</strong>：基于优势条件策略的<strong>离线 RL</strong>
+框架；官方叙事里将其与机器人的<strong>自我纠错</strong>、以及在部分任务设定上相对人类演示的<strong>策略超越</strong>一并强调。</li>
+<li>注：<span class="math inline">\(\pi^{*}_{0.6}\)</span>
+比较特殊的是还带了 star，意思是用了强化学习，类似 <span
+class="math inline">\(Q^{*}\)</span>。</li>
+</ul></li>
+<li><p><strong>2026-04-16</strong> — <strong><a
+target="_blank" rel="noopener" href="https://www.pi.website/blog/pi07">π<sub>0.7</sub></a></strong>：官方称为具有<strong>涌现能力</strong>的<strong>可引导模型</strong>（<em>A
+Steerable Model with Emergent Capabilities</em>）。</p>
+<ul>
+<li><strong>多路输入</strong>（相较前代更细）：<code>observation memory</code>、<code>task instruction</code>、<code>subtask instruction</code>、<code>subgoal images</code>。
+<ul>
+<li><strong><code>observation memory</code></strong>（图像
+<strong>448×448</strong>）
+<ul>
+<li>最多 <strong>4 路</strong>图像；每路最多 <strong>6
+帧</strong>历史（经视觉编码后参与注意力）。</li>
+<li>历史帧经 vision encoder 处理，在 <strong>token
+数量上压缩到与单帧相当</strong>，再送入主干。</li>
+</ul></li>
+<li><strong><code>subtask instruction</code></strong>
+<ul>
+<li>先由 VLM 做一轮推理，得到子任务级文本指令。</li>
+</ul></li>
+<li><strong><code>subgoal images</code></strong>（<strong>448×448</strong>）
+<ul>
+<li>由约 <strong>14B</strong> 的 <strong>BAGEL</strong> world model
+生成中间「子目标」画面；</li>
+<li>最多 <strong>3
+张</strong>，与观测图像<strong>共用同一套图像编码器</strong>。</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+<h1 id="模型结构">模型结构</h1>
+<p>以经典的 π<sub>0</sub> framewaork 为例：
+<img src="/images/128/pi0_framework.png" width="100%"></p>
+<p>该模型由一个较大的<strong>视觉-语言模型（VLM）骨干网络</strong>，以及一个较小的、用于处理机器人状态和动作的<strong>动作专家(action
+expert)模块</strong>组成。 VLM 骨干网络的权重初始化自
+PaliGemma，从而继承了大规模互联网预训练所学习到的表示能力。</p>
+<pre><code>┌──────────────────────────────┐
+│               actions        │
+│               ▲              │
+│              ┌┴─────┐        │
+│  kv cache    │Gemma │        │
+│  ┌──────────►│Expert│        │
+│  │           │      │        │
+│ ┌┴────────┐  │x 10  │        │
+│ │         │  └▲──▲──┘        │
+│ │PaliGemma│   │  │           │
+│ │         │   │  robot state │
+│ │         │   noise          │
+│ └▲──▲─────┘                  │
+│  │  │                        │
+│  │  image(s)                 │
+│  language tokens             │
+└──────────────────────────────┘</code></pre>
+<p>整体是「<strong>视觉</strong> + <strong>语言</strong> +
+<strong>动作</strong>」三路：V 为 <code>SigLIP</code> 图像编码；L 为
+<code>Gemma</code> 系语言 <code>backbone</code>；A 为
+<code>flow matching</code> 的 <code>action expert</code>（与 VLM 通过 kv
+kache 交互，即 <code>Cross-Attention</code>）。</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;">模型</th>
+<th style="text-align: center;"><strong>V</strong>（SigLIP）</th>
+<th style="text-align: center;"><strong>L</strong>（Gemma）</th>
+<th style="text-align: center;"><strong>A</strong>（action expert）</th>
+<th style="text-align: center;">合计（约）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">π<sub>0 </sub></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">2.6B</td>
+<td style="text-align: center;">300M</td>
+<td style="text-align: center;">~3.3B</td>
+</tr>
+<tr>
+<td style="text-align: center;">π<sub>0.5</sub></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">2.6B</td>
+<td style="text-align: center;">300M</td>
+<td style="text-align: center;">~3.3B</td>
+</tr>
+<tr>
+<td style="text-align: center;"><span
+class="math inline">\(\pi^{*}_{0.6}\)</span></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">4B</td>
+<td style="text-align: center;">860M</td>
+<td style="text-align: center;">~5.3B</td>
+</tr>
+<tr>
+<td style="text-align: center;"><span
+class="math inline">\(\pi_{0.7}\)</span></td>
+<td style="text-align: center;">400M</td>
+<td style="text-align: center;">4B</td>
+<td style="text-align: center;">860M</td>
+<td style="text-align: center;">~5.3B</td>
+</tr>
+</tbody>
+</table>
+<h1 id="实践">实践</h1>
+<p><img src="/images/128/test_flow.png" width="100%"></p>
+<p><strong>整体是使用了 NVIDIA Isaac Sim 进行仿真，使用 LeRobot 进行
+π<sub>0.5</sub>
+模型的推理，实现了捡桌子上某个颜色方块的任务。</strong></p>
+<h2 id="仿真器">仿真器</h2>
+<p><img src="/images/128/test_flow_1.png" width="100%"></p>
+<p>仿真器使用了 <a
+target="_blank" rel="noopener" href="https://docs.isaacsim.omniverse.nvidia.com/5.1.0/introduction/quickstart_index.html">NVIDIA
+Isaac Sim</a>，按照<a
+target="_blank" rel="noopener" href="https://agibot-world.com/sim-evaluation/docs/#/v3?id=genie-sim-30-user-guide">Genie
+Sim 3.0</a> 进行了搭建。</p>
+<h3 id="launch-docker-container-and-run-the-demo">Launch docker
+container and run the demo</h3>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">/geniesim/main$ </span><span class="language-bash">omni_python <span class="built_in">source</span>/geniesim/app/app.py --config ./source/geniesim/config/select_color.yml</span></span><br></pre></td></tr></table></figure>
+<h3 id="初始化log">初始化log</h3>
+<details>
+<summary>
+展开查看完整初始化日志（左臂 + 右臂 Solver）
+</summary>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">========== 初始化 Solver ==========</span><br><span class="line">机器人部件: 1</span><br><span class="line">正在加载配置文件: /geniesim/main/source/geniesim/utils/IK-SDK/g1_solver.yaml</span><br><span class="line">配置文件加载成功</span><br><span class="line">正在初始化RobotWrapper...</span><br><span class="line">成功加载完整模型，路径为: /geniesim/main/source/geniesim/utils/IK-SDK/G1_NO_GRIPPER.urdf</span><br><span class="line">成功加载配置文件: /geniesim/main/source/geniesim/utils/IK-SDK/g1_solver.yaml</span><br><span class="line">目标维度设置为: 1</span><br><span class="line">已加载左臂关节配置</span><br><span class="line"></span><br><span class="line">========== 简化模型信息 ==========</span><br><span class="line">自由度: 7</span><br><span class="line"></span><br><span class="line">----- 可动关节列表 -----</span><br><span class="line">- idx05_left_arm_joint1</span><br><span class="line">- idx06_left_arm_joint2</span><br><span class="line">- idx07_left_arm_joint3</span><br><span class="line">- idx08_left_arm_joint4</span><br><span class="line">- idx09_left_arm_joint5</span><br><span class="line">- idx10_left_arm_joint6</span><br><span class="line">- idx11_left_arm_joint7</span><br><span class="line">================================</span><br><span class="line"></span><br><span class="line">成功加载简化模型</span><br><span class="line"></span><br><span class="line">已设置关节限位：</span><br><span class="line">位置下限: -3.14 -2.09 -3.14 -1.48 -3.14 -1.74 -3.14</span><br><span class="line">位置上限: 3.14 2.09 3.14 1.48 3.14 1.74 3.14</span><br><span class="line">速度限制: 3.14 3.14 3.14 3.14 3.14 3.14 3.14</span><br><span class="line">力矩限制: 60 60 60 60 30 30 30</span><br><span class="line">RobotWrapper初始化完成</span><br><span class="line">状态维度: 7</span><br><span class="line">目标维度: 1</span><br><span class="line">Variables初始化完成</span><br><span class="line">状态维度: 7</span><br><span class="line">目标维度: 1</span><br><span class="line">初始化完成</span><br><span class="line">====================================</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">========== 初始化 Solver ==========</span><br><span class="line">机器人部件: 3</span><br><span class="line">正在加载配置文件: /geniesim/main/source/geniesim/utils/IK-SDK/g1_solver.yaml</span><br><span class="line">配置文件加载成功</span><br><span class="line">正在初始化RobotWrapper...</span><br><span class="line">成功加载完整模型，路径为: /geniesim/main/source/geniesim/utils/IK-SDK/G1_NO_GRIPPER.urdf</span><br><span class="line">成功加载配置文件: /geniesim/main/source/geniesim/utils/IK-SDK/g1_solver.yaml</span><br><span class="line">目标维度设置为: 1</span><br><span class="line">已加载右臂关节配置</span><br><span class="line"></span><br><span class="line">========== 简化模型信息 ==========</span><br><span class="line">自由度: 7</span><br><span class="line"></span><br><span class="line">----- 可动关节列表 -----</span><br><span class="line">- idx12_right_arm_joint1</span><br><span class="line">- idx13_right_arm_joint2</span><br><span class="line">- idx14_right_arm_joint3</span><br><span class="line">- idx15_right_arm_joint4</span><br><span class="line">- idx16_right_arm_joint5</span><br><span class="line">- idx17_right_arm_joint6</span><br><span class="line">- idx18_right_arm_joint7</span><br><span class="line">================================</span><br><span class="line"></span><br><span class="line">成功加载简化模型</span><br><span class="line"></span><br><span class="line">已设置关节限位：</span><br><span class="line">位置下限: -3.14 -2.09 -3.14 -1.48 -3.14 -1.74 -3.14</span><br><span class="line">位置上限: 3.14 2.09 3.14 1.48 3.14 1.74 3.14</span><br><span class="line">速度限制: 3.14 3.14 3.14 3.14 3.14 3.14 3.14</span><br><span class="line">力矩限制: 60 60 60 60 30 30 30</span><br><span class="line">RobotWrapper初始化完成</span><br><span class="line">状态维度: 7</span><br><span class="line">目标维度: 1</span><br><span class="line">Variables初始化完成</span><br><span class="line">状态维度: 7</span><br><span class="line">目标维度: 1</span><br><span class="line">初始化完成</span><br><span class="line">====================================</span><br></pre></td></tr></table></figure>
+</details>
+<p>G1 机器人逆解（IK）求解器 的配置位于
+<code>source/geniesim/utils/IK-SDK/g1_solver.yaml</code></p>
+<p>从 joint_space 里面可以看出， 关节顺序是
+<code>肩 3 + 肘 1 + 腕 3</code> <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">joint_space:</span><br><span class="line"><span class="meta prompt_">  # </span><span class="language-bash">Weight coefficients <span class="keyword">for</span> each joint; larger weights indicate less preference to move these joints</span></span><br><span class="line">  weights:</span><br><span class="line">    joint_1: 1.2  # Shoulder joint</span><br><span class="line">    joint_2: 1.2  # Shoulder joint</span><br><span class="line">    joint_3: 1.2  # Shoulder joint</span><br><span class="line">    joint_4: 1.0  # Elbow joint</span><br><span class="line">    joint_5: 1.0  # Wrist joint</span><br><span class="line">    joint_6: 1.0  # Wrist joint</span><br><span class="line">    joint_7: 1.0  # Wrist joint</span><br></pre></td></tr></table></figure></p>
+<p>完成仿真器启动</p>
+<p><img src="/images/128/sim_ready.png" width="100%"></p>
+<p>这个仿真器在
+<code>source/geniesim/utils/comm/websocket_client.py</code>
+中实现了一个通过 WebSocket
+调用远端策略（policy）的客户端，让本地仿真/控制端像调用本地模型一样发观测、收动作。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">infer</span>(<span class="params">self, obs: <span class="type">Dict</span></span>) -&gt; <span class="type">Dict</span>:  <span class="comment"># noqa: UP006</span></span><br><span class="line">    <span class="keyword">if</span> self._ws <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        self._ws, self._server_metadata = self._wait_for_server()</span><br><span class="line">    data = self._packer.pack(obs)</span><br><span class="line">    self._ws.send(data)</span><br><span class="line">    response = self._ws.recv()</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(response, <span class="built_in">str</span>):</span><br><span class="line">        <span class="comment"># we&#x27;re expecting bytes; if the server sends a string, it&#x27;s an error.</span></span><br><span class="line">        <span class="keyword">raise</span> RuntimeError(<span class="string">f&quot;Error in inference server:\n<span class="subst">&#123;response&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> unpackb(response)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>解析：若尚未连接则先连上远端 WebSocket，把 obs 用 msgpack
+打包发过去，再把收到的字节 unpackb 返回。</p>
+</blockquote>
+<h2 id="推理服务端">推理服务端</h2>
+<p><strong>推理端接收到仿真器数据（obs），进行图像预处理后进行模型的推理，生成对应的action。</strong></p>
+<h3 id="接收仿真器数据">接收仿真器数据</h3>
+<p><img src="/images/128/test_flow_2.png" width="100%"></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">obs (dict, len=5)</span><br><span class="line">├── state: ndarray(shape=(32,), dtype=float64), min=-1.49571, max=41.4602</span><br><span class="line">│   └── preview: [-1.0751, 0.6109, 0.2793, -1.2846, 0.7295, 1.4957, -0.1868, 1.0734, ...]</span><br><span class="line">├── eef (dict, len=2)</span><br><span class="line">│   ├── left : [0.34399, 0.29995, 0.03904, 0.24424, 0.10263, 0.70433, -0.65858]</span><br><span class="line">│   └── right: [0.34425, -0.30209, 0.03820, -0.65804, 0.70508, 0.10179, 0.24388]</span><br><span class="line">├── images (dict, len=3)</span><br><span class="line">│   ├── top_head  : ndarray(shape=(3, 800, 1280), dtype=uint8), min=0, max=247</span><br><span class="line">│   ├── hand_left : ndarray(shape=(3, 480, 848), dtype=uint8), min=0, max=250</span><br><span class="line">│   └── hand_right: ndarray(shape=(3, 480, 848), dtype=uint8), min=0, max=248</span><br><span class="line">├── prompt   : &quot;right arm picks up the red block on the table&quot;</span><br><span class="line">└── task_name: &quot;pick_block_color&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>state</code> 是一个 shape 为 <code>(32,)</code> 的状态向量
+<ul>
+<li>主要用于编码机器人当前的 joint 状态；</li>
+<li>在本次实践中，该向量存在一定冗余，主要有效信息集中在前 16 维（左臂 7
+维 + 右臂 7 维 + 2 个夹爪维度）。</li>
+<li>如果机器人存在更多的关节或者机械臂，会使用更多的维度。</li>
+<li><strong>需要注意的是，上图中引用的 <span
+class="math inline">\(\pi_{0}\)</span> 的图，state 是送到了 action
+模块，输出绝对动作</strong></li>
+</ul></li>
+<li><code>eef</code> 是 End-Effector
+的缩写，也就是“机械臂末端执行器”状态
+<ul>
+<li><p>eef 存的是左右手（夹爪/末端工具）的实时空间位姿。</p></li>
+<li><p>Joint 是关节怎么动，EEF 是末端在哪、朝哪。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Joint</th>
+<th>EEF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>变量</strong></td>
+<td>各关节角 (q)</td>
+<td>末端位姿（位置、姿态）</td>
+</tr>
+<tr>
+<td><strong>空间</strong></td>
+<td>关节空间</td>
+<td>笛卡尔 / 任务空间</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><strong>二者关系</strong>: 通过 <strong>正运动学</strong>，由 (q)
+得到末端位姿；<strong>逆运动学</strong>是由期望末端位姿反求 (q)（本 YAML
+即在配置该 IK 优化问题）</p></li>
+<li><p>在本次实践中，没有用到该数据（个人感觉其实用这个数据应该更合理一些？）</p></li>
+</ul></li>
+<li><code>images</code> 表示机器人当前观测到的多视角图像信息
+<ul>
+<li>包含头部相机、左腕相机和右腕相机三个视角。</li>
+</ul></li>
+</ul>
+<table style="width:100%; border-collapse:collapse;">
+<tr>
+<td colspan="2" style="text-align:center;">
+<img src="/images/128/top_head.jpg" width="50%" style="display:block;margin:0 auto;"><small style="display:block;margin-top:4px;line-height:1.2;">top_head</small>
+</td>
+</tr>
+<tr>
+<td width="50%" style="text-align:center; padding:4px;">
+<img src="/images/128/hand_left.jpg" width="100%" style="display:block;"><small style="display:block;margin-top:4px;line-height:1.2;">hand_left</small>
+</td>
+<td width="50%" style="text-align:center; padding:4px;">
+<img src="/images/128/hand_right.jpg" width="100%" style="display:block;"><small style="display:block;margin-top:4px;line-height:1.2;">hand_right</small>
+</td>
+</tr>
+</table>
+<ul>
+<li><code>prompt</code>：任务提示词（例如
+<code>"right arm picks up the red block on the table"</code>）；
+<ul>
+<li>在仿真 benchmark 中，该字段用于定义当前回合的目标任务（如
+red/blue/yellow block 等不同目标）；</li>
+<li>在实际推理阶段，也可以替换为自定义指令，用于测试模型在不同语言目标下的泛化能力。</li>
+</ul></li>
+</ul>
+<h3 id="服务端预处理">服务端预处理</h3>
+<p>服务端将图像转换为 <code>float</code> 类型，将 <code>prompt</code>
+转换为 <code>token</code>，于是从仿真器接收的数据 <code>obs</code>
+转换为以下格式的 <code>batch</code>:</p>
+<p><code>infer batch</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">action: <span class="literal">None</span></span><br><span class="line"><span class="built_in">next</span>.reward: <span class="number">0.0</span></span><br><span class="line"><span class="built_in">next</span>.done: false</span><br><span class="line"><span class="built_in">next</span>.truncated: false</span><br><span class="line">info: &#123;&#125;</span><br><span class="line"></span><br><span class="line">task:</span><br><span class="line">  - <span class="string">&quot;Task: right arm picks up the red block on the table, State: ...; Action:&quot;</span></span><br><span class="line"></span><br><span class="line">observation.state:</span><br><span class="line">  - shape=(<span class="number">1</span>, <span class="number">32</span>), dtype=torch.float32, device=cuda</span><br><span class="line"></span><br><span class="line">observation.images:</span><br><span class="line">  - top_head   : shape=(<span class="number">1</span>, <span class="number">3</span>, <span class="number">800</span>, <span class="number">1280</span>), dtype=torch.float32, device=cuda</span><br><span class="line">  - hand_left  : shape=(<span class="number">1</span>, <span class="number">3</span>, <span class="number">480</span>, <span class="number">848</span>), dtype=torch.float32, device=cuda</span><br><span class="line">  - hand_right : shape=(<span class="number">1</span>, <span class="number">3</span>, <span class="number">480</span>, <span class="number">848</span>), dtype=torch.float32, device=cuda</span><br><span class="line"></span><br><span class="line">observation.language:</span><br><span class="line">  - tokens        : shape=(<span class="number">1</span>, <span class="number">200</span>), dtype=torch.int64, device=cuda</span><br><span class="line">  - attention_mask: shape=(<span class="number">1</span>, <span class="number">200</span>), dtype=torch.<span class="built_in">bool</span>, device=cuda</span><br></pre></td></tr></table></figure>
+<p>将以上数据 <code>batch: dict[str, Tensor]</code> 发送至 LeRobot
+进行infer</p>
+<h3
+id="模型推理接口select_action-vs-predict_action_chunk">模型推理接口：<code>select_action</code>
+vs <code>predict_action_chunk</code></h3>
+<p>推理阶段主要有两个接口，语义分别是“拿一步动作”和“拿一段动作”：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">select_action</span>(<span class="params">self, batch: <span class="built_in">dict</span>[<span class="built_in">str</span>, Tensor]</span>) -&gt; Tensor:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Select a single action given environment observations.&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">predict_action_chunk</span>(<span class="params">self, batch: <span class="built_in">dict</span>[<span class="built_in">str</span>, Tensor], **kwargs: Unpack[ActionSelectKwargs]</span>) -&gt; Tensor:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Predict a chunk of actions given environment observations.&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>select_action</code>：返回当前时刻的一步动作；</li>
+<li><code>predict_action_chunk</code>：一次返回一个 action
+chunk（多步动作序列），适合加入 RTC 逻辑。</li>
+</ul>
+<p>在本文实验中，调用 <code>predict_action_chunk</code> 获取一个 chunk
+的 actions，返回给仿真器。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">predict_action_chunk</span>(<span class="params">self, batch: <span class="built_in">dict</span>[<span class="built_in">str</span>, Tensor], **kwargs: Unpack[ActionSelectKwargs]</span>) -&gt; Tensor:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Predict a chunk of actions given environment observations.&quot;&quot;&quot;</span></span><br><span class="line">    self.<span class="built_in">eval</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Prepare inputs</span></span><br><span class="line">    images, img_masks = self._preprocess_images(batch)</span><br><span class="line">    tokens, masks = batch[<span class="string">f&quot;<span class="subst">&#123;OBS_LANGUAGE_TOKENS&#125;</span>&quot;</span>], batch[<span class="string">f&quot;<span class="subst">&#123;OBS_LANGUAGE_ATTENTION_MASK&#125;</span>&quot;</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Sample actions using the model (pass through RTC kwargs, no separate state needed for PI05)</span></span><br><span class="line">    actions = self.model.sample_actions(images, img_masks, tokens, masks, **kwargs)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Unpad actions to actual action dimension</span></span><br><span class="line">    original_action_dim = self.config.output_features[ACTION].shape[<span class="number">0</span>]</span><br><span class="line">    actions = actions[:, :, :original_action_dim]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> actions</span><br></pre></td></tr></table></figure>
+<h4 id="预处理操作-_preprocess_images">预处理操作
+(_preprocess_images)</h4>
+<ul>
+<li>LeRobot 输入图像通常是 <code>[B, C, H, W]</code>，取值范围为
+<code>[0, 1]</code>；</li>
+<li>PaliGemma 期望输入同样是 <code>[B, C, H, W]</code>，但归一化范围为
+<code>[-1, 1]</code>。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">self.config.image_features = &#123;</span><br><span class="line">    <span class="string">&quot;observation.images.top_head&quot;</span>: PolicyFeature(<span class="built_in">type</span>=FeatureType.VISUAL, shape=(<span class="number">3</span>, <span class="number">224</span>, <span class="number">224</span>)),</span><br><span class="line">    <span class="string">&quot;observation.images.hand_left&quot;</span>: PolicyFeature(<span class="built_in">type</span>=FeatureType.VISUAL, shape=(<span class="number">3</span>, <span class="number">224</span>, <span class="number">224</span>)),</span><br><span class="line">    <span class="string">&quot;observation.images.hand_right&quot;</span>: PolicyFeature(<span class="built_in">type</span>=FeatureType.VISUAL, shape=(<span class="number">3</span>, <span class="number">224</span>, <span class="number">224</span>)),</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>图像会被 resize 到 <code>(224, 224)</code>。需要注意的是，OpenPI 与
+LeRobot 在预处理实现上并非完全一致：</p>
+<ul>
+<li>OpenPI 使用 <code>openpi_client.image_tools</code> 中的
+<code>resize_with_pad</code>；</li>
+<li>LeRobot 使用自己的 <code>resize_with_pad_torch</code>（注释虽写着
+<em>exact copy</em> ，但结果仍有细微差异）。</li>
+</ul>
+<p>对齐实验中可以看到：</p>
+<ul>
+<li><code>cosine = 0.99952972</code>，
+<code>max_abs_diff = 116</code></li>
+<li>这些差异大概率来自插值或边界处理细节。整体上两者输出高度一致，对策略效果的影响通常可忽略，但若追求严格复现，建议统一使用同一套预处理实现。</li>
+</ul>
+<p>和我想的还不太一样，并不是直接 resize，而是做了 pad 后再
+resize，保证了图像的长宽比，resize 结果如下：</p>
+<div style="text-align:center;">
+<table style="width:50%; border-collapse:collapse; margin:0 auto;">
+<tr>
+<td colspan="2" style="text-align:center;">
+<img src="/images/128/top_head_resize.jpg" width="50%" style="display:block;margin:0 auto;"><small style="display:block;margin-top:4px;line-height:1.2;">top_head_resize</small>
+</td>
+</tr>
+<tr>
+<td width="50%" style="text-align:center; padding:4px;">
+<img src="/images/128/hand_left_resize.jpg" width="100%" style="display:block;"><small style="display:block;margin-top:4px;line-height:1.2;">hand_left_resize</small>
+</td>
+<td width="50%" style="text-align:center; padding:4px;">
+<img src="/images/128/hand_right_resize.jpg" width="100%" style="display:block;"><small style="display:block;margin-top:4px;line-height:1.2;">hand_right_resize</small>
+</td>
+</tr>
+</table>
+</div>
+<p>进行resize和通道转换后，使用 <code>img = img * 2.0 - 1.0</code>
+将图像转换到 PaliGemma 需要的归一化范围<code>[-1, 1]</code></p>
+<h4 id="模型推理-sample_actions">模型推理 (sample_actions)</h4>
+<p><del>该部分在下一章进行详细分析，此处略过</del></p>
+<h4 id="返回-action">返回 action</h4>
+<p><img src="/images/128/test_flow_4.png" width="100%"></p>
+<p><code>actions = torch.Size([1, 50, 32])</code></p>
+<ul>
+<li><p>其中 50 是指 50 step，如果执行频率是 50 hz，则刚好是 1s
+的动作规划。</p></li>
+<li><p>32是 <code>action_dim</code>，本试验中用的只是前 22 维。</p></li>
+</ul>
+<p>下图的变化，可以理解这是对各个关节接下来一秒的动作规划：</p>
+<p><img src="/images/128/last_action_raw_heatmap.png" width="100%"></p>
+<p>实际返回给仿真器的时候，是需要将这个 actions 与最初的 state
+有选择的进行相加（夹爪不需要相加）。形成如下结果：</p>
+<p><img src="/images/128/last_action_heatmap.png" width="100%"></p>
+<p>注意：模型生成的 <code>action</code>
+是绝对的还是相对的，要看模型的配置。如果是绝对的则不用相加。</p>
+<h1 id="模型推理-sample_actions-拆解">模型推理 (sample_actions)
+拆解</h1>
+<p><img src="/images/128/test_flow_3.png" width="100%"></p>
+<p>进入本文的重点：<strong>sample_actions: Do a full inference forward
+and compute the action.</strong></p>
+<p>pi05 相关代码位于
+<code>src/lerobot/policies/pi05/modeling_pi05.py</code>。这个模型对应
+<code>PaliGemmaWithExpertModel</code>，整体可以概括为「<code>VL</code>
+主干 + <code>A</code> 专家」两路协同：</p>
+<ul>
+<li><strong><code>paligemma</code>（<code>VL</code>
+主干）</strong>：负责<strong>视觉-语言理解</strong>与<strong>语义建模</strong>。视觉端先由
+<code>SigLIP</code> 提取特征（1152 维），再通过 <code>projector</code>
+映射到 2048 维，与语言分支（18 层、<code>hidden size</code>
+2048）对齐融合；</li>
+<li><strong><code>gemma_expert</code>（<code>A</code>
+专家）</strong>：负责<strong>动作</strong>相关建模。层数与主干保持一致（18
+层），但宽度降为 1024，并引入带条件输入的
+<code>adaptive RMSNorm</code>，使其成为更轻量、受主干条件引导的
+<code>action expert</code>。</li>
+</ul>
+<p>如果想看完整模块展开，下面是直接打印出的 π<sub>0.5</sub> 结构：</p>
+<details>
+<summary>
+展开查看完整 π<sub>0.5</sub> 模型结构打印
+</summary>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line">self.paligemma_with_expert = PaliGemmaWithExpertModel(</span><br><span class="line">  (paligemma): PaliGemmaForConditionalGenerationWithPiGemma(</span><br><span class="line">    (model): PaliGemmaModelWithPiGemma(</span><br><span class="line">      (vision_tower): SiglipVisionModel(</span><br><span class="line">        (vision_model): SiglipVisionTransformer(</span><br><span class="line">          (embeddings): SiglipVisionEmbeddings(</span><br><span class="line">            (patch_embedding): Conv2d(3, 1152, kernel_size=(14, 14), stride=(14, 14), padding=valid)</span><br><span class="line">            (position_embedding): Embedding(256, 1152)</span><br><span class="line">          )</span><br><span class="line">          (encoder): SiglipEncoder(</span><br><span class="line">            (layers): ModuleList(</span><br><span class="line">              (0-26): 27 x SiglipEncoderLayer(</span><br><span class="line">                (layer_norm1): LayerNorm((1152,), eps=1e-06, elementwise_affine=True)</span><br><span class="line">                (self_attn): SiglipAttention(</span><br><span class="line">                  (k_proj): Linear(in_features=1152, out_features=1152, bias=True)</span><br><span class="line">                  (v_proj): Linear(in_features=1152, out_features=1152, bias=True)</span><br><span class="line">                  (q_proj): Linear(in_features=1152, out_features=1152, bias=True)</span><br><span class="line">                  (out_proj): Linear(in_features=1152, out_features=1152, bias=True)</span><br><span class="line">                )</span><br><span class="line">                (layer_norm2): LayerNorm((1152,), eps=1e-06, elementwise_affine=True)</span><br><span class="line">                (mlp): SiglipMLP(</span><br><span class="line">                  (activation_fn): GELUTanh()</span><br><span class="line">                  (fc1): Linear(in_features=1152, out_features=4304, bias=True)</span><br><span class="line">                  (fc2): Linear(in_features=4304, out_features=1152, bias=True)</span><br><span class="line">                )</span><br><span class="line">              )</span><br><span class="line">            )</span><br><span class="line">          )</span><br><span class="line">          (post_layernorm): LayerNorm((1152,), eps=1e-06, elementwise_affine=True)</span><br><span class="line">        )</span><br><span class="line">      )</span><br><span class="line">      (multi_modal_projector): PaliGemmaMultiModalProjector(</span><br><span class="line">        (linear): Linear(in_features=1152, out_features=2048, bias=True)</span><br><span class="line">      )</span><br><span class="line">      (language_model): PiGemmaModel(</span><br><span class="line">        (embed_tokens): GemmaTextScaledWordEmbedding(257152, 2048, padding_idx=0)</span><br><span class="line">        (layers): ModuleList(</span><br><span class="line">          (0-17): 18 x _PiGemmaDecoderLayerBase(</span><br><span class="line">            (self_attn): GemmaAttention(</span><br><span class="line">              (q_proj): Linear(in_features=2048, out_features=2048, bias=False)</span><br><span class="line">              (k_proj): Linear(in_features=2048, out_features=256, bias=False)</span><br><span class="line">              (v_proj): Linear(in_features=2048, out_features=256, bias=False)</span><br><span class="line">              (o_proj): Linear(in_features=2048, out_features=2048, bias=False)</span><br><span class="line">            )</span><br><span class="line">            (mlp): GemmaMLP(</span><br><span class="line">              (gate_proj): Linear(in_features=2048, out_features=16384, bias=False)</span><br><span class="line">              (up_proj): Linear(in_features=2048, out_features=16384, bias=False)</span><br><span class="line">              (down_proj): Linear(in_features=16384, out_features=2048, bias=False)</span><br><span class="line">              (act_fn): GELUTanh()</span><br><span class="line">            )</span><br><span class="line">            (input_layernorm): PiGemmaRMSNorm(dim=2048, eps=1e-06)</span><br><span class="line">            (post_attention_layernorm): PiGemmaRMSNorm(dim=2048, eps=1e-06)</span><br><span class="line">          )</span><br><span class="line">        )</span><br><span class="line">        (norm): PiGemmaRMSNorm(dim=2048, eps=1e-06)</span><br><span class="line">        (rotary_emb): GemmaRotaryEmbedding()</span><br><span class="line">      )</span><br><span class="line">    )</span><br><span class="line">    (lm_head): Linear(in_features=2048, out_features=257152, bias=False)</span><br><span class="line">  )</span><br><span class="line">  (gemma_expert): PiGemmaForCausalLM(</span><br><span class="line">    (model): PiGemmaModel(</span><br><span class="line">      (embed_tokens): None</span><br><span class="line">      (layers): ModuleList(</span><br><span class="line">        (0-17): 18 x _PiGemmaDecoderLayerBase(</span><br><span class="line">          (self_attn): GemmaAttention(</span><br><span class="line">            (q_proj): Linear(in_features=1024, out_features=2048, bias=False)</span><br><span class="line">            (k_proj): Linear(in_features=1024, out_features=256, bias=False)</span><br><span class="line">            (v_proj): Linear(in_features=1024, out_features=256, bias=False)</span><br><span class="line">            (o_proj): Linear(in_features=2048, out_features=1024, bias=False)</span><br><span class="line">          )</span><br><span class="line">          (mlp): GemmaMLP(</span><br><span class="line">            (gate_proj): Linear(in_features=1024, out_features=4096, bias=False)</span><br><span class="line">            (up_proj): Linear(in_features=1024, out_features=4096, bias=False)</span><br><span class="line">            (down_proj): Linear(in_features=4096, out_features=1024, bias=False)</span><br><span class="line">            (act_fn): GELUTanh()</span><br><span class="line">          )</span><br><span class="line">          (input_layernorm): PiGemmaRMSNorm(</span><br><span class="line">            dim=1024, eps=1e-06, adaptive=True, cond_dim=1024</span><br><span class="line">            (dense): Linear(in_features=1024, out_features=3072, bias=True)</span><br><span class="line">          )</span><br><span class="line">          (post_attention_layernorm): PiGemmaRMSNorm(</span><br><span class="line">            dim=1024, eps=1e-06, adaptive=True, cond_dim=1024</span><br><span class="line">            (dense): Linear(in_features=1024, out_features=3072, bias=True)</span><br><span class="line">          )</span><br><span class="line">        )</span><br><span class="line">      )</span><br><span class="line">      (norm): PiGemmaRMSNorm(</span><br><span class="line">        dim=1024, eps=1e-06, adaptive=True, cond_dim=1024</span><br><span class="line">        (dense): Linear(in_features=1024, out_features=3072, bias=True)</span><br><span class="line">      )</span><br><span class="line">      (rotary_emb): GemmaRotaryEmbedding()</span><br><span class="line">    )</span><br><span class="line">    (lm_head): Linear(in_features=1024, out_features=257152, bias=False)</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+</details>
+<p>各个部分的计算量比例大概有多少呢？在Thor平台上进行部署
+π<sub>0</sub>，各部分时间占用如下：</p>
+<p><img src="/images/128/time.png" width="50%"></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Version</th>
+<th style="text-align: right;">ViT (ms)</th>
+<th style="text-align: right;">LLM (ms)</th>
+<th style="text-align: right;">DiT (ms)</th>
+<th style="text-align: right;">Total (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Baseline</td>
+<td style="text-align: right;">79.38</td>
+<td style="text-align: right;">144.70</td>
+<td style="text-align: right;">208.12</td>
+<td style="text-align: right;">432.20</td>
+</tr>
+<tr>
+<td style="text-align: left;">Optimized</td>
+<td style="text-align: right;">21.78</td>
+<td style="text-align: right;">96.06</td>
+<td style="text-align: right;">109.18</td>
+<td style="text-align: right;">227.02</td>
+</tr>
+</tbody>
+</table>
+<p>需要注意的是 DiT 的部分，模型虽然不大，但是它的 denoise 要循环 10
+次，这导致了计算量的上升。</p>
+<p>后续又做了进一步的优化，整体能在 190ms 左右。不过大体上还是这个比例。
+π<sub>0.5</sub> 我还没有部署分析，不过应该也是这个比例和量级。</p>
+<h2 id="mathrmvla-之-mathrmvit-模块"><span
+class="math inline">\(\mathrm{VLA}\)</span> 之 <span
+class="math inline">\(\mathrm{V}\)</span>iT 模块</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">prefix_embs, prefix_pad_masks, prefix_att_masks = self.embed_prefix(images, img_masks, tokens, masks)</span><br></pre></td></tr></table></figure>
+<p>这个函数的作用是把 <strong>多路图像 + 文本 tokens</strong> 统一打包成
+Transformer 前缀输入：</p>
+<ul>
+<li>先分别做图像/文本 embedding，再在序列维拼接成
+<code>embs</code>。</li>
+<li>同时构造两类 mask：<code>pad_masks</code>（哪些位置是有效 token）和
+<code>att_masks</code>（前缀可见性标记）。</li>
+<li>最终返回
+<code>(embs, pad_masks, att_masks)</code>，供后续主干直接做前向推理。</li>
+</ul>
+<p>伪代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">function embed_prefix(images, img_masks, tokens, token_masks):</span><br><span class="line">    embs = []</span><br><span class="line">    pad_masks = []</span><br><span class="line">    att_masks = []</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 1) 图像分支：逐路图像做 SigLIP embedding</span></span><br><span class="line">    <span class="keyword">for</span> each (img, img_mask) <span class="keyword">in</span> <span class="built_in">zip</span>(images, img_masks):</span><br><span class="line">        img_emb = checkpoint(embed_image, img)          <span class="comment"># [B, N_img, D]</span></span><br><span class="line">        embs.append(img_emb)</span><br><span class="line">        pad_masks.append(expand(img_mask, N_img))       <span class="comment"># [B, N_img]</span></span><br><span class="line">        att_masks.extend([<span class="number">0</span>] * N_img)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2) 文本分支：token embedding（带 sqrt(D) 缩放）</span></span><br><span class="line">    lang_emb = checkpoint(embed_language_tokens, tokens) <span class="comment"># [B, N_txt, D]</span></span><br><span class="line">    lang_emb = lang_emb * sqrt(D)</span><br><span class="line">    embs.append(lang_emb)</span><br><span class="line">    pad_masks.append(token_masks)                        <span class="comment"># [B, N_txt]</span></span><br><span class="line">    att_masks.extend([<span class="number">0</span>] * N_txt)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3) 拼接并对齐 batch 维度</span></span><br><span class="line">    embs = concat(embs, dim=<span class="number">1</span>)                           <span class="comment"># [B, N_total, D]</span></span><br><span class="line">    pad_masks = concat(pad_masks, dim=<span class="number">1</span>)                 <span class="comment"># [B, N_total]</span></span><br><span class="line">    att_masks = broadcast(att_masks, batch_size=B)       <span class="comment"># [B, N_total]</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> embs, pad_masks, att_masks</span><br></pre></td></tr></table></figure>
+<p>prefix_embs 的 shape 为 torch.Size([1, 968, 2048])</p>
+<p><img src="/images/128/prefix_embs.png" width="80%"></p>
+<p>关于 SigLIP 的模型结构，第一层的卷积层可以稍微关注一下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(patch_embedding): Conv2d(3, 1152, kernel_size=(14, 14), stride=(14, 14), padding=valid)</span><br></pre></td></tr></table></figure>
+<p>使用以前做的一个4图像输入的情况为例：</p>
+<p><img src="/images/128/ViT_conv.png" width="100%"></p>
+<p>结论：这其实是个全连接，可以用全连接算子做加速。</p>
+<blockquote>
+<p><code>SigLIP</code> 是 Google
+提出的一个视觉-语言预训练模型（<code>Vision-Language Model</code>），全称可理解为
+<code>Sigmoid Loss for Language-Image Pre-training</code>。它和
+<code>CLIP</code> 类似，目标都是把图像和文本映射到同一语义空间做对齐，但
+SigLIP 用的是 <code>sigmoid/binary</code> 风格损失，而不是 CLIP 常见的
+<code>softmax</code> 对比损失。在这里，<code>SigLIP</code> 主要扮演
+视觉编码器（<code>ViT</code>）
+的角色：把输入图像变成语义特征，再交给后面的语言/动作模块继续处理。</p>
+</blockquote>
+<p>这是一个比较成熟的提取图像特征的模型，本以为这里发挥的空间并不大，无非是分辨率从224改为448，后来看
+<span class="math inline">\(\pi_{0.7}\)</span> 的论文里提到</p>
+<blockquote>
+<p>The history frames are processed through the vision encoder and
+compressed to the same number of tokens as a single frame</p>
+</blockquote>
+<p>这个做法也是挺妙的。</p>
+<hr />
+<p>还有一个明显的点可以进行推理优化：</p>
+<p>在 <code>embed_prefix</code> 函数中对图像进行的是循环处理</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Process images</span></span><br><span class="line"><span class="keyword">for</span> img, img_mask <span class="keyword">in</span> <span class="built_in">zip</span>(images, img_masks, strict=<span class="literal">True</span>):</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">image_embed_func</span>(<span class="params">img</span>):</span><br><span class="line">        <span class="keyword">return</span> self.paligemma_with_expert.embed_image(img)</span><br><span class="line"></span><br><span class="line">    img_emb = self._apply_checkpoint(image_embed_func, img)</span><br></pre></td></tr></table></figure>
+<p>这里完全可以对图像进行组 <code>batch</code>
+进行推理，经过实测这个优化可以极大地降低 <code>ViT</code>
+部分的耗时。</p>
+<hr />
+<p>关于 <code>Vit</code> 还有一个很大的陷阱： transformers 的 v5.4.0
+以前，<code>get_image_features</code> 返回的是缩放后的的 feature。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">image_features = image_features / (self.config.text_config.hidden_size**<span class="number">0.5</span>)</span><br></pre></td></tr></table></figure>
+<p>v5.4.0 以后则取消了这个缩放。这其中的一个改变来自于其中的一个 <a
+target="_blank" rel="noopener" href="https://github.com/huggingface/transformers/commit/0e7cb4e3ea3daaeef626148522f80b751e9559bd">commit</a>
+<img src="/images/128/commit_1.png" width="100%">
+<img src="/images/128/commit_2.png" width="100%"></p>
+<p>这会导致 transformers 的 v5.3.0 和 v5.4.0
+的接口要求有数量级上的差异。如果transformers版本没有和缩放逻辑对齐，必定影响模型推理结果。</p>
+<h2 id="mathrmvla-之-mathrmlanguage-模块"><span
+class="math inline">\(\mathrm{VLA}\)</span> 之 <span
+class="math inline">\(\mathrm{L}\)</span>anguage 模块</h2>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">_, past_key_values = self.paligemma_with_expert.forward(</span><br><span class="line">    attention_mask=prefix_att_2d_masks_4d,</span><br><span class="line">    position_ids=prefix_position_ids,</span><br><span class="line">    past_key_values=<span class="literal">None</span>,</span><br><span class="line">    inputs_embeds=[prefix_embs, <span class="literal">None</span>],</span><br><span class="line">    use_cache=<span class="literal">True</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>具体的 forward 是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> inputs_embeds[<span class="number">1</span>] <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">    prefix_output = self.paligemma.model.language_model.forward(</span><br><span class="line">        inputs_embeds=inputs_embeds[<span class="number">0</span>],</span><br><span class="line">        attention_mask=attention_mask,</span><br><span class="line">        position_ids=position_ids,</span><br><span class="line">        past_key_values=past_key_values,</span><br><span class="line">        use_cache=use_cache,</span><br><span class="line">        adarms_cond=adarms_cond[<span class="number">0</span>] <span class="keyword">if</span> adarms_cond <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">else</span> <span class="literal">None</span>,</span><br><span class="line">    )</span><br><span class="line">    prefix_past_key_values = prefix_output.past_key_values</span><br><span class="line">    prefix_output = prefix_output.last_hidden_state</span><br><span class="line">    suffix_output = <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+<p>这个就是一个正常的大模型推理，倒是没什么好进一步展开解释的。在本次试验中，输入长度是
+968，所以输出为：</p>
+<ul>
+<li><code>prefix_past_key_values</code>
+<ul>
+<li>共 18 layers, 每一层的 shape 都是一样的，均为
+<ul>
+<li><code>key</code>: (1, 1, 968, 256)</li>
+<li><code>value</code>: (1, 1, 968, 256)</li>
+</ul></li>
+<li>dtype=torch.bfloat16</li>
+<li>total KV storage ~17.02 MiB (all layers)</li>
+</ul></li>
+<li><code>prefix_output</code>
+<ul>
+<li>torch.Size([1, 968, 2048])</li>
+<li>dtype: torch.bfloat16</li>
+</ul></li>
+</ul>
+<p>需要注意的是，如果不使用 π<sub>0.5</sub> 及以后版本的 subtask
+的话，<code>prefix_output</code> 和 <code>prefix_past_key_values</code>
+的第 18 层是不需要计算的。这样可以节省不少计算量。</p>
+<p>输出的 <code>prefix_past_key_values</code> 与
+<code>action expert</code> 模块通过 kv kache 交互，即
+<code>Cross-Attention</code>。</p>
+<h2 id="mathrmvla-之-mathrmaction-模块"><span
+class="math inline">\(\mathrm{VLA}\)</span> 之 <span
+class="math inline">\(\mathrm{A}\)</span>ction 模块</h2>
+<p>降噪过程动图如下：</p>
+<p><img src="/images/128/denoise_process.gif" width="100%"></p>
+<p>动图为<strong>左 / 中 / 右</strong>三列对齐的可视化，含义如下。</p>
+<ul>
+<li><strong>左列 <span
+class="math inline">\(x_t\)</span></strong>：当前步 Euler
+更新<strong>之前</strong>的状态，即整块 action 的噪声 / 中间量在
+<strong>(50×32)</strong> 网格上的强度。</li>
+<li><strong>右列 <span
+class="math inline">\(|v_t|\)</span></strong>：策略给出的<strong>速度场模长</strong>。</li>
+<li><strong>中列</strong>：与左右<strong>相同分辨率</strong>；在每个局部块内把速度
+<span class="math inline">\(v\)</span> 投影成二维向量，再乘以步长 <span
+class="math inline">\(dt\)</span>
+得到<strong>位移箭头场</strong>。离散意义上 <span
+class="math inline">\(\Delta x \approx dt \cdot
+v_\theta(x,t)\)</span>，用来直观表示 flow matching
+里「沿学到的向量场，把样本从噪声端往数据端推」的那一步。</li>
+</ul>
+<p><strong>时间方向</strong>：由 <span class="math inline">\(t\approx
+1\)</span> 走向 <span class="math inline">\(t\to
+0\)</span>。最后一帧会补上由 <span class="math inline">\(x + dt\cdot
+v\)</span> 得到的<strong>终态</strong>，与模型里真实的 Euler
+更新一致。</p>
+<hr />
+<p>Action 是<strong>流匹配 /
+扩散式</strong>的生成：实现里对带噪动作做固定次数的离散更新，本配置典型为
+<strong>10</strong> 步（与主循环里 <code>denoise</code>
+迭代次数一致），每一步都在「<strong>当前噪声动作</strong> +
+<strong>当前时间标量</strong>」条件下调用 <strong>Gemma 动作专家（action
+expert）</strong>。</p>
+<p>在每一步送进专家主干之前，需要先把
+<code>(noisy_actions, timestep)</code> 整理成专家可做自注意力（并与 VLM
+<strong>prefix</strong> 做 Cross-Attention）的输入，主要包括：</p>
+<ul>
+<li><strong>Token 嵌入</strong>：噪声动作经线性投影后的 suffix
+序列表示；</li>
+<li><strong>Padding 掩码</strong>：哪些位置是有效 token；</li>
+<li><strong>注意力掩码</strong>：suffix 与 prefix
+之间的可见性（配合已缓存的 VLM KV）；</li>
+<li><strong>AdaRMS 条件</strong>：由时间步嵌入经小 MLP
+得到，用于在专家层内做自适应归一化调制。</li>
+</ul>
+<p>下面从 <code>embed_suffix</code> 按代码拆解（<strong>suffix</strong>
+即相对图像+语言前缀之后的<strong>第二段序列</strong>）。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">embed_suffix</span>(<span class="params">self, noisy_actions, timestep</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Embed noisy_actions, timestep to prepare for Expert Gemma processing.&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>时间步嵌入</strong></p>
+<p><strong>时间标量</strong> <code>timestep</code>
+先被编成固定维向量，再经浅层 MLP 得到
+<strong><code>adarms_cond</code></strong>：前半段类似 Transformer
+里的<strong>正弦–余弦位置编码</strong>（多频、平滑），后半段把该几何特征压成更适合作为
+<strong>AdaRMS</strong>
+条件的向量，使专家在去噪轨迹的不同位置有不同的归一化尺度与偏移。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Embed timestep using sine-cosine positional encoding</span></span><br><span class="line">time_emb = create_sinusoidal_pos_embedding(</span><br><span class="line">    timestep,</span><br><span class="line">    self.action_in_proj.out_features,</span><br><span class="line">    min_period=self.config.min_period,</span><br><span class="line">    max_period=self.config.max_period,</span><br><span class="line">    device=timestep.device,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>create_sinusoidal_pos_embedding</code>：把
+<code>timestep</code> 映射到与 <code>action_in_proj.out_features</code>
+<strong>相同维度</strong>的向量，语义上表示「当前处于去噪过程的哪一段」；<code>min_period</code>
+/ <code>max_period</code> 控制频谱覆盖，避免只在单一尺度上对 (t)
+敏感。</li>
+<li>形状示例：<code>time_emb.shape == torch.Size([1, 1024])</code>（首维为
+batch，与下文 <code>action_emb</code>
+的隐藏维一致，便于与动作分支对齐）。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">time_mlp_func</span>(<span class="params">time_emb</span>):</span><br><span class="line">    x = self.time_mlp_in(time_emb)</span><br><span class="line">    x = F.silu(x)</span><br><span class="line">    x = self.time_mlp_out(x)</span><br><span class="line">    <span class="keyword">return</span> F.silu(x)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>time_mlp_func</code>：<code>Linear → SiLU → Linear → SiLU</code>，即两层
+MLP；输出即送入专家各层的
+<strong><code>adarms_cond</code></strong>（与「把时间信息直接加到 token
+上」不同，这里主要通过 <strong>AdaRMS</strong> 调制层内统计量，把 (t)
+信息注入主干）。</li>
+</ul></li>
+<li><p><strong>动作嵌入</strong></p>
+<p><code>noisy_actions</code> 一般为
+<strong><code>[B, T, D_a]</code></strong>：(T) 为动作 horizon（如
+<strong>50</strong>），(D_a) 为单步动作维（如 <strong>32</strong>，即
+<code>max_action_dim</code>）。先经 <code>action_in_proj</code>（由
+<code>_apply_checkpoint</code>
+包一层以省显存）线性映射到专家隐藏维，得到 suffix 上的
+<strong><code>action_emb</code></strong>。时间信息<strong>不</strong>在这一步与
+token 特征相加，而是单独走 <strong><code>adarms_cond</code></strong>，经
+<strong>AdaRMS</strong> 注入各层。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">action_emb = self._apply_checkpoint(action_proj_func, noisy_actions)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>action_in_proj(noisy_actions)：把噪声动作（最后一维一般是
+max_action_dim）线性投到专家隐藏维，得到 action_emb。
+<ul>
+<li>作为 suffix 序列的 token 表示</li>
+<li>这里还没和 time 在特征维上相加</li>
+</ul></li>
+<li>noisy_actions.shape: torch.Size([1, 50, 32])</li>
+<li>action_emb.shape: torch.Size([1, 50, 1024])</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">outputs_embeds, _ = self.paligemma_with_expert.forward(</span><br><span class="line">    attention_mask=full_att_2d_masks_4d,</span><br><span class="line">    position_ids=position_ids,</span><br><span class="line">    past_key_values=past_key_values,</span><br><span class="line">    inputs_embeds=[<span class="literal">None</span>, suffix_embs],</span><br><span class="line">    use_cache=<span class="literal">False</span>,</span><br><span class="line">    adarms_cond=[<span class="literal">None</span>, adarms_cond],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>outputs_embeds.shape: torch.Size([1, 50, 1024])</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">suffix_out = outputs_embeds[<span class="number">1</span>]</span><br><span class="line">suffix_out = suffix_out[:, -self.config.chunk_size :]</span><br><span class="line">suffix_out = suffix_out.to(dtype=self.action_out_proj.weight.dtype)</span><br><span class="line"><span class="keyword">return</span> self.action_out_proj(suffix_out)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>[:, -chunk_size:]</code></strong>：当 horizon 大于
+<strong><code>chunk_size</code></strong> 时，只保留<strong>最后</strong>
+<code>chunk_size</code>
+个时间步上的隐状态，与「动作块」预测窗口对齐（<code>chunk_size</code>
+与配置里 <code>Pi0Config</code> 等一致）。</li>
+<li><strong><code>action_out_proj</code></strong>：线性头把隐藏维投回
+<strong><code>action_dim</code></strong>，得到本步网络对速度场 /
+噪声等目标的预测；形状示例：<code>torch.Size([1, 50, 32])</code>（与
+<code>noisy_actions</code> 末维一致）。</li>
+</ul></li>
+</ul>
+<p>具体的 forward 是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">elif</span> inputs_embeds[<span class="number">0</span>] <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">    suffix_output = self.gemma_expert.model.forward(</span><br><span class="line">        inputs_embeds=inputs_embeds[<span class="number">1</span>],</span><br><span class="line">        attention_mask=attention_mask,</span><br><span class="line">        position_ids=position_ids,</span><br><span class="line">        past_key_values=past_key_values,</span><br><span class="line">        use_cache=use_cache,</span><br><span class="line">        adarms_cond=adarms_cond[<span class="number">1</span>] <span class="keyword">if</span> adarms_cond <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">else</span> <span class="literal">None</span>,</span><br><span class="line">    )</span><br><span class="line">    suffix_output = suffix_output.last_hidden_state</span><br><span class="line">    prefix_output = <span class="literal">None</span></span><br><span class="line">    prefix_past_key_values = <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+<hr />
+<p>进行多次推理，得到一个完整的动作序列：</p>
+<p><img src="/images/128/last_action_stack4_heatmap.png" width="100%"></p>
+<p>对应的仿真里面机器人的运动轨迹：</p>
+<p><img src="/images/128/robot.gif" width="100%"></p>
+<h1 id="其他">其他</h1>
+<h2 id="模型配置">模型配置</h2>
+<p>模型使用了 <a
+target="_blank" rel="noopener" href="https://modelscope.cn/datasets/agibot_world/GenieSim3.0-Dataset/tree/master/checkpoints/select_color">select_color</a>，不过这是
+OpenPI 的 JAX 格式，我倾向于用 LeRobot 进行推理，于是进行格式转换：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">(openpi) python3 examples/convert_jax_model_to_pytorch.py \</span><br><span class="line">  --checkpoint-dir /home/x/Desktop/checkpoints/select_color/29999 \</span><br><span class="line">  --config-name pi05_aloha \</span><br><span class="line">  --output-path /home/x/Desktop/tmp_openpi_pt_select_color_jax2pt \</span><br><span class="line">  --precision bfloat16</span><br><span class="line">Converting PI0 checkpoint from /home/x/Desktop/select_color/29999 to /home/x/Desktop/tmp_openpi_pt_select_color_jax2pt</span><br><span class="line">Model config: Pi0Config(action_dim=32, action_horizon=50, max_token_len=200, dtype=&#x27;bfloat16&#x27;, paligemma_variant=&#x27;gemma_2b&#x27;, action_expert_variant=&#x27;gemma_300m&#x27;, pi05=True, discrete_state_input=True, pytorch_compile_mode=&#x27;max-autotune&#x27;)</span><br><span class="line">Model conversion completed successfully!</span><br><span class="line">Model saved to /home/x/Desktop/tmp_openpi_pt_select_color_jax2pt</span><br></pre></td></tr></table></figure>
+<p>我当前 LeRobot 的版本是 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">commit 720cf8e3a09f62fa95260cc49a7a30e5d0f7473a (HEAD -&gt; main, origin/main, origin/HEAD)</span><br><span class="line">Author: Steven Palma &lt;imstevenpmwork@ieee.org&gt;</span><br><span class="line">Date:   Mon Mar 30 19:11:41 2026 +0200</span><br></pre></td></tr></table></figure></p>
+<p>注：OpenPI的代码逻辑和LeRobot的代码逻辑和实现有差异，直接替换的话完全不work，需要做一些修正(RoPE)。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">(lerobot) x@portal:~/Desktop/lerobot$ lerobot-info</span><br><span class="line">- LeRobot version: 0.5.1</span><br><span class="line">- Platform: Linux-6.17.0-19-generic-x86_64-with-glibc2.39</span><br><span class="line">- Python version: 3.12.13</span><br><span class="line">- Huggingface Hub version: 1.7.2</span><br><span class="line">- Datasets version: 4.8.4</span><br><span class="line">- Numpy version: 2.2.6</span><br><span class="line">- FFmpeg version: 7.1.1</span><br><span class="line">- PyTorch version: 2.10.0+cu128</span><br><span class="line">- Is PyTorch built with CUDA support?: True</span><br><span class="line">- Cuda version: 12.8</span><br><span class="line">- GPU model: NVIDIA GeForce RTX 4090</span><br><span class="line">- Using GPU <span class="keyword">in</span> script?: &lt;fill <span class="keyword">in</span>&gt;</span><br><span class="line">- lerobot scripts: [<span class="string">&#x27;lerobot-calibrate&#x27;</span>, <span class="string">&#x27;lerobot-dataset-viz&#x27;</span>, <span class="string">&#x27;lerobot-edit-dataset&#x27;</span>, <span class="string">&#x27;lerobot-eval&#x27;</span>, <span class="string">&#x27;lerobot-find-cameras&#x27;</span>, <span class="string">&#x27;lerobot-find-joint-limits&#x27;</span>, <span class="string">&#x27;lerobot-find-port&#x27;</span>, <span class="string">&#x27;lerobot-imgtransform-viz&#x27;</span>, <span class="string">&#x27;lerobot-info&#x27;</span>, <span class="string">&#x27;lerobot-record&#x27;</span>, <span class="string">&#x27;lerobot-replay&#x27;</span>, <span class="string">&#x27;lerobot-setup-can&#x27;</span>, <span class="string">&#x27;lerobot-setup-motors&#x27;</span>, <span class="string">&#x27;lerobot-teleoperate&#x27;</span>, <span class="string">&#x27;lerobot-train&#x27;</span>, <span class="string">&#x27;lerobot-train-tokenizer&#x27;</span>]</span><br></pre></td></tr></table></figure>
+<p>看各家模型结构的设计很有意思，能看出使用各种技巧</p>
+<p>比如 GR00T 的模型结构（这图画的要比pi0清晰一些）</p>
+<p><img src="/images/128/GR00T_N1_Model_Architecture.png" width="100%"></p>
+<p>pi07的模型结构</p>
+<p><img src="/images/128/pi07.png" width="100%"></p>
+<p>画图运行脚本：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(lerobot) x@portal:~/Desktop/serve_lerobot$ python serve_lerobot_pi05.py</span><br><span class="line">(lerobot) x@portal:~/Desktop/serve_lerobot$ python debug_input/replay_recv_bin.py</span><br><span class="line"></span><br><span class="line">画denoise过程</span><br><span class="line">(lerobot) x@portal:~/Desktop/serve_lerobot/debug_output/denoise_step$ python draw_denoise.py</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>src/lerobot/policies/pi05/README.md</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 46%" />
+<col style="width: 35%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>π₀</th>
+<th>π₀.₅</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Time Conditioning</td>
+<td>Concatenates time with actions via
+<code>action_time_mlp_*</code></td>
+<td>Uses <code>time_mlp_*</code> for AdaRMS conditioning</td>
+</tr>
+<tr>
+<td>AdaRMS</td>
+<td>Not used</td>
+<td>Used in action expert</td>
+</tr>
+<tr>
+<td>Tokenizer Length</td>
+<td>48 tokens</td>
+<td>200 tokens</td>
+</tr>
+<tr>
+<td>Discrete State Input</td>
+<td>False (Uses <code>state_proj</code> layer)</td>
+<td>True</td>
+</tr>
+<tr>
+<td>Parameter Count</td>
+<td>Higher (includes state embedding)</td>
+<td>Lower (no state embedding)</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>Thanks for your support.</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    Donate
+  </button>
+  <div id="qr" style="display: none;">
+      <div style="display: inline-block;">
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <p>Buymeacoffee</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu WeChat Pay">
+        <p>WeChat Pay</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu Alipay">
+        <p>Alipay</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+              <a href="/tags/VLA/" rel="tag"># VLA</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/08/13/127_MXFP4/" rel="prev" title="MXFP4 初探">
+      <i class="fa fa-chevron-left"></i> MXFP4 初探
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/04/21/130_RobotARM/" rel="next" title="RLToken实践">
+      RLToken实践 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%CF%80-%E7%9B%B8%E5%85%B3%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">π 相关背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">模型结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5"><span class="nav-number">3.</span> <span class="nav-text">实践</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%BF%E7%9C%9F%E5%99%A8"><span class="nav-number">3.1.</span> <span class="nav-text">仿真器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#launch-docker-container-and-run-the-demo"><span class="nav-number">3.1.1.</span> <span class="nav-text">Launch docker
+container and run the demo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96log"><span class="nav-number">3.1.2.</span> <span class="nav-text">初始化log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A8%E7%90%86%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="nav-number">3.2.</span> <span class="nav-text">推理服务端</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E4%BB%BF%E7%9C%9F%E5%99%A8%E6%95%B0%E6%8D%AE"><span class="nav-number">3.2.1.</span> <span class="nav-text">接收仿真器数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-number">3.2.2.</span> <span class="nav-text">服务端预处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%8E%A8%E7%90%86%E6%8E%A5%E5%8F%A3select_action-vs-predict_action_chunk"><span class="nav-number">3.2.3.</span> <span class="nav-text">模型推理接口：select_action
+vs predict_action_chunk</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%84%E5%A4%84%E7%90%86%E6%93%8D%E4%BD%9C-_preprocess_images"><span class="nav-number">3.2.3.1.</span> <span class="nav-text">预处理操作
+(_preprocess_images)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%8E%A8%E7%90%86-sample_actions"><span class="nav-number">3.2.3.2.</span> <span class="nav-text">模型推理 (sample_actions)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E-action"><span class="nav-number">3.2.3.3.</span> <span class="nav-text">返回 action</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%8E%A8%E7%90%86-sample_actions-%E6%8B%86%E8%A7%A3"><span class="nav-number">4.</span> <span class="nav-text">模型推理 (sample_actions)
+拆解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mathrmvla-%E4%B9%8B-mathrmvit-%E6%A8%A1%E5%9D%97"><span class="nav-number">4.1.</span> <span class="nav-text">\(\mathrm{VLA}\) 之 \(\mathrm{V}\)iT 模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mathrmvla-%E4%B9%8B-mathrmlanguage-%E6%A8%A1%E5%9D%97"><span class="nav-number">4.2.</span> <span class="nav-text">\(\mathrm{VLA}\) 之 \(\mathrm{L}\)anguage 模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mathrmvla-%E4%B9%8B-mathrmaction-%E6%A8%A1%E5%9D%97"><span class="nav-number">4.3.</span> <span class="nav-text">\(\mathrm{VLA}\) 之 \(\mathrm{A}\)ction 模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">5.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E9%85%8D%E7%BD%AE"><span class="nav-number">5.1.</span> <span class="nav-text">模型配置</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu.jpg">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">Here is Zhao Dongyu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+<br>
+<div style="width: 210px; height: 210px;">
+  <script async type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?d=iTM1NNRJIGaMvOAMCKq-UVRPmqJ8gfGcaUAEGH7qVKo"></script>
+</div>
+<p>Visitors Distribution</p>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-user-astronaut"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">275k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">4:10</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/medium-zoom@1/dist/medium-zoom.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '82b57e0cfa4752bb12bb',
+      clientSecret: 'b173169d558751dc60eb82b84c876435494f4aa0',
+      repo        : 'zhao-dongyu.github.io',
+      owner       : 'zhao-dongyu',
+      admin       : ['zhao-dongyu'],
+      id          : '282ce1a90937f807cc44a4ef339abb1d',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+
+  
+  
+</body>
+</html>

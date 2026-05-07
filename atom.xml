@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2026-04-14T06:28:44.535Z</updated>
+  <updated>2026-04-30T06:32:10.773Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,11 +17,68 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Pi0 结构解析</title>
-    <link href="http://example.com/2026/01/28/128_Pi0_model/"/>
-    <id>http://example.com/2026/01/28/128_Pi0_model/</id>
+    <title>RLToken实践</title>
+    <link href="http://example.com/2026/04/21/129_RLToken/"/>
+    <id>http://example.com/2026/04/21/129_RLToken/</id>
+    <published>2026-04-21T01:34:00.000Z</published>
+    <updated>2026-04-30T06:32:10.773Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://www.pi.website/research/rlt&quot;&gt;rlt blog&lt;/a&gt;</summary>
+        
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="VLA" scheme="http://example.com/tags/VLA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>RLToken实践</title>
+    <link href="http://example.com/2026/04/21/130_RobotARM/"/>
+    <id>http://example.com/2026/04/21/130_RobotARM/</id>
+    <published>2026-04-21T01:34:00.000Z</published>
+    <updated>2026-04-27T02:07:07.548Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;安装-ros-2-humble&quot;&gt;1.安装 &lt;a
+href=&quot;https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html&quot;&gt;ROS
+2 Humble&lt;/a&gt;&lt;/h1&gt;
+&lt;h2</summary>
+        
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
+    
+    <category term="Robot" scheme="http://example.com/tags/Robot/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>π 模型的实践和结构解析</title>
+    <link href="http://example.com/2026/01/28/128_Pi_model/"/>
+    <id>http://example.com/2026/01/28/128_Pi_model/</id>
     <published>2026-01-28T15:46:00.000Z</published>
-    <updated>2026-04-14T06:28:44.535Z</updated>
+    <updated>2026-05-07T02:57:51.258Z</updated>
     
     
     <summary type="html">&lt;blockquote&gt;
@@ -415,54 +472,6 @@ href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p
     <category term="HPC" scheme="http://example.com/tags/HPC/"/>
     
     <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>C++Primer学习</title>
-    <link href="http://example.com/2024/11/13/110_C++Primer/"/>
-    <id>http://example.com/2024/11/13/110_C++Primer/</id>
-    <published>2024-11-12T16:00:00.000Z</published>
-    <updated>2026-04-13T01:22:08.134Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;学习C++&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-    <category term="C++" scheme="http://example.com/tags/C/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>TinyML and Efficient Deep Learning Computing</title>
-    <link href="http://example.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/"/>
-    <id>http://example.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/</id>
-    <published>2024-11-03T16:00:00.000Z</published>
-    <updated>2026-04-13T01:22:08.134Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;在&lt;a
-href=&quot;https://www.zhihu.com/question/668077638/answer/4043039987&quot;&gt;知乎&lt;/a&gt;看到这么一句话：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;跟着好好上韩松的课程，把 lab 都自己认真做一遍，特别是 AWQ 那套算法和推理的框架 （quantizaiton），只要能读懂整套代码，就能自己回答你问的问题了～&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;感觉自己其实没有一个系统的学习，于是跟着&lt;a
-href=&quot;https://hanlab.mit.edu/courses/2024-fall-65940&quot;&gt;韩松&lt;/a&gt;学习一遍，在此记录一下。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="http://example.com/tags/LLM/"/>
-    
-    <category term="Tech" scheme="http://example.com/tags/Tech/"/>
-    
-    <category term="TinyML" scheme="http://example.com/tags/TinyML/"/>
     
   </entry>
   
