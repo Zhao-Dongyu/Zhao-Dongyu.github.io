@@ -210,237 +210,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/21/129_RLToken/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/zhaodongyu.jpg">
-      <meta itemprop="name" content="Zhao Dongyu">
-      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Zhao Dongyu's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/04/21/129_RLToken/" class="post-title-link" itemprop="url">RLToken实践</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2026-04-21 09:34:00" itemprop="dateCreated datePublished" datetime="2026-04-21T09:34:00+08:00">2026-04-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2026-04-30 14:32:10" itemprop="dateModified" datetime="2026-04-30T14:32:10+08:00">2026-04-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="Symbols count in article">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3.5k</span>
-            </span>
-            <span class="post-meta-item" title="Reading time">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>3 mins.</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><a target="_blank" rel="noopener" href="https://www.pi.website/research/rlt">rlt blog</a> <a
-target="_blank" rel="noopener" href="https://www.pi.website/download/rlt.pdf">paper</a></p>
-<p>VLA（Vision-Language-Action）模型已经可以“通用操作”，但最后一毫米（last
-millimeter）不行，比如动作变慢、需要反复试探、精细任务容易失败。</p>
-<p>RL擅长优化关键细节，很容易得出用强化学习（RL）微调的解决方案。但是RL训练有个缺点：
-- RL训练大模型 → 很慢、很贵 - 小模型RL → 学得快但不聪明 怎么具备又能利用
-VLA 的泛化能力，又具备 RL 的高效学习？</p>
-<p>（1）从VLA中“抽取一个压缩表示”，也就是 RL token</p>
-<p>（2）用小网络做RL 冻结VLA 训练：小 actor，小 critic 输入：RL token
-和动作 输出：修正动作</p>
-<p>模块 作用 VLA 提供理解 + 初始动作 RL token 提供状态表示 Actor-Critic
-做局部优化</p>
-<p>RLT的核心创新</p>
-<p>创新1：RL Token（最关键） 👉 专门为RL设计的“压缩状态表示” 作用：
-保留VLA知识 降低维度 提高sample efficiency</p>
-<p>创新2：Action Chunk RL 👉 在“动作段”上做RL，而不是单步 好处：
-缩短horizon 更容易学习</p>
-<p>创新3：直接优化动作（不是残差） 👉 actor直接输出动作 而不是：
-residual noise</p>
-<p>创新4：用VLA作为“参考策略” 两个关键点： （1）输入参考动作 RL不是盲猜
-（2）加正则约束 不偏离VLA太远</p>
-<p>本质改变 从： ❌ RL从头探索 变成： ✅ RL在“好策略附近微调”</p>
-<p>RLT = 给RL一个“聪明的大脑接口”</p>
-<p>Chunk级别RL让RL更“灵活”（更频繁调整）缩短时间尺度（horizon）</p>
-<p>如果不用chunk： 50Hz × 10秒 = 500步 reward很难传回来 用chunk：
-每次决策10步 horizon缩短10倍</p>
-<p>为什么用 off-policy？ 因为： 数据昂贵 必须重复利用</p>
-<p>用一个“瓶颈结构”压缩VLA信息</p>
-<p>Because the representation for the RL token must retain enough
-information to enable the decoder to reconstruct the inputs, it acts as
-a bottleneck.</p>
-<p>RL token必须保留重要信息 否则： 重建不了 loss大 ✔ 同时又是低维的 👉
-适合RL</p>
-<p>在RL token基础上： 学一个小策略来“修正VLA动作”</p>
-<p>拿起螺丝刀可能很容易，但快速且精准地对准小螺丝就难得多。想提高这个上限的话就得上RL了。</p>
-<blockquote>
-<p>Reinforcement learning (RL) is a natural way to improve such tasks:
-by trying, observing outcomes, and adjusting, a robot can refine
-behaviors that are difficult to learn from demonstrations alone.</p>
-</blockquote>
-<p>RLT
-旨在提升那些需要细致操作的精细任务，通过几分钟或几小时的真实经验学习。</p>
-<blockquote>
-<p>RLT adds a special output token that provides a compact interface
-between the VLA and a lightweight RL policy, allowing the robot to adapt
-its behavior in just a few hours without fine-tuning the full model.</p>
-</blockquote>
-<p>实现方式：</p>
-<p>We train the VLA to produce an "RL token" that can then provide a
-concise summary of the VLA's internal representations. This RL token is
-then used as the input into a much smaller model that can be trained
-with RL in real time.</p>
-<p>The RL token is used by an actor and critic, which are trained with a
-sample-efficient off-policy RL method.</p>
-<p>RL Token</p>
-<ul>
-<li>a concise summary of the VLA's internal representations</li>
-<li>提供 VLA 内部表示的简明总结</li>
-</ul>
-<p>RLT 首先通过添加一个编码器-解码器 Transformer 来改造 VLA。
-这个模块通过一个瓶颈结构（bottleneck）来训练，使其能够预测模型的内部嵌入表示（internal
-embeddings），从而得到一种压缩表示，我们称之为 RL token。 这个 RL token
-总结了强化学习中的 actor（策略） 和 critic（价值函数）
-在当前观测下所需要的信息。 因此，即使使用非常小的 actor 和 critic
-网络，也可以基于模型自身丰富的内部表示来进行学习和改进。</p>
-<p>本质上是用大模型做感知，用小模型做决策。RLT = 用一个 bottleneck
-Transformer，把大模型的内部表示压缩成 RL token，让小型 RL
-网络也能利用大模型的能力进行学习。</p>
-<p>首先，RL 策略预测的是动作片段（action
-chunks），而不是每一步的低层控制动作。这与 VLA
-的动作结构保持一致，使得策略能够学习到时间上连续的动作（temporal
-motions）。 其次，RL 策略不是从零开始决策： actor 会接收 VLA
-预测的动作作为输入，因此它学的是<strong>“修改 VLA
-的动作”</strong>，而不是完全替代它。
-我们还在策略更新时加入一个正则项（regularization），让策略倾向于接近这个参考动作（VLA
-的输出）。 这样一来： 当 VLA 已经表现不错时，策略不会偏离太远 只有当
-critic 判断有更优解时，才会偏离 为了防止训练初期策略直接抄
-VLA，我们引入了 reference-action dropout： 👉 随机丢掉参考动作输入，强制
-actor 学会独立生成动作 最后，我们还可以把<strong>人类干预（human
-interventions）</strong>直接加入 RL 更新中：
-当机器人卡住或犯错时，人类的修正可以被纳入训练，进一步提升策略。
-这些设计使得在线 RL 成为一种通用方法（recipe），可以直接接在任何预训练
-VLA 上，而不需要针对具体任务做复杂工程。</p>
-<p>RL 怎么用 VLA？ VLA → 给出初始动作 RL actor → 在此基础上“微调”</p>
-<p>为什么用 action chunk？ 低层控制：每一步都学（难、数据多）
-chunk：一段动作一起学（高效）</p>
-<p>exploration 怎么控制 - 参考动作输入（VLA action） - 正则约束（stay
-close） - critic 决定何时偏离</p>
-<p>默认相信 VLA 只有更优时才改</p>
-<p>reference-action dropout 的意义 防止 actor = copy(VLA) 强制 actor =
-能独立决策</p>
-<p>human intervention 的作用 👉 相当于： 在线纠错 人类反馈 → 直接进 RL
-类似： imitation learning + RL 混合</p>
-<p>让 RL 不从零学，而是在 VLA
-的基础上“安全地微调”，用最少数据完成适应。</p>
-<p>👉 真正输出动作的是：RL actor（在推理阶段） 👉 VLA 提供“先验动作 +
-表示能力” 👉 RL token 只是给 actor/critic 用的“状态压缩表示”</p>
-<pre><code>观测（image / state）
-  ↓
-VLA → 生成：
-      1️⃣ 内部 embedding
-      2️⃣ 一个初始动作（reference action）
-  ↓
-RL token（压缩 embedding）
-  ↓
-RL actor（输入：RL token + VLA action）
-  ↓
-最终动作（执行）</code></pre>
-<p>下载<a
-target="_blank" rel="noopener" href="https://modelscope.cn/datasets/agibot_world/GenieSim3.0-Dataset/tree/master/dataset/pick_block_color/g1">数据集</a></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">modelscope download \</span><br><span class="line">  --dataset agibot_world/GenieSim3.0-Dataset \</span><br><span class="line">  --local_dir /home/x/dataset \</span><br><span class="line">  --include &quot;dataset/pick_block_color/g1/*&quot;</span><br></pre></td></tr></table></figure>
-<p>分卷压缩包（<code>pick_block_color_g1.tar.gz.*</code>）：</p>
-<table>
-<thead>
-<tr>
-<th>分卷</th>
-<th style="text-align: right;">大小</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>pick_block_color_g1.tar.gz.000</code></td>
-<td style="text-align: right;">37.58 GB</td>
-</tr>
-<tr>
-<td><code>pick_block_color_g1.tar.gz.001</code></td>
-<td style="text-align: right;">37.58 GB</td>
-</tr>
-<tr>
-<td><code>pick_block_color_g1.tar.gz.002</code></td>
-<td style="text-align: right;">37.58 GB</td>
-</tr>
-<tr>
-<td><code>pick_block_color_g1.tar.gz.003</code></td>
-<td style="text-align: right;">36.98 GB</td>
-</tr>
-<tr>
-<td><strong>合计</strong></td>
-<td style="text-align: right;"><strong>≈149.72 GB</strong></td>
-</tr>
-</tbody>
-</table>
-<p>git clone https://github.com/huggingface/lerobot.git git switch -c
-feat/RL-token --track origin/feat/RL-token</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://example.com/2026/01/28/128_Pi_model/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1286,6 +1055,102 @@ kernel的反量化。</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2024/08/12/101_WeightonlyGEMM:%20dequantize_s4_to_fp16x2%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90/" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/07/09/100_Battlegrounds/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu.jpg">
+      <meta itemprop="name" content="Zhao Dongyu">
+      <meta itemprop="description" content="Here is Zhao Dongyu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/07/09/100_Battlegrounds/" class="post-title-link" itemprop="url">Battlegrounds</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-07-09 02:04:51" itemprop="dateCreated datePublished" datetime="2023-07-09T02:04:51+08:00">2023-07-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2026-04-13 09:22:08" itemprop="dateModified" datetime="2026-04-13T09:22:08+08:00">2026-04-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B8%B8%E6%88%8F/" itemprop="url" rel="index"><span itemprop="name">游戏</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>17k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>16 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Set up a flag: the completion progress reaches 100%</p>
+<p>Now at <strong>99%</strong></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/07/09/100_Battlegrounds/" rel="contents">
                 Read more &raquo;
               </a>
             </div>
