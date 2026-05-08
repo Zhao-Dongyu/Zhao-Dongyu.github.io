@@ -9553,6 +9553,7 @@ class="math inline">\(\mathrm{L}\)</span>anguage 模块</h2>
 <p>输出的 <code>prefix_past_key_values</code> 与
 <code>action expert</code> 模块通过 kv kache 交互，即
 <code>Cross-Attention</code>。</p>
+<p>输出的 <code>prefix_output</code> 可用于做 RL Token。</p>
 <h2 id="mathrmvla-之-mathrmaction-模块"><span
 class="math inline">\(\mathrm{VLA}\)</span> 之 <span
 class="math inline">\(\mathrm{A}\)</span>ction 模块</h2>
