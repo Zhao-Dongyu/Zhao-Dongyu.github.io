@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"zhao-dongyu.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.29.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="这篇记录整理了 Cosmos3 的核心原理，以及我在 Astribot 上从数据适配、模型训练到部署和实机测试的过程。前期使用 Nano 打通训练与推理流程，Edge 开源后转向 Edge 训练，完成 20k checkpoint，并保存了 20 段方块分类任务录像。 训练使用修改后的 cosmos-framework。Edge 20k 在 20 次捡方块测试中平均得到 8.7&#x2F;10 分；RTX">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cosmos3 学习与实践">
+<meta property="og:url" content="https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/">
+<meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
+<meta property="og:description" content="这篇记录整理了 Cosmos3 的核心原理，以及我在 Astribot 上从数据适配、模型训练到部署和实机测试的过程。前期使用 Nano 打通训练与推理流程，Edge 开源后转向 Edge 训练，完成 20k checkpoint，并保存了 20 段方块分类任务录像。 训练使用修改后的 cosmos-framework。Edge 20k 在 20 次捡方块测试中平均得到 8.7&#x2F;10 分；RTX">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/official_fig05_mot.jpg">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/official_fig04_action_sequences.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/official_fig08_training_curriculum.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/02_astribot_pipeline.jpg">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/official_fig03_action_representation.jpg">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/08_edge_train_loss.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/09_edge_modality_losses.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/07_edge_5090_sampling.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/04_local_latency.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/10_task01_all_models_scores.png">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/video_contact_1.jpg">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/video_contact_2.jpg">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/video_contact_3.jpg">
+<meta property="og:image" content="https://zhao-dongyu.github.io/images/131/video_contact_4.jpg">
+<meta property="article:published_time" content="2026-08-31T10:53:00.000Z">
+<meta property="article:modified_time" content="2026-11-03T10:55:41.173Z">
+<meta property="article:author" content="Zhao Dongyu">
+<meta property="article:tag" content="Cosmos3">
+<meta property="article:tag" content="Robot">
+<meta property="article:tag" content="Tech">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhao-dongyu.github.io/images/zhaodongyu-transparent.png">
+
+
+<link rel="canonical" href="https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/","path":"2026/08/31/131_Cosmos3/","title":"Cosmos3 学习与实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Cosmos3 学习与实践 | Zhao Dongyu's Blog</title>
+  
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-47NXH2LPKW","only_pageview":true,"measure_protocol_api_secret":null}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"ams","display_overflow":"linebreak","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Zhao Dongyu's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+      <i class="fa fa-search fa-fw fa-lg"></i>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Zhao Dongyu's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">A life which is unexamined is not worth living.</p>
+  </div>
+
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+      <i class="fa fa-ellipsis fa-fw fa-lg"></i>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-博客"><a href="/blog/" rel="section"><i class="fa fa-pen-nib fa-fw"></i>博客</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-layer-group fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-rss"><a href="/atom.xml" rel="section"><i class="fa fa-rss fa-fw"></i>RSS</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  
+  <template id="search-popup-template"><div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div></template>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cosmos3-%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">1. Cosmos3 的核心原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E5%AE%9A%E4%BD%8D%E4%B8%8E%E8%A7%84%E6%A8%A1"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 模型定位与规模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mot%E7%90%86%E8%A7%A3%E4%B8%8E%E7%94%9F%E6%88%90%E6%80%8E%E6%A0%B7%E5%8D%8F%E4%BD%9C"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 MoT：理解与生成怎样协作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%96%E7%95%8C%E9%A2%84%E6%B5%8B%E4%B8%8E%E5%8A%A8%E4%BD%9C%E7%94%9F%E6%88%90"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 世界预测与动作生成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E9%80%9A%E7%94%A8%E6%A8%A1%E5%9E%8B%E5%88%B0%E6%9C%BA%E5%99%A8%E4%BA%BA%E7%AD%96%E7%95%A5"><span class="nav-number">2.4.</span> <span class="nav-text">1.4 从通用模型到机器人策略</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#astribot-%E6%95%B0%E6%8D%AE%E4%B8%8E%E6%A8%A1%E5%9E%8B%E9%80%82%E9%85%8D"><span class="nav-number">3.</span> <span class="nav-text">2. Astribot 数据与模型适配</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E7%9B%B8%E6%9C%BA%E4%B8%8E%E6%97%B6%E5%BA%8F%E7%BB%84%E7%BB%87"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 三相机与时序组织</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%92%E4%B8%80%E5%8C%96%E4%B8%8E%E5%8A%A8%E4%BD%9C%E5%AE%9A%E4%B9%89"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 归一化与动作定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E8%AE%AD%E7%BB%83%E5%93%AA%E4%BA%9B%E6%9D%83%E9%87%8D"><span class="nav-number">3.3.</span> <span class="nav-text">2.3 具体训练哪些权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E4%BD%9C%E4%B8%8E%E6%9C%AA%E6%9D%A5%E8%A7%86%E9%A2%91%E6%80%8E%E6%A0%B7%E4%B8%80%E8%B5%B7%E5%AD%A6"><span class="nav-number">3.4.</span> <span class="nav-text">2.4 动作与未来视频怎样一起学</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E7%9A%84%E8%AE%AD%E7%BB%83%E8%AE%B0%E5%BD%95"><span class="nav-number">4.</span> <span class="nav-text">3. 我的训练记录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 实验过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%A7%84%E6%A8%A1"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 数据规模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#edge-20k-%E8%AE%AD%E7%BB%83%E6%88%90%E6%9C%AC"><span class="nav-number">4.3.</span> <span class="nav-text">3.3 Edge 20k 训练成本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#loss-%E6%9B%B2%E7%BA%BF%E4%B8%8E%E8%AE%AD%E7%BB%83%E6%97%B6%E9%95%BF"><span class="nav-number">4.4.</span> <span class="nav-text">3.4 Loss 曲线与训练时长</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E4%B8%8E%E9%83%A8%E7%BD%B2%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">5.</span> <span class="nav-text">4. 训练与部署操作流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%86%E5%A4%87%E7%8E%AF%E5%A2%83%E5%92%8C%E8%B5%84%E6%BA%90"><span class="nav-number">5.1.</span> <span class="nav-text">4.1 准备环境和资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E6%95%B0%E6%8D%AE%E4%B8%8E%E8%AE%AD%E7%BB%83%E6%A0%B7%E6%9C%AC"><span class="nav-number">5.2.</span> <span class="nav-text">4.2 检查数据与训练样本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E6%8D%A2%E6%9D%83%E9%87%8D%E5%B9%B6%E5%90%AF%E5%8A%A8%E8%AE%AD%E7%BB%83"><span class="nav-number">5.3.</span> <span class="nav-text">4.3 转换权重并启动训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E9%83%A8%E7%BD%B2%E6%9D%83%E9%87%8D"><span class="nav-number">5.4.</span> <span class="nav-text">4.4 导出部署权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1%E5%B9%B6%E6%8E%A5%E5%85%A5%E6%9C%BA%E5%99%A8%E4%BA%BA"><span class="nav-number">5.5.</span> <span class="nav-text">4.5 启动服务并接入机器人</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E6%80%A7%E8%83%BD%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%80%A7"><span class="nav-number">6.</span> <span class="nav-text">5. 部署性能与实时性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#edge-%E5%9C%A8-rtx-5090-%E4%B8%8A%E7%9A%84%E5%AE%9E%E6%B5%8B"><span class="nav-number">6.1.</span> <span class="nav-text">5.1 Edge 在 RTX 5090 上的实测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E6%80%8E%E6%A0%B7%E5%8F%96%E8%88%8D"><span class="nav-number">6.2.</span> <span class="nav-text">5.2 部署怎样取舍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nano-a100-%E7%9A%84%E6%97%A9%E6%9C%9F%E9%83%A8%E7%BD%B2%E8%AE%B0%E5%BD%95"><span class="nav-number">6.3.</span> <span class="nav-text">5.3 Nano &#x2F; A100 的早期部署记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E7%AE%97%E5%8A%9B%E4%B8%8E%E5%B8%A6%E5%AE%BD%E5%8F%82%E8%80%83"><span class="nav-number">6.4.</span> <span class="nav-text">5.4 硬件算力与带宽参考</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8D%A1%E6%96%B9%E5%9D%97%E5%AE%9E%E6%9C%BA%E6%B5%8B%E8%AF%95%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%AF%B9%E6%AF%94"><span class="nav-number">7.</span> <span class="nav-text">6. 捡方块实机测试与模型对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E6%80%9D%E4%B8%8E%E4%B8%8B%E4%B8%80%E6%AD%A5"><span class="nav-number">8.</span> <span class="nav-text">7. 反思与下一步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99"><span class="nav-number">9.</span> <span class="nav-text">8. 相关资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Zhao Dongyu"
+      src="/images/zhaodongyu-transparent.png">
+  <p class="site-author-name" itemprop="name">Zhao Dongyu</p>
+  <div class="site-description" itemprop="description">AI systems, high-performance computing, and edge intelligence.</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Zhao-Dongyu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Zhao-Dongyu" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:zhaodongyu@pku.edu.cn" title="E-Mail → mailto:zhaodongyu@pku.edu.cn" rel="noopener me" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://stackoverflow.com/users/18783794/ak47" title="StackOverflow → https:&#x2F;&#x2F;stackoverflow.com&#x2F;users&#x2F;18783794&#x2F;ak47" rel="noopener me" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>StackOverflow</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://youtube.com/@andyzhao2923" title="YouTube → https:&#x2F;&#x2F;youtube.com&#x2F;@andyzhao2923" rel="noopener me" target="_blank"><i class="fab fa-youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/zhaodongyu-transparent.png">
+      <meta itemprop="name" content="Zhao Dongyu">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zhao Dongyu's Blog">
+      <meta itemprop="description" content="AI systems, high-performance computing, and edge intelligence.">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Cosmos3 学习与实践 | Zhao Dongyu's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Cosmos3 学习与实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-08-31 18:53:00" itemprop="dateCreated datePublished" datetime="2026-08-31T18:53:00+08:00">2026-08-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-11-03 18:55:41" itemprop="dateModified" datetime="2026-11-03T18:55:41+08:00">2026-11-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">技术</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-lines"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>24 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>这篇记录整理了 Cosmos3 的核心原理，以及我在 Astribot 上从数据适配、模型训练到部署和实机测试的过程。前期使用 Nano 打通训练与推理流程，Edge 开源后转向 Edge 训练，完成 20k checkpoint，并保存了 20 段方块分类任务录像。</p>
+<p>训练使用修改后的 <strong>cosmos-framework</strong>。Edge 20k 在 20 次捡方块测试中平均得到 <strong>8.7/10 分</strong>；RTX 5090 端侧推理已达到 4 步采样约 <strong>680 ms</strong>。实际部署中，减少采样步数会带来动作抖动，增加到 50 步则明显更平滑，但耗时升至约 <strong>7.5 秒</strong>。因此下一阶段的重点是找到速度与动作稳定性之间合适的取舍。</p>
+<p>官方入口：<a target="_blank" rel="noopener" href="https://github.com/NVIDIA/cosmos">NVIDIA Cosmos</a> · <a target="_blank" rel="noopener" href="https://github.com/NVIDIA/cosmos-framework">Cosmos Framework</a> · <a target="_blank" rel="noopener" href="https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf">Cosmos3 技术报告</a></p>
+<span id="more"></span>
+<h2 id="目录">目录</h2>
+<ol type="1">
+<li><a href="#principles">Cosmos3 的核心原理</a></li>
+<li><a href="#adaptation">Astribot 数据与模型适配</a></li>
+<li><a href="#training">我的训练记录</a></li>
+<li><a href="#operations">训练与部署操作流程</a></li>
+<li><a href="#performance">部署性能与实时性</a></li>
+<li><a href="#results">捡方块实机测试与模型对比</a></li>
+<li><a href="#reflection">反思与下一步</a></li>
+<li><a href="#references">相关资料</a></li>
+</ol>
+<p><a id="principles"></a></p>
+<h2 id="cosmos3-的核心原理">1. Cosmos3 的核心原理</h2>
+<h3 id="模型定位与规模">1.1 模型定位与规模</h3>
+<p>Cosmos3 面向物理世界的理解、预测和交互，能够处理文本、图像、视频、音频与机器人动作。对机器人任务来说，它的特点是：根据当前观测和任务指令，同时预测未来动作与未来画面，将动作学习和环境变化联系起来。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th style="text-align: right;">总参数量</th>
+<th style="text-align: right;">单塔骨架规模</th>
+<th>本项目中的用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cosmos3-Edge</td>
+<td style="text-align: right;">约 4B</td>
+<td style="text-align: right;">约 2B</td>
+<td>后期训练与实机测试</td>
+</tr>
+<tr>
+<td>Cosmos3-Nano</td>
+<td style="text-align: right;">约 16B</td>
+<td style="text-align: right;">约 8B</td>
+<td>数据适配、训练和部署验证</td>
+</tr>
+<tr>
+<td>Cosmos3-Super</td>
+<td style="text-align: right;">约 64B</td>
+<td style="text-align: right;">约 32B</td>
+<td>技术调研</td>
+</tr>
+</tbody>
+</table>
+<p>模型包含两套 Transformer 参数，因此总参数量与单塔骨架规模不同。通用模型、DROID 专用策略和本地 Astribot 微调模型也有各自的用途；在 Astribot 上使用时，仍需适配相机、状态和动作接口。</p>
+<h3 id="mot理解与生成怎样协作">1.2 MoT：理解与生成怎样协作</h3>
+<figure>
+<img src="/images/131/official_fig05_mot.jpg" alt="技术报告原图：Cosmos3 MoT 架构与注意力掩码"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">技术报告原图：Cosmos3 MoT 架构与注意力掩码</figcaption>
+</figure>
+<p><em>技术报告 Figure 5，p.11。左侧是理解与生成两条计算路径，右侧展示它们能读取的 token 范围。</em></p>
+<p>Cosmos3 采用 Mixture-of-Transformers（MoT）结构，包含两个相互配合的部分：</p>
+<ul>
+<li><strong>Reasoner</strong> 使用自回归方式处理理解侧的文本和视觉信息，生成描述、推理或结构化答案。</li>
+<li><strong>Generator</strong> 通过流匹配生成连续信号，包括视频 latent、音频 latent 和机器人动作。</li>
+</ul>
+<p>两者在每层保留独立参数。Generator 可以读取 Reasoner 的上下文，以及正在去噪的生成序列；Reasoner 使用因果注意力，不读取加噪的生成 token。这样既保留语言理解能力，也能处理视频和动作的连续生成。</p>
+<p>视觉输入有两条路径：理解任务通过 ViT 提取语义，生成任务通过视频 VAE 编码。Cosmos3 使用的 Wan2.2 VAE 在时间上压缩 4 倍、空间上压缩 16×16，后续 patch 合并再将主干中的空间尺度降至原图的 1/32。</p>
+<h3 id="世界预测与动作生成">1.3 世界预测与动作生成</h3>
+<figure>
+<img src="/images/131/official_fig04_action_sequences.png" alt="技术报告原图：FD、ID 与 Policy 的条件和预测位置"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">技术报告原图：FD、ID 与 Policy 的条件和预测位置</figcaption>
+</figure>
+<p><em>技术报告 Figure 4，p.10。实线表示已知条件，虚线表示加噪后需要生成的目标；Policy 同时生成未来视频与动作。</em></p>
+<p>通过改变条件和预测目标，模型可以承担三类任务：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>已知条件</th>
+<th>预测内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前向动力学 FD</td>
+<td>当前观测、给定动作</td>
+<td>执行动作后的未来视频</td>
+</tr>
+<tr>
+<td>逆动力学 ID</td>
+<td>一段观测变化</td>
+<td>对应的动作</td>
+</tr>
+<tr>
+<td>策略 Policy</td>
+<td>当前观测、本体状态、任务指令</td>
+<td>未来动作与视频</td>
+</tr>
+</tbody>
+</table>
+<p>本项目主要使用 Policy。训练时，当前画面与状态作为条件，未来视频和动作加入噪声，模型学习如何逐步恢复它们。用流匹配的一种时间约定表示：</p>
+<p><span class="math display">\[
+x_t=(1-t)x_0+t\epsilon,\qquad v^*=\epsilon-x_0.
+\]</span></p>
+<p>其中 <span class="math inline">\(x_0\)</span> 是真实数据，<span class="math inline">\(\epsilon\)</span> 是噪声。模型预测速度场，推理时从噪声出发逐步得到视频与动作。联合训练让模型同时学习“应该怎么动”和“动完以后会发生什么”，代价是推理时也需要处理视觉 token。</p>
+<h3 id="从通用模型到机器人策略">1.4 从通用模型到机器人策略</h3>
+<p>生成侧训练大致经过三个阶段：先从大规模多模态数据中学习外观和运动规律，再加入动作数据进行 FD、ID、Policy 中期训练，最后针对具体机器人和任务微调。</p>
+<figure>
+<img src="/images/131/official_fig08_training_curriculum.png" alt="技术报告原图：生成侧的预训练、中期训练和后训练"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">技术报告原图：生成侧的预训练、中期训练和后训练</figcaption>
+</figure>
+<p><em>技术报告 Figure 8，p.20。动作数据在中期训练加入，再由共享基座派生出机器人 Policy 等专用模型。</em></p>
+<p>官方 Nano-Policy-DROID 使用 8 维关节与夹爪动作，预测未来 32 步。适配新机器人时，需要重新处理动作编码、解码、模态 embedding，以及对应的数据分布。Astribot 的 25 维接口便是在这一步接入的。</p>
+<p><a id="adaptation"></a></p>
+<h2 id="astribot-数据与模型适配">2. Astribot 数据与模型适配</h2>
+<p>任务是将桌面上的<strong>蓝色方块放入右盘，红色方块放入左盘</strong>。输入包括头部、左腕、右腕三路相机、当前机器人状态和任务指令，输出为未来 32 步的 25 维动作。</p>
+<figure>
+<img src="/images/131/02_astribot_pipeline.jpg" alt="Astribot 数据与控制流程"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Astribot 数据与控制流程</figcaption>
+</figure>
+<h3 id="三相机与时序组织">2.1 三相机与时序组织</h3>
+<p>相机拼图固定为头部视角在上、左腕和右腕视角在下。训练和部署使用相同的布局、缩放方式与颜色通道顺序。</p>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>组织方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>视频</td>
+<td>33 帧：当前帧 + 未来 32 帧</td>
+</tr>
+<tr>
+<td>状态与动作</td>
+<td>当前 25D state + 未来 32×25D action</td>
+</tr>
+<tr>
+<td>模型动作输入</td>
+<td><code>[33,25]</code> 归一化后补齐为 <code>[33,64]</code></td>
+</tr>
+<tr>
+<td>条件位置</td>
+<td>首个视觉 latent 和动作序列中的当前 state</td>
+</tr>
+<tr>
+<td>动作监督</td>
+<td>未来位置的有效 25 维，忽略补齐维度</td>
+</tr>
+<tr>
+<td>部署输出</td>
+<td>去掉条件位置、裁剪并反归一化，得到 <code>[32,25]</code></td>
+</tr>
+</tbody>
+</table>
+<p>这里最容易出错的是时序对齐：动作标签究竟表示当前命令、下一时刻目标还是状态差分，需要在数据转换时确定。帧号相同不一定代表物理时刻一致，整体错一帧也会影响动作学习。</p>
+<h3 id="归一化与动作定义">2.2 归一化与动作定义</h3>
+<p>状态和动作采用分位数归一化，用训练数据中的 q01、q99 将各维主要分布映射到约 <code>[-1,1]</code>：</p>
+<p><span class="math display">\[
+\tilde a_j=2\frac{a_j-q_{01,j}}{\max(q_{99,j}-q_{01,j},\epsilon)}-1.
+\]</span></p>
+<p>部署时使用同一份统计量反归一化。各通道的单位和量级不同，关节、夹爪的顺序必须明确；近常量维度也要避免除零。统计量应在划分 train/val 后，仅使用训练集计算。</p>
+<p>早期代码使用 <code>normalizer_stats/astribot_lerobot_stats.json</code>，后续配方使用 <code>datasets/normalizers/astribot.json</code>，两者 JSON 层级不同。实际复现时要与 loader 对应，不能只改文件名。曾经沿用其他任务的统计量，也是需要特别避免的问题。</p>
+<h3 id="具体训练哪些权重">2.3 具体训练哪些权重</h3>
+<p>我使用 cosmos-framework 进行机器人策略微调。<strong>这套配方主要训练生成侧主干及其视觉、动作接口，冻结 Reasoner 和视频 VAE。</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>模块</th>
+<th>是否训练</th>
+<th>在联合生成中的作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成侧 Transformer（<code>moe_gen</code>）</td>
+<td>训练</td>
+<td>包括注意力投影、MLP 和归一化层，学习视频与动作的联合动态</td>
+</tr>
+<tr>
+<td>时间步编码（<code>time_embedder</code>）</td>
+<td>训练</td>
+<td>编码去噪时间步，由视频与动作分支共用</td>
+</tr>
+<tr>
+<td>视觉映射（<code>vae2llm</code>、<code>llm2vae</code>）</td>
+<td>训练</td>
+<td>将视频 latent 映射到主干，再输出视频速度场</td>
+</tr>
+<tr>
+<td>动作映射（<code>action2llm</code>、<code>llm2action</code>）</td>
+<td>训练，5 倍基础学习率</td>
+<td>按机器人类型映射动作输入和动作速度场输出</td>
+</tr>
+<tr>
+<td>动作模态编码（<code>action_modality_embed</code>）</td>
+<td>训练，5 倍基础学习率</td>
+<td>标识动作 token</td>
+</tr>
+<tr>
+<td>Reasoner</td>
+<td>冻结</td>
+<td>保留语言条件处理及已有理解表征</td>
+</tr>
+<tr>
+<td>Wan2.2 视频 VAE</td>
+<td>冻结</td>
+<td>提供固定的视频编码与解码空间</td>
+</tr>
+<tr>
+<td>理解侧 ViT</td>
+<td>默认不启用</td>
+<td>机器人观测通过 VAE 编码</td>
+</tr>
+<tr>
+<td>音频模块</td>
+<td>不启用</td>
+<td>本任务不生成音频</td>
+</tr>
+<tr>
+<td>EMA 模型</td>
+<td>不参与梯度优化</td>
+<td>若启用，通过训练权重的滑动平均更新</td>
+</tr>
+</tbody>
+</table>
+<p><strong>视觉映射层会更新，VAE 本体保持固定。</strong> 模型是在既有的视频 latent 空间中学习未来变化，无需重新训练视频编码器和解码器。</p>
+<p>开始微调时，动作输入、输出映射和模态编码会重新初始化，再使用 5 倍基础学习率适配 Astribot。当前配方的基础学习率为 <code>2e-4</code>，训练过程中随学习率计划调整。</p>
+<p>以上对应本地 Nano/Astribot 配方；Edge 20k 的完整运行配置尚未归档，其具体训练范围仍需结合对应配置确认。</p>
+<h3 id="动作与未来视频怎样一起学">2.4 动作与未来视频怎样一起学</h3>
+<figure>
+<img src="/images/131/official_fig03_action_representation.jpg" alt="技术报告原图：不同机器人和运动形式的统一动作表示"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">技术报告原图：不同机器人和运动形式的统一动作表示</figcaption>
+</figure>
+<p><em>技术报告 Figure 3，p.8。不同形态保留自己的动作接口，通过 domain 专属映射进入共享主干；Astribot 在本项目中使用 25D joint 接口。</em></p>
+<p>视频和动作分别进入 <code>vae2llm</code> 与 <code>action2llm</code>，在同一个 Generator 中联合处理，再由两套输出映射预测各自的速度场。因此，两种损失会共同更新生成侧主干；视觉和动作接口也会随联合目标一起适配。</p>
+<p>当前 Astribot 视频配方可以概括为：</p>
+<p><span class="math display">\[
+\mathcal L = 10\,\mathcal L_{\mathrm{video}} + 10\,\mathcal L_{\mathrm{action}}.
+\]</span></p>
+<p>条件位置不参与去噪目标，动作损失只计算有效的 25 维。两个系数相同也不代表两项损失或梯度贡献相同，训练时仍应分别观察。</p>
+<p>这也解释了为什么训练未来视频并不需要解冻 VAE：学习发生在 latent 空间，更新的是生成主干与 latent 映射层。Joint 与 EEF 的区别则属于动作接口设计；改成 EEF 时，还需明确坐标系、旋转表示和 IK/FK 转换。</p>
+<p><a id="training"></a></p>
+<h2 id="我的训练记录">3. 我的训练记录</h2>
+<h3 id="实验过程">3.1 实验过程</h3>
+<p>前期主要使用 Nano 完成数据适配和训练部署。<strong>2026年7月20日，NVIDIA 公开发布 Cosmos3-Edge 权重</strong>，随后我将训练重心转向 Edge，继续开展捡方块任务的微调与端侧部署。<a target="_blank" rel="noopener" href="https://huggingface.co/nvidia/Cosmos3-Edge#release-date">官方模型卡</a></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>阶段</th>
+<th>主要工作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基础验证</td>
+<td>配置环境，运行 Nano action demo 和策略服务，熟悉推理流程</td>
+</tr>
+<tr>
+<td>数据适配与部署</td>
+<td>在 A100 环境接入 Astribot 数据，完成权重转换、训练、导出和 25D 服务部署</td>
+</tr>
+<tr>
+<td>Nano 训练</td>
+<td>Nano 保存到 step 6000，记录 loss、训练速度，并尝试降低学习率</td>
+</tr>
+<tr>
+<td>训练配置调整</td>
+<td>调整 batch、梯度累积、数据统计与 normalizer，整理复现手册</td>
+</tr>
+<tr>
+<td>Edge 训练</td>
+<td>Edge 完成 20,000 step 训练</td>
+</tr>
+<tr>
+<td>实机测试</td>
+<td>使用 Edge 20k 进行方块分类测试，保存 20 段实机录像</td>
+</tr>
+</tbody>
+</table>
+<h3 id="数据规模">3.2 数据规模</h3>
+<p>数据使用 LeRobot v3 格式，由 parquet 状态/动作、相机 MP4 和 metadata 组成。一份数据统计包含 <strong>100 个 episode，其中 95 个用于训练</strong>；Edge 训练记录采用的 <code>task01</code> 原始帧数为 <strong>54,991</strong>。另一份训练配方统计到 <strong>50,297 个训练窗口</strong>。</p>
+<p>有些统计脚本会把 state 和 action 合并计算分位数，因此输出的 109,982 行等于 <code>54,991×2</code>，并不表示数据帧数翻倍。后续比较实验时，统一使用 episode 数、原始帧数和实际训练窗口数即可。</p>
+<h3 id="edge-20k-训练成本">3.3 Edge 20k 训练成本</h3>
+<p>Edge 使用 <code>micro batch 16 × 8 卡 × 梯度累积 4</code>，global batch 为 <strong>512</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练步数</td>
+<td style="text-align: right;">20,000</td>
+</tr>
+<tr>
+<td>总耗时</td>
+<td style="text-align: right;">12 天 4 小时，即 292 小时</td>
+</tr>
+<tr>
+<td>全程平均每步耗时</td>
+<td style="text-align: right;">52.56 秒</td>
+</tr>
+<tr>
+<td>平均每 1000 step</td>
+<td style="text-align: right;">14.6 小时</td>
+</tr>
+<tr>
+<td>GPU 时数</td>
+<td style="text-align: right;">约 2336 GPU·h，按 8 卡全程占用估算</td>
+</tr>
+</tbody>
+</table>
+<p>按 <code>20,000×512÷54,991</code> 计算，样本暴露量约相当于原始帧数的 <strong>186.2 倍</strong>。由于训练使用时序窗口和 packing，这个值不直接等于严格的 epoch 数。</p>
+<p>训练配置与运行记录见 <a target="_blank" rel="noopener" href="https://wandb.ai/zhaodongyu1024-peking-university/cosmos3-edge/runs/task01_sort_the_blocks_state_cmd">W&amp;B run</a>。</p>
+<h3 id="loss-曲线与训练时长">3.4 Loss 曲线与训练时长</h3>
+<figure>
+<img src="/images/131/08_edge_train_loss.png" alt="Cosmos3-Edge 总训练 loss"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Cosmos3-Edge 总训练 loss</figcaption>
+</figure>
+<p><em>总训练 loss，截图覆盖约 21k step。以下数值均为读图约值。</em></p>
+<p>总 loss 从初期的 7 以上迅速下降，约 2k 时降到 1 附近，随后逐渐降至 20k 附近的 0.6 左右。后半程仍有下降，只是速度明显放缓；单步波动较大，不能靠某一个低点选择 checkpoint。</p>
+<figure>
+<img src="/images/131/09_edge_modality_losses.png" alt="Cosmos3-Edge 视频、声音和动作分项 loss"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Cosmos3-Edge 视频、声音和动作分项 loss</figcaption>
+</figure>
+<p><em>从左到右为 vision、sound、action 的 flow matching loss。动作图采用对数纵轴，后期看起来平缓，仍可能有可观的相对下降。</em></p>
+<ul>
+<li><strong>动作项前期改善最快。</strong> 前几千步已降至几千分之一；约 10k 时为 0.0015–0.002，20k 附近约为 0.001。后半程仍在学习，但这些下降能否改善抓取、分盘和动作平滑度，需要实机比较。</li>
+<li><strong>视频项持续下降。</strong> 约 5k、10k、20k 时分别为 0.08、0.07、0.055–0.06，尚未明显持平。如果目标也包括未来视频生成，应同时比较生成画面。视频项的数值明显大于动作项；若沿用前述等权配方，总 loss 会更多反映视频项的变化，但这不等于它对梯度的贡献也按同比例占优。</li>
+<li><strong>声音项始终为 0。</strong> 这与当前任务未启用声音训练相符，不能解释为声音生成已经收敛。</li>
+</ul>
+<p><strong>是否需要训练这么久？下一轮不必默认跑满 20k，但目前还不能确定最佳停止点。</strong> 现有曲线只有训练 loss，没有验证集曲线，也没有较早 checkpoint 的同条件实机成绩，无法据此判断泛化是否继续改善或是否过拟合。20k 的 8.725 分说明这个 checkpoint 可用，并不能说明达到这个水平必须训练到 20k。</p>
+<p>下一轮从 5k 开始评测，对比 5k、10k、15k、20k，固定初始摆放、采样步数、动作执行方式和超时规则，记录任务得分、满分比例、完成时间与抖动情况。若连续两轮没有稳定提升，就优先选较早的 checkpoint；若还需要未来视频生成，则把视频质量一起纳入选择。<strong>假如 10k 与 20k 的实机表现相当，按本次平均速度估算，可节省约 146 小时，即 6 天 2 小时，约一半训练成本。</strong></p>
+<p><a id="operations"></a></p>
+<h2 id="训练与部署操作流程">4. 训练与部署操作流程</h2>
+<p>下面保留 Nano/Astribot 的关键步骤。训练代码和 TOML 已能在本地 cosmos-framework 中查看，命令里的 <code>/zhaodongyu/...</code> 统一作为服务器路径示例，部署时对应实际的数据和权重目录。</p>
+<h3 id="准备环境和资源">4.1 准备环境和资源</h3>
+<p>先设置工程、数据与模型路径：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> COSMOS_REPO=/zhaodongyu/2026/cosmos-framework-a100</span><br><span class="line"><span class="built_in">export</span> ASTRIBOT_ROOT=/zhaodongyu/2026/benchmark_dataset/lerobotv3/task01_joint</span><br><span class="line"><span class="built_in">export</span> DATASET_PATH=<span class="string">&quot;<span class="variable">$ASTRIBOT_ROOT</span>&quot;</span></span><br><span class="line"><span class="built_in">export</span> HF_COSMOS3_NANO=/models/base/nv-community/Cosmos3-Nano</span><br><span class="line"><span class="built_in">export</span> BASE_CHECKPOINT_PATH=/zhaodongyu/checkpoints/Cosmos3-Nano-dcp</span><br><span class="line"><span class="built_in">export</span> WAN_VAE_PATH=/zhaodongyu/Wan2.2_VAE.pth</span><br><span class="line"><span class="built_in">cd</span> <span class="string">&quot;<span class="variable">$COSMOS_REPO</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<p>历史环境采用 CUDA 12.8 依赖组，同时安装训练和策略服务依赖。5090 的一次安装问题来自 Python 3.14 与 <code>cp313</code> wheel 不匹配，当时通过 Python 3.13.14 解决：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">uv python install 3.13.14</span><br><span class="line">uv <span class="built_in">sync</span> --all-extras --group=cu128-train --group=policy-server \</span><br><span class="line">  --python 3.13.14</span><br><span class="line"><span class="built_in">source</span> .venv/bin/activate</span><br><span class="line">nvidia-smi</span><br><span class="line">python -c <span class="string">&#x27;import torch; print(torch.__version__, torch.version.cuda); print(torch.ones(1, device=&quot;cuda&quot;))&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>准备好 Nano 权重、tokenizer/config 和 Wan2.2 VAE，并确认能实际读取一段数据视频。离线模式应在资源缓存齐全后开启。</p>
+<h3 id="检查数据与训练样本">4.2 检查数据与训练样本</h3>
+<p>训练前先取一个样本，查看三相机拼图、任务指令和动作值。重点确认视频为 33 帧、动作序列为 <code>[33,25]</code>，第 0 步来自当前 state；transform 后动作补齐为 <code>[33,64]</code>。</p>
+<p>启动训练前，需要将数据目录和任务指令切换为捡方块任务。当前训练配方采用 30 FPS，历史部署记录使用 15 Hz；复现时应核对数据采样与动作执行的时间定义，并在实际生效的配置中统一设置。</p>
+<p>同时检查 normalizer 的正反变换，并将 train/val 按 episode 划分。完成这些检查后，先运行少量 step，确认训练、保存和恢复都正常，再开始长时间训练。</p>
+<h3 id="转换权重并启动训练">4.3 转换权重并启动训练</h3>
+<p>将 HF 权重转换为训练使用的 DCP：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">python -m cosmos_framework.scripts.convert_model_to_dcp \</span><br><span class="line">  --checkpoint-path <span class="string">&quot;<span class="variable">$HF_COSMOS3_NANO</span>&quot;</span> \</span><br><span class="line">  -o <span class="string">&quot;<span class="variable">$BASE_CHECKPOINT_PATH</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<p>历史训练入口使用 <code>action_policy_astribot_repro.toml</code>。主要配置包括学习率、batch、token 上限、activation checkpointing 和保存间隔。token 上限对应的 override 路径是 <code>model.config.max_num_tokens_after_packing</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> ASTRIBOT_TASK_PROMPT=<span class="string">&quot;Put the blue block on the table into the right plate, and the red block into the left plate.&quot;</span></span><br><span class="line"><span class="built_in">export</span> NPROC_PER_NODE=8</span><br><span class="line"><span class="built_in">export</span> PYTORCH_ALLOC_CONF=expandable_segments:True</span><br><span class="line"></span><br><span class="line"><span class="comment"># 先跑 5 步，检查样本、训练和保存流程。</span></span><br><span class="line"><span class="built_in">export</span> IMAGINAIRE_OUTPUT_ROOT=outputs/smoke_astribot</span><br><span class="line"><span class="built_in">export</span> EXTRA_TAIL_OVERRIDES=<span class="string">&quot;trainer.max_iter=5 checkpoint.save_iter=5 dataloader_train.max_samples_per_batch=4&quot;</span></span><br><span class="line">bash examples/launch_sft_action_policy_astribot.sh</span><br><span class="line"><span class="built_in">unset</span> EXTRA_TAIL_OVERRIDES</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正式训练使用独立输出目录。</span></span><br><span class="line"><span class="built_in">export</span> IMAGINAIRE_OUTPUT_ROOT=outputs/nano_astribot</span><br><span class="line">bash examples/launch_sft_action_policy_astribot.sh</span><br></pre></td></tr></table></figure>
+<p>训练时分别观察 video loss、action loss、学习率、显存和 s/iter。续训前检查 <code>latest_checkpoint.txt</code>，确保恢复的是预期 step，并保留相同的数据和 normalizer。</p>
+<h3 id="导出部署权重">4.4 导出部署权重</h3>
+<p>以下以记录中的 6000 步 checkpoint 为例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> RUN_DIR=/zhaodongyu/outputs/train/cosmos3_action_astribot/action_sft/action_policy_astribot_repro</span><br><span class="line"><span class="built_in">export</span> CHECKPOINT=<span class="string">&quot;<span class="variable">$RUN_DIR</span>/checkpoints/iter_000006000&quot;</span></span><br><span class="line"><span class="built_in">export</span> EXPORT_DIR=<span class="string">&quot;<span class="variable">$RUN_DIR</span>/model_hf_iter_000006000&quot;</span></span><br><span class="line"></span><br><span class="line">PYTHONPATH=. python -m cosmos_framework.scripts.export_model \</span><br><span class="line">  --checkpoint-path <span class="string">&quot;<span class="variable">$CHECKPOINT</span>&quot;</span> \</span><br><span class="line">  --config-file <span class="string">&quot;<span class="variable">$RUN_DIR</span>/config.yaml&quot;</span> \</span><br><span class="line">  -o <span class="string">&quot;<span class="variable">$EXPORT_DIR</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<p>模型权重、训练配置、动作定义和 normalizer 应一起保存。目录名带上 step，后续切换模型和比较结果会清楚很多。</p>
+<h3 id="启动服务并接入机器人">4.5 启动服务并接入机器人</h3>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> MASTER_ADDR=127.0.0.1</span><br><span class="line"><span class="built_in">export</span> MASTER_PORT=29517</span><br><span class="line"><span class="built_in">export</span> WORLD_SIZE=1</span><br><span class="line"><span class="built_in">export</span> RANK=0</span><br><span class="line"><span class="built_in">export</span> LOCAL_RANK=0</span><br><span class="line"></span><br><span class="line">PYTHONPATH=. python -m cosmos_framework.scripts.action_policy_server_robolab \</span><br><span class="line">  --checkpoint-path <span class="string">&quot;<span class="variable">$EXPORT_DIR</span>&quot;</span> \</span><br><span class="line">  --domain-name astribot \</span><br><span class="line">  --action-dim 25 \</span><br><span class="line">  --action-chunk-size 32 \</span><br><span class="line">  --conditioning-fps 15 \</span><br><span class="line">  --num-steps 4 \</span><br><span class="line">  --resolution 480 \</span><br><span class="line">  --port 8000</span><br></pre></td></tr></table></figure>
+<p>已有服务记录使用 joint position、quantile 归一化、4 步 UniPC、guidance 3 和 shift 5。客户端发送三相机图像、25D 状态及指令，服务返回 <code>[32,25]</code> 动作。</p>
+<p>接入前先检查 <code>/healthz</code>，再用保存的观测完成一次推理，核对动作量级、夹爪方向和关节限位。历史服务出现过 transform 配置读取失败后自动回退的情况，因此启动成功后仍需确认实际使用的 transform 与训练一致。</p>
+<p><a id="performance"></a></p>
+<h2 id="部署性能与实时性">5. 部署性能与实时性</h2>
+<h3 id="edge-在-rtx-5090-上的实测">5.1 Edge 在 RTX 5090 上的实测</h3>
+<p>以捡方块任务为例，Cosmos3-Edge 的端侧部署呈现出很直接的速度与平滑性取舍：</p>
+<table>
+<thead>
+<tr>
+<th>降噪采样步数</th>
+<th style="text-align: right;">单次推理耗时</th>
+<th>动作表现</th>
+<th>适用方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 步</td>
+<td style="text-align: right;">约 <strong>680 ms</strong></td>
+<td>响应快，但动作有些抖动</td>
+<td>低延迟闭环的优化起点</td>
+</tr>
+<tr>
+<td>50 步</td>
+<td style="text-align: right;">约 <strong>7.5 s</strong></td>
+<td>动作平滑很多</td>
+<td>平滑性参照、允许等待的分段执行</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="/images/131/07_edge_5090_sampling.png" alt="Cosmos3-Edge 在 RTX 5090 上的采样步数与推理延迟"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Cosmos3-Edge 在 RTX 5090 上的采样步数与推理延迟</figcaption>
+</figure>
+<p>从 4 步增加到 50 步，推理耗时约增加到 <strong>11 倍</strong>。更多步数改善了这次测试中的动作平滑性，但还需要结合抓取和任务得分判断整体收益。benchmark 评分表未记录采样步数，因此不将 8.7 分归属于某一档配置。</p>
+<h3 id="部署怎样取舍">5.2 部署怎样取舍</h3>
+<p><strong>先在 4—50 步之间寻找满足平滑性要求的最小采样步数。</strong> 下一轮可固定 checkpoint、指令与初始摆放，依次测试 8、12、16、20 步，同时记录任务得分、动作抖动、整体完成时间和推理 p50/p95。这些中间档位尚未实测，不能按两端耗时直接认定最佳值。</p>
+<p>如果沿用 32 步动作和 15 Hz 执行频率，一个动作块覆盖约 <strong>2.13 秒</strong>。4 步推理约占这一预算的 32%，有机会与执行重叠；50 步耗时约为预算的 3.5 倍，连续控制会明显等待。若每次只执行动作前缀，预算还会更短，例如执行 8 步只有约 0.53 秒，即使 680 ms 也可能跟不上。实际部署需按控制器频率重新计算。</p>
+<p>在选步数之外，可以逐项尝试动作块衔接、重叠段融合、适度插值或关节速度/加速度约束，观察抖动来自单块内部还是两块交界。平滑处理会增加滞后，夹爪开合也应单独处理。异步推理可隐藏部分等待，但不能持续弥补动作产出速度低于消耗速度的问题。</p>
+<p>当前服务通过 <code>--num-steps</code> 调整步数；<code>decode_video=False</code> 仅跳过视频解码，仍保留联合去噪中的视觉计算。</p>
+<h3 id="nano-a100-的早期部署记录">5.3 Nano / A100 的早期部署记录</h3>
+<p>一次 Nano 请求总耗时为 <strong>4532.6 ms</strong>，其中模型推理 <strong>2960.6 ms</strong>、预处理 <strong>52.4 ms</strong>、后处理 <strong>0.1 ms</strong>，另有约 <strong>1.52 秒</strong>尚未被分项计时覆盖。</p>
+<figure>
+<img src="/images/131/04_local_latency.png" alt="Nano A100 推理耗时与动作时间预算"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Nano A100 推理耗时与动作时间预算</figcaption>
+</figure>
+<p>这条记录保留用于回顾早期服务瓶颈。它与后来的 Edge / 5090 属于不同模型和运行配置，不能把差距全部归因于显卡。当前部署决策应优先围绕 Edge 的端到端时延、动作稳定性和任务得分展开。</p>
+<h3 id="硬件算力与带宽参考">5.4 硬件算力与带宽参考</h3>
+<p>下表整理了现有的硬件参数，便于对照各平台的计算能力和带宽。</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align: right;">A100</th>
+<th style="text-align: right;">RTX 5090</th>
+<th style="text-align: right;">H20</th>
+<th style="text-align: right;">Thor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16</td>
+<td style="text-align: right;">312 TFLOPS</td>
+<td style="text-align: right;">209.5 TFLOPS</td>
+<td style="text-align: right;">148 TFLOPS</td>
+<td style="text-align: right;">约 258 TFLOPS</td>
+</tr>
+<tr>
+<td>FP8 / INT8</td>
+<td style="text-align: right;">624 TOPS</td>
+<td style="text-align: right;">419 TFLOPS</td>
+<td style="text-align: right;">296 TFLOPS</td>
+<td style="text-align: right;">517 TFLOPS</td>
+</tr>
+<tr>
+<td>带宽</td>
+<td style="text-align: right;">2039 GB/s</td>
+<td style="text-align: right;">1792 GB/s</td>
+<td style="text-align: right;">4000 GB/s</td>
+<td style="text-align: right;">273 GB/s</td>
+</tr>
+</tbody>
+</table>
+<p>实际部署还要结合使用精度、稀疏计算设置、显存容量和端到端耗时。对捡方块任务而言，最终仍以动作质量和完成效率来选择配置。</p>
+<p><a id="results"></a></p>
+<h2 id="捡方块实机测试与模型对比">6. 捡方块实机测试与模型对比</h2>
+<p>测试使用 <strong>2 红 2 蓝</strong>四个方块，目标为蓝块进右盘、红块进左盘，共 20 种初始摆放。评分说明为正确完成一块计 2.5 分，满分 10 分；超时则按已完成情况计分。</p>
+<p>Benchmark 捡方块结果记录共包含以下 6 组配置。均值由各组 20 次得分重新计算，满分比例按得分为 10 分的次数统计。</p>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 19%" />
+<col style="width: 19%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr>
+<th>模型</th>
+<th>训练记录</th>
+<th>精度</th>
+<th style="text-align: right;">平均得分 / 10</th>
+<th style="text-align: right;">满分次数</th>
+<th style="text-align: right;">满分比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mirro</td>
+<td>60k step，35 epoch</td>
+<td>BF16</td>
+<td style="text-align: right;">5.100</td>
+<td style="text-align: right;">5 / 20</td>
+<td style="text-align: right;">25%</td>
+</tr>
+<tr>
+<td>pi0</td>
+<td>50k step，29 epoch</td>
+<td>FP32</td>
+<td style="text-align: right;">6.600</td>
+<td style="text-align: right;">7 / 20</td>
+<td style="text-align: right;">35%</td>
+</tr>
+<tr>
+<td>pi0</td>
+<td>100k step</td>
+<td>FP32</td>
+<td style="text-align: right;">5.700</td>
+<td style="text-align: right;">6 / 20</td>
+<td style="text-align: right;">30%</td>
+</tr>
+<tr>
+<td>pi0</td>
+<td>100k step</td>
+<td>BF16</td>
+<td style="text-align: right;">5.325</td>
+<td style="text-align: right;">7 / 20</td>
+<td style="text-align: right;">35%</td>
+</tr>
+<tr>
+<td><strong>Cosmos3-Edge</strong></td>
+<td><strong>20k step</strong></td>
+<td>未注明</td>
+<td style="text-align: right;"><strong>8.725</strong></td>
+<td style="text-align: right;"><strong>13 / 20</strong></td>
+<td style="text-align: right;"><strong>65%</strong></td>
+</tr>
+<tr>
+<td>fastwam</td>
+<td>30 epoch</td>
+<td>未注明</td>
+<td style="text-align: right;">4.375</td>
+<td style="text-align: right;">4 / 20</td>
+<td style="text-align: right;">20%</td>
+</tr>
+</tbody>
+</table>
+<p>在这批测试中，<strong>Cosmos3-Edge 的平均得分和满分比例均为最高</strong>，平均分比 pi0 50k / FP32 高约 2.1 分。pi0 的 100k 配置也没有超过其 50k 配置，说明更长训练未必对应更好的实机表现；这不直接决定 Cosmos3 的最佳停止步数。各组训练步数、精度和部署配置不同，比较结果反映的是本次测试中的表现。</p>
+<figure>
+<img src="/images/131/10_task01_all_models_scores.png" alt="捡方块任务六组模型配置的逐次评分"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">捡方块任务六组模型配置的逐次评分</figcaption>
+</figure>
+<p><em>各行对应同一组 001—020 摆放编号。原表包含 1.5、3、4、6.5 等非 2.5 分档的数值，此处沿用原始评分。完整数据见 <a href="/images/131/task01_all_models_scores.csv">全部模型逐次评分 CSV</a>。</em></p>
+<p>Cosmos3-Edge 的低分集中在少数摆放，007、016、020 分别为 6.5、5、3 分，值得优先回看。其 13 次满分对应 <strong>65% 满分比例</strong>；平均分 8.725 / 10 不应直接换算成任务成功率。</p>
+<p>这批 20 段实机录像均为 1280×720、15 FPS，总时长约 35 分 55 秒。下面先放一段满分试验（trial 001）的实机录像，再给出全部录像的取帧总览。</p>
+<video controls preload="metadata" width="100%" style="max-width: 960px;">
+<source src="/images/131/cosmos3_edge_20k_001.mp4" type="video/mp4">
+</video>
+<p><em>Cosmos3-Edge 20k，捡方块 trial 001（满分 10/10），约 62 秒。</em></p>
+<p>以下总览覆盖前 10 段录像，按 2%、25%、50%、75%、98% 的进度取帧，仅展示相机画面。</p>
+<figure>
+<img src="/images/131/video_contact_1.jpg" alt="Edge 20k 实机录像 001—005"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Edge 20k 实机录像 001—005</figcaption>
+</figure>
+<figure>
+<img src="/images/131/video_contact_2.jpg" alt="Edge 20k 实机录像 006—010"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Edge 20k 实机录像 006—010</figcaption>
+</figure>
+<p>画面中可看到抓取和分盘过程，也有混放、未全部归位等现象。后续应结合评分回看低分试验，区分颜色对应错误、抓取失败、重复尝试和等待时间。录像长度包含启动或重置，不能直接作为成功耗时。</p>
+<p>完整内容见下方 011—020 总览。</p>
+<figure>
+<img src="/images/131/video_contact_3.jpg" alt="Edge 20k 实机录像 011—015"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Edge 20k 实机录像 011—015</figcaption>
+</figure>
+<figure>
+<img src="/images/131/video_contact_4.jpg" alt="Edge 20k 实机录像 016—020"  loading="lazy" decoding="async" />
+<figcaption aria-hidden="true">Edge 20k 实机录像 016—020</figcaption>
+</figure>
+<p><a id="reflection"></a></p>
+<h2 id="反思与下一步">7. 反思与下一步</h2>
+<p><strong>首先，数据适配比想象中更影响结果。</strong> 三相机布局、状态与动作时序、25 维通道定义、归一化，任何一个环节偏差都会传到最终控制。后续更换数据或任务时，应先沿着单个 episode 检查输入、标签、模型输出和反归一化结果，再投入长时间训练。</p>
+<p><strong>其次，应该更早开始评测，而不是默认训练到 20k。</strong> Edge 的动作 loss 在前几千步下降最快，后期仍有改善；训练曲线无法直接给出最佳停止点。后续应把分项 loss 与固定场景的实机表现对应起来，判断继续训练是否值得。</p>
+<p><strong>最后，部署需要同时考虑响应速度与动作质量。</strong> Edge / 5090 的 4 步配置已经较快，但抖动会影响抓取；50 步更平滑，却让等待和观测过时成为新问题。合适的配置应在任务得分、整体耗时和动作稳定性之间取舍，而不是单独追求最快或最平滑。</p>
+<p>接下来优先做三件事：</p>
+<ol type="1">
+<li><strong>分析低分试验。</strong> 结合已有 8.7 分的平均成绩，优先回看 007、016、020，并统一非 2.5 分档的评分说明，归纳主要失败原因。</li>
+<li><strong>确定合适的训练时长。</strong> 比较 Edge 的 5k、10k、15k、20k checkpoint，在任务表现相当时优先选择训练成本更低的版本。</li>
+<li><strong>确定端侧采样配置。</strong> 在 5090 上补测 8、12、16、20 步，固定执行策略，比较抖动、任务得分和完成时间，再调整动作块衔接。</li>
+</ol>
+<p>每次运行只需把模型 step、数据版本、normalizer、主要配置和对应视频关联起来。这样下次复盘时，就能直接回答“哪次改动改善了什么”，减少重新翻找命令和文件的时间。</p>
+<p><a id="references"></a></p>
+<h2 id="相关资料">8. 相关资料</h2>
+<ul>
+<li><strong>原理与官方实现</strong>：<a target="_blank" rel="noopener" href="https://github.com/NVIDIA/cosmos">NVIDIA Cosmos 总入口</a>、<a target="_blank" rel="noopener" href="https://research.nvidia.com/labs/cosmos-lab/cosmos3/">Cosmos3 项目页</a>、<a target="_blank" rel="noopener" href="https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf">技术报告</a>、<a target="_blank" rel="noopener" href="https://github.com/NVIDIA/cosmos-framework">Cosmos Framework</a>、<a target="_blank" rel="noopener" href="https://nvidia.github.io/cosmos-framework/">官方文档</a>。</li>
+<li><strong>官方模型</strong>：<a target="_blank" rel="noopener" href="https://huggingface.co/nvidia/Cosmos3-Edge">Cosmos3-Edge</a>。</li>
+<li><strong>训练记录</strong>：<a target="_blank" rel="noopener" href="https://wandb.ai/zhaodongyu1024-peking-university/cosmos3-edge/runs/task01_sort_the_blocks_state_cmd">W&amp;B run</a>。</li>
+<li>技术报告原图摘自 Figure 3、4、5、8；训练 loss 使用本次 W&amp;B 截图。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/money/buymeacoffee.jpg" alt="Zhao Dongyu Buymeacoffee">
+        <span>Buymeacoffee</span>
+      </div>
+      <div>
+        <img src="/images/money/wechatpay.jpg" alt="Zhao Dongyu 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/money/alipay.jpg" alt="Zhao Dongyu 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Tech/" rel="tag"># Tech</a>
+              <a href="/tags/Robot/" rel="tag"># Robot</a>
+              <a href="/tags/Cosmos3/" rel="tag"># Cosmos3</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/04/21/129_RLToken/" rel="prev" title="RLToken实践">
+                  <i class="fa fa-angle-left"></i> RLToken实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-user-astronaut"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Zhao Dongyu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">101k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">6:07</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Zhao-Dongyu" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

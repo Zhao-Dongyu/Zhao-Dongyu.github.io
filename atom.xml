@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Zhao Dongyu&#39;s Blog</title>
+  <icon>https://zhao-dongyu.github.io/icon.png</icon>
+  <subtitle>A life which is unexamined is not worth living.</subtitle>
+  <link href="https://zhao-dongyu.github.io/atom.xml" rel="self"/>
+  
+  <link href="https://zhao-dongyu.github.io/"/>
+  <updated>2026-11-03T10:55:41.173Z</updated>
+  <id>https://zhao-dongyu.github.io/</id>
+  
+  <author>
+    <name>Zhao Dongyu</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Cosmos3 学习与实践</title>
+    <link href="https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/"/>
+    <id>https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/</id>
+    <published>2026-08-31T10:53:00.000Z</published>
+    <updated>2026-11-03T10:55:41.173Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;这篇记录整理了 Cosmos3 的核心原理，以及我在 Astribot 上从数据适配、模型训练到部署和实机测试的过程。前期使用 Nano 打通训练与推理流程，Edge 开源后转向 Edge 训练，完成 20k checkpoint，并保存了 20 段方块分类任务录像。&lt;/p&gt;
+&lt;p&gt;训练使用修改后的 &lt;strong&gt;cosmos-framework&lt;/strong&gt;。Edge 20k 在 20 次捡方块测试中平均得到 &lt;strong&gt;8.7/10 分&lt;/strong&gt;；RTX 5090 端侧推理已达到 4 步采样约 &lt;strong&gt;680 ms&lt;/strong&gt;。实际部署中，减少采样步数会带来动作抖动，增加到 50 步则明显更平滑，但耗时升至约 &lt;strong&gt;7.5 秒&lt;/strong&gt;。因此下一阶段的重点是找到速度与动作稳定性之间合适的取舍。&lt;/p&gt;
+&lt;p&gt;官方入口：&lt;a href=&quot;https://github.com/NVIDIA/cosmos&quot;&gt;NVIDIA Cosmos&lt;/a&gt; · &lt;a href=&quot;https://github.com/NVIDIA/cosmos-framework&quot;&gt;Cosmos Framework&lt;/a&gt; · &lt;a href=&quot;https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf&quot;&gt;Cosmos3 技术报告&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="Robot" scheme="https://zhao-dongyu.github.io/tags/Robot/"/>
+    
+    <category term="Cosmos3" scheme="https://zhao-dongyu.github.io/tags/Cosmos3/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>RLToken实践</title>
+    <link href="https://zhao-dongyu.github.io/2026/04/21/129_RLToken/"/>
+    <id>https://zhao-dongyu.github.io/2026/04/21/129_RLToken/</id>
+    <published>2026-04-21T01:34:00.000Z</published>
+    <updated>2026-11-03T10:51:02.276Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://www.pi.website/research/rlt&quot;&gt;rlt blog&lt;/a&gt; &lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="VLA" scheme="https://zhao-dongyu.github.io/tags/VLA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>RLToken实践</title>
+    <link href="https://zhao-dongyu.github.io/2026/04/21/130_RobotARM/"/>
+    <id>https://zhao-dongyu.github.io/2026/04/21/130_RobotARM/</id>
+    <published>2026-04-21T01:34:00.000Z</published>
+    <updated>2026-11-03T10:51:02.276Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;安装-ros-2-humble&quot;&gt;1.安装 &lt;a href=&quot;https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html&quot;&gt;ROS 2 Humble&lt;/a&gt;&lt;/h2&gt;
+&lt;h3</summary>
+        
+      
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="Robot" scheme="https://zhao-dongyu.github.io/tags/Robot/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>π 模型的实践和结构解析</title>
+    <link href="https://zhao-dongyu.github.io/2026/01/28/128_Pi_model/"/>
+    <id>https://zhao-dongyu.github.io/2026/01/28/128_Pi_model/</id>
+    <published>2026-01-28T15:46:00.000Z</published>
+    <updated>2026-11-03T10:51:02.275Z</updated>
+    
+    
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;Physical Intelligence is bringing general-purpose AI into the physical world.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.pi.website&quot;&gt;π&lt;/a&gt; 系列堪称经典。前段时间实践了 π&lt;sub&gt;0&lt;/sub&gt; 的真机部署与加速，最近又做了 π&lt;sub&gt;0.5&lt;/sub&gt; 的仿真，感觉是时候系统整理一波了。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="VLA" scheme="https://zhao-dongyu.github.io/tags/VLA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>MXFP4 初探</title>
+    <link href="https://zhao-dongyu.github.io/2025/08/13/127_MXFP4/"/>
+    <id>https://zhao-dongyu.github.io/2025/08/13/127_MXFP4/</id>
+    <published>2025-08-13T05:01:00.000Z</published>
+    <updated>2026-11-03T10:51:02.275Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;前几天 openai &lt;a href=&quot;https://openai.com/zh-Hans-CN/index/introducing-gpt-oss/&quot;&gt;隆重推出 gpt-oss&lt;/a&gt;，模型的 MoE 部分采用了 MXFP4 格式让人震惊，这大大减少了对内存的依赖。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>在RTX4090上做加速</title>
+    <link href="https://zhao-dongyu.github.io/2025/08/01/126_Acceleration_on_RTX4090/"/>
+    <id>https://zhao-dongyu.github.io/2025/08/01/126_Acceleration_on_RTX4090/</id>
+    <published>2025-08-01T08:27:00.000Z</published>
+    <updated>2026-11-03T10:51:02.275Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;RTX4090有一个很奇特的特性，使用 fp16 accum 的 matmul 的吞吐量是使用 fp32 accum 的 matmul 的两倍。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;这是非常诱人的加速！&lt;/strong&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="CUDA" scheme="https://zhao-dongyu.github.io/tags/CUDA/"/>
+    
+    <category term="flash attention" scheme="https://zhao-dongyu.github.io/tags/flash-attention/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>c++模版</title>
+    <link href="https://zhao-dongyu.github.io/2025/07/17/125_c++template/"/>
+    <id>https://zhao-dongyu.github.io/2025/07/17/125_c++template/</id>
+    <published>2025-07-17T01:09:00.000Z</published>
+    <updated>2026-11-03T10:51:02.275Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习C++模版完全是因为Nvidia。之前看一个Nvidia的视频，里面提到了要好好学习C++知识；最近学cutlass又用到了大量的C++模版；在知乎上看有人说看了 C++ Templates - The Complete Guide, 2nd Edition 之后神清气爽，惊叹还有这种操作。于是，C++ template，启动！&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>torch.compile</title>
+    <link href="https://zhao-dongyu.github.io/2025/03/25/121_Torch_compile/"/>
+    <id>https://zhao-dongyu.github.io/2025/03/25/121_Torch_compile/</id>
+    <published>2025-03-25T07:31:00.000Z</published>
+    <updated>2026-11-03T10:51:02.275Z</updated>
+    
+    
+    <summary type="html">&lt;pre&gt;&lt;code&gt;“`torch.compile“` speeds the flame,
+Trade-offs linger, but worth the game.
+Train or infer, it cuts the line,
+With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>FlashMLA 实践</title>
+    <link href="https://zhao-dongyu.github.io/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/"/>
+    <id>https://zhao-dongyu.github.io/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/</id>
+    <published>2025-03-03T03:26:13.000Z</published>
+    <updated>2026-11-03T10:51:02.275Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;之前在 &lt;a href=&quot;https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/&quot;&gt;FlashMLA 源码分析&lt;/a&gt; 分析了 FlashMLA 的源码，后来我又实践了一下，在此记录一下进一步的学习成果。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>FlashMLA 源码分析</title>
+    <link href="https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/"/>
+    <id>https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/</id>
+    <published>2025-02-24T05:45:13.000Z</published>
+    <updated>2026-11-03T10:51:02.274Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;今天Deepseek开源 &lt;a href=&quot;https://github.com/deepseek-ai/FlashMLA&quot;&gt;FlashMLA&lt;/a&gt;，之前看过一些 MLA 相关知识了，感觉这是一个很好的学习 Cuda 加速的机会，于是实践学习记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>116_learning_records</title>
+    <link href="https://zhao-dongyu.github.io/2025/02/07/116_learning_records/"/>
+    <id>https://zhao-dongyu.github.io/2025/02/07/116_learning_records/</id>
+    <published>2025-02-07T01:51:10.000Z</published>
+    <updated>2026-11-03T10:51:02.274Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;扎实基础，系统学习。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>115_Video_Generative</title>
+    <link href="https://zhao-dongyu.github.io/2025/01/07/115_Video_Generative/"/>
+    <id>https://zhao-dongyu.github.io/2025/01/07/115_Video_Generative/</id>
+    <published>2025-01-07T01:49:10.000Z</published>
+    <updated>2026-11-03T10:51:02.274Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习研究文生视频&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="T2V" scheme="https://zhao-dongyu.github.io/tags/T2V/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>113_tensorflow实现量化softmax算子</title>
+    <link href="https://zhao-dongyu.github.io/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/"/>
+    <id>https://zhao-dongyu.github.io/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</id>
+    <published>2024-12-01T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.274Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;研究了一下 tensorflow 实现 int8 量化的 softmax 算子&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="tensorflow" scheme="https://zhao-dongyu.github.io/tags/tensorflow/"/>
+    
+    <category term="softmax" scheme="https://zhao-dongyu.github.io/tags/softmax/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Mac M1 安装 Tensorflow</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/22/113_MacM1_tensorflow/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/22/113_MacM1_tensorflow/</id>
+    <published>2024-11-21T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.274Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;近期在Mac M1上使用tensorflow，发现不能用了。报错：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;The TensorFlow library was compiled to use AVX instructions, but these aren&#39;t available on your machine.&lt;/code&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Mac" scheme="https://zhao-dongyu.github.io/tags/Mac/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>triton</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/14/112_triton/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/14/112_triton/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.274Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;其实最近心思一直在把之前的推理框架的工作能够沉淀一下发一篇论文，今天丁大佬教育我不要闭门造车，不要局限于推理框架，多看看别人的工程学习学习,学学triton、TVM、mlc-llm这些东西。很受用。&lt;/p&gt;
+&lt;p&gt;听人劝，吃饱饭。开始学习 &lt;a href=&quot;https://github.com/triton-lang/triton&quot;&gt;triton&lt;/a&gt;&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    
+    <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>树莓派Zero实验</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt; 上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="Raspberry" scheme="https://zhao-dongyu.github.io/tags/Raspberry/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>C++Primer学习</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/13/110_C++Primer/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/13/110_C++Primer/</id>
+    <published>2024-11-12T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;学习C++&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="C++" scheme="https://zhao-dongyu.github.io/tags/C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>TinyML and Efficient Deep Learning Computing</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/</id>
+    <published>2024-11-03T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;在&lt;a href=&quot;https://www.zhihu.com/question/668077638/answer/4043039987&quot;&gt;知乎&lt;/a&gt;看到这么一句话：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;跟着好好上韩松的课程，把 lab 都自己认真做一遍，特别是 AWQ 那套算法和推理的框架 （quantizaiton），只要能读懂整套代码，就能自己回答你问的问题了～&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;感觉自己其实没有一个系统的学习，于是跟着&lt;a href=&quot;https://hanlab.mit.edu/courses/2024-fall-65940&quot;&gt;韩松&lt;/a&gt;学习一遍，在此记录一下。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    
+    <category term="TinyML" scheme="https://zhao-dongyu.github.io/tags/TinyML/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Efficient Streaming Language Models with Attention Sinks</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/</id>
+    <published>2024-11-03T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Deploy LLMs for infinite-length inputs without sacrificing efficiency and performance.&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="KV Cache" scheme="https://zhao-dongyu.github.io/tags/KV-Cache/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>ComfyUI</title>
+    <link href="https://zhao-dongyu.github.io/2024/10/31/106_ComfyUI/"/>
+    <id>https://zhao-dongyu.github.io/2024/10/31/106_ComfyUI/</id>
+    <published>2024-10-30T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;开始学习 ComfyUI，学学文生图相关的知识&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="ComfyUI" scheme="https://zhao-dongyu.github.io/tags/ComfyUI/"/>
+    
+    <category term="Diffusion" scheme="https://zhao-dongyu.github.io/tags/Diffusion/"/>
+    
+  </entry>
+  
+</feed>
