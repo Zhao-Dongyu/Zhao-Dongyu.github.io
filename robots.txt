@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://zhao-dongyu.github.io/sitemap.xml
+Sitemap: https://zhaodongyu.com/sitemap.xml

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Zhao Dongyu&#39;s Blog</title>
-  <icon>https://zhao-dongyu.github.io/icon.png</icon>
+  <icon>https://zhaodongyu.com/icon.png</icon>
   <subtitle>A life which is unexamined is not worth living.</subtitle>
-  <link href="https://zhao-dongyu.github.io/atom.xml" rel="self"/>
+  <link href="https://zhaodongyu.com/atom.xml" rel="self"/>
   
-  <link href="https://zhao-dongyu.github.io/"/>
+  <link href="https://zhaodongyu.com/"/>
   <updated>2026-11-03T10:55:41.173Z</updated>
-  <id>https://zhao-dongyu.github.io/</id>
+  <id>https://zhaodongyu.com/</id>
   
   <author>
     <name>Zhao Dongyu</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>Cosmos3 学习与实践</title>
-    <link href="https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/"/>
-    <id>https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/</id>
+    <link href="https://zhaodongyu.com/2026/08/31/131_Cosmos3/"/>
+    <id>https://zhaodongyu.com/2026/08/31/131_Cosmos3/</id>
     <published>2026-08-31T10:53:00.000Z</published>
     <updated>2026-11-03T10:55:41.173Z</updated>
     
@@ -30,21 +30,21 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="Robot" scheme="https://zhao-dongyu.github.io/tags/Robot/"/>
+    <category term="Robot" scheme="https://zhaodongyu.com/tags/Robot/"/>
     
-    <category term="Cosmos3" scheme="https://zhao-dongyu.github.io/tags/Cosmos3/"/>
+    <category term="Cosmos3" scheme="https://zhaodongyu.com/tags/Cosmos3/"/>
     
   </entry>
   
   <entry>
     <title>RLToken实践</title>
-    <link href="https://zhao-dongyu.github.io/2026/04/21/129_RLToken/"/>
-    <id>https://zhao-dongyu.github.io/2026/04/21/129_RLToken/</id>
+    <link href="https://zhaodongyu.com/2026/04/21/129_RLToken/"/>
+    <id>https://zhaodongyu.com/2026/04/21/129_RLToken/</id>
     <published>2026-04-21T01:34:00.000Z</published>
     <updated>2026-11-03T10:51:02.276Z</updated>
     
@@ -59,19 +59,19 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="VLA" scheme="https://zhao-dongyu.github.io/tags/VLA/"/>
+    <category term="VLA" scheme="https://zhaodongyu.com/tags/VLA/"/>
     
   </entry>
   
   <entry>
     <title>RLToken实践</title>
-    <link href="https://zhao-dongyu.github.io/2026/04/21/130_RobotARM/"/>
-    <id>https://zhao-dongyu.github.io/2026/04/21/130_RobotARM/</id>
+    <link href="https://zhaodongyu.com/2026/04/21/130_RobotARM/"/>
+    <id>https://zhaodongyu.com/2026/04/21/130_RobotARM/</id>
     <published>2026-04-21T01:34:00.000Z</published>
     <updated>2026-11-03T10:51:02.276Z</updated>
     
@@ -87,19 +87,19 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="Robot" scheme="https://zhao-dongyu.github.io/tags/Robot/"/>
+    <category term="Robot" scheme="https://zhaodongyu.com/tags/Robot/"/>
     
   </entry>
   
   <entry>
     <title>π 模型的实践和结构解析</title>
-    <link href="https://zhao-dongyu.github.io/2026/01/28/128_Pi_model/"/>
-    <id>https://zhao-dongyu.github.io/2026/01/28/128_Pi_model/</id>
+    <link href="https://zhaodongyu.com/2026/01/28/128_Pi_model/"/>
+    <id>https://zhaodongyu.com/2026/01/28/128_Pi_model/</id>
     <published>2026-01-28T15:46:00.000Z</published>
     <updated>2026-11-03T10:51:02.275Z</updated>
     
@@ -111,19 +111,19 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="VLA" scheme="https://zhao-dongyu.github.io/tags/VLA/"/>
+    <category term="VLA" scheme="https://zhaodongyu.com/tags/VLA/"/>
     
   </entry>
   
   <entry>
     <title>MXFP4 初探</title>
-    <link href="https://zhao-dongyu.github.io/2025/08/13/127_MXFP4/"/>
-    <id>https://zhao-dongyu.github.io/2025/08/13/127_MXFP4/</id>
+    <link href="https://zhaodongyu.com/2025/08/13/127_MXFP4/"/>
+    <id>https://zhaodongyu.com/2025/08/13/127_MXFP4/</id>
     <published>2025-08-13T05:01:00.000Z</published>
     <updated>2026-11-03T10:51:02.275Z</updated>
     
@@ -132,19 +132,19 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
+    <category term="HPC" scheme="https://zhaodongyu.com/tags/HPC/"/>
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>在RTX4090上做加速</title>
-    <link href="https://zhao-dongyu.github.io/2025/08/01/126_Acceleration_on_RTX4090/"/>
-    <id>https://zhao-dongyu.github.io/2025/08/01/126_Acceleration_on_RTX4090/</id>
+    <link href="https://zhaodongyu.com/2025/08/01/126_Acceleration_on_RTX4090/"/>
+    <id>https://zhaodongyu.com/2025/08/01/126_Acceleration_on_RTX4090/</id>
     <published>2025-08-01T08:27:00.000Z</published>
     <updated>2026-11-03T10:51:02.275Z</updated>
     
@@ -154,23 +154,23 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
+    <category term="HPC" scheme="https://zhaodongyu.com/tags/HPC/"/>
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="CUDA" scheme="https://zhao-dongyu.github.io/tags/CUDA/"/>
+    <category term="CUDA" scheme="https://zhaodongyu.com/tags/CUDA/"/>
     
-    <category term="flash attention" scheme="https://zhao-dongyu.github.io/tags/flash-attention/"/>
+    <category term="flash attention" scheme="https://zhaodongyu.com/tags/flash-attention/"/>
     
   </entry>
   
   <entry>
     <title>c++模版</title>
-    <link href="https://zhao-dongyu.github.io/2025/07/17/125_c++template/"/>
-    <id>https://zhao-dongyu.github.io/2025/07/17/125_c++template/</id>
+    <link href="https://zhaodongyu.com/2025/07/17/125_c++template/"/>
+    <id>https://zhaodongyu.com/2025/07/17/125_c++template/</id>
     <published>2025-07-17T01:09:00.000Z</published>
     <updated>2026-11-03T10:51:02.275Z</updated>
     
@@ -179,17 +179,17 @@
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>torch.compile</title>
-    <link href="https://zhao-dongyu.github.io/2025/03/25/121_Torch_compile/"/>
-    <id>https://zhao-dongyu.github.io/2025/03/25/121_Torch_compile/</id>
+    <link href="https://zhaodongyu.com/2025/03/25/121_Torch_compile/"/>
+    <id>https://zhaodongyu.com/2025/03/25/121_Torch_compile/</id>
     <published>2025-03-25T07:31:00.000Z</published>
     <updated>2026-11-03T10:51:02.275Z</updated>
     
@@ -201,17 +201,17 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>FlashMLA 实践</title>
-    <link href="https://zhao-dongyu.github.io/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/"/>
-    <id>https://zhao-dongyu.github.io/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/</id>
+    <link href="https://zhaodongyu.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/"/>
+    <id>https://zhaodongyu.com/2025/03/03/118_FlashMLA%E5%AE%9E%E8%B7%B5/</id>
     <published>2025-03-03T03:26:13.000Z</published>
     <updated>2026-11-03T10:51:02.275Z</updated>
     
@@ -220,17 +220,17 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>FlashMLA 源码分析</title>
-    <link href="https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/"/>
-    <id>https://zhao-dongyu.github.io/2025/02/24/117_FlashMLA/</id>
+    <link href="https://zhaodongyu.com/2025/02/24/117_FlashMLA/"/>
+    <id>https://zhaodongyu.com/2025/02/24/117_FlashMLA/</id>
     <published>2025-02-24T05:45:13.000Z</published>
     <updated>2026-11-03T10:51:02.274Z</updated>
     
@@ -239,17 +239,17 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>116_learning_records</title>
-    <link href="https://zhao-dongyu.github.io/2025/02/07/116_learning_records/"/>
-    <id>https://zhao-dongyu.github.io/2025/02/07/116_learning_records/</id>
+    <link href="https://zhaodongyu.com/2025/02/07/116_learning_records/"/>
+    <id>https://zhaodongyu.com/2025/02/07/116_learning_records/</id>
     <published>2025-02-07T01:51:10.000Z</published>
     <updated>2026-11-03T10:51:02.274Z</updated>
     
@@ -258,17 +258,17 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>115_Video_Generative</title>
-    <link href="https://zhao-dongyu.github.io/2025/01/07/115_Video_Generative/"/>
-    <id>https://zhao-dongyu.github.io/2025/01/07/115_Video_Generative/</id>
+    <link href="https://zhaodongyu.com/2025/01/07/115_Video_Generative/"/>
+    <id>https://zhaodongyu.com/2025/01/07/115_Video_Generative/</id>
     <published>2025-01-07T01:49:10.000Z</published>
     <updated>2026-11-03T10:51:02.274Z</updated>
     
@@ -277,21 +277,21 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    <category term="LLM" scheme="https://zhaodongyu.com/tags/LLM/"/>
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="T2V" scheme="https://zhao-dongyu.github.io/tags/T2V/"/>
+    <category term="T2V" scheme="https://zhaodongyu.com/tags/T2V/"/>
     
   </entry>
   
   <entry>
     <title>113_tensorflow实现量化softmax算子</title>
-    <link href="https://zhao-dongyu.github.io/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/"/>
-    <id>https://zhao-dongyu.github.io/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</id>
+    <link href="https://zhaodongyu.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/"/>
+    <id>https://zhaodongyu.com/2024/12/02/114_tensorflow%E5%AE%9E%E7%8E%B0%E9%87%8F%E5%8C%96softmax%E7%AE%97%E5%AD%90/</id>
     <published>2024-12-01T16:00:00.000Z</published>
     <updated>2026-11-03T10:51:02.274Z</updated>
     
@@ -300,19 +300,19 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="tensorflow" scheme="https://zhao-dongyu.github.io/tags/tensorflow/"/>
+    <category term="tensorflow" scheme="https://zhaodongyu.com/tags/tensorflow/"/>
     
-    <category term="softmax" scheme="https://zhao-dongyu.github.io/tags/softmax/"/>
+    <category term="softmax" scheme="https://zhaodongyu.com/tags/softmax/"/>
     
   </entry>
   
   <entry>
     <title>Mac M1 安装 Tensorflow</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/22/113_MacM1_tensorflow/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/22/113_MacM1_tensorflow/</id>
+    <link href="https://zhaodongyu.com/2024/11/22/113_MacM1_tensorflow/"/>
+    <id>https://zhaodongyu.com/2024/11/22/113_MacM1_tensorflow/</id>
     <published>2024-11-21T16:00:00.000Z</published>
     <updated>2026-11-03T10:51:02.274Z</updated>
     
@@ -322,17 +322,38 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Mac" scheme="https://zhao-dongyu.github.io/tags/Mac/"/>
+    <category term="Mac" scheme="https://zhaodongyu.com/tags/Mac/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>树莓派Zero实验</title>
+    <link href="https://zhaodongyu.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
+    <id>https://zhaodongyu.com/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt; 上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
+    
+    <category term="Raspberry" scheme="https://zhaodongyu.com/tags/Raspberry/"/>
     
   </entry>
   
   <entry>
     <title>triton</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/14/112_triton/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/14/112_triton/</id>
+    <link href="https://zhaodongyu.com/2024/11/14/112_triton/"/>
+    <id>https://zhaodongyu.com/2024/11/14/112_triton/</id>
     <published>2024-11-13T16:00:00.000Z</published>
     <updated>2026-11-03T10:51:02.274Z</updated>
     
@@ -342,42 +363,21 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    <category term="LLM" scheme="https://zhaodongyu.com/tags/LLM/"/>
     
-    <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
+    <category term="HPC" scheme="https://zhaodongyu.com/tags/HPC/"/>
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>树莓派Zero实验</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
-    <published>2024-11-13T16:00:00.000Z</published>
-    <updated>2026-11-03T10:51:02.273Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt; 上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
-    
-    <category term="Raspberry" scheme="https://zhao-dongyu.github.io/tags/Raspberry/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   
   <entry>
     <title>C++Primer学习</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/13/110_C++Primer/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/13/110_C++Primer/</id>
+    <link href="https://zhaodongyu.com/2024/11/13/110_C++Primer/"/>
+    <id>https://zhaodongyu.com/2024/11/13/110_C++Primer/</id>
     <published>2024-11-12T16:00:00.000Z</published>
     <updated>2026-11-03T10:51:02.273Z</updated>
     
@@ -386,19 +386,42 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="C++" scheme="https://zhao-dongyu.github.io/tags/C/"/>
+    <category term="C++" scheme="https://zhaodongyu.com/tags/C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Efficient Streaming Language Models with Attention Sinks</title>
+    <link href="https://zhaodongyu.com/2024/11/04/108_streaming-llm/"/>
+    <id>https://zhaodongyu.com/2024/11/04/108_streaming-llm/</id>
+    <published>2024-11-03T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;Deploy LLMs for infinite-length inputs without sacrificing efficiency and performance.&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="LLM" scheme="https://zhaodongyu.com/tags/LLM/"/>
+    
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
+    
+    <category term="KV Cache" scheme="https://zhaodongyu.com/tags/KV-Cache/"/>
     
   </entry>
   
   <entry>
     <title>TinyML and Efficient Deep Learning Computing</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/</id>
+    <link href="https://zhaodongyu.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/"/>
+    <id>https://zhaodongyu.com/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/</id>
     <published>2024-11-03T16:00:00.000Z</published>
     <updated>2026-11-03T10:51:02.273Z</updated>
     
@@ -409,44 +432,21 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    <category term="LLM" scheme="https://zhaodongyu.com/tags/LLM/"/>
     
-    <category term="TinyML" scheme="https://zhao-dongyu.github.io/tags/TinyML/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Efficient Streaming Language Models with Attention Sinks</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/</id>
-    <published>2024-11-03T16:00:00.000Z</published>
-    <updated>2026-11-03T10:51:02.273Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;Deploy LLMs for infinite-length inputs without sacrificing efficiency and performance.&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
-    
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
-    
-    <category term="KV Cache" scheme="https://zhao-dongyu.github.io/tags/KV-Cache/"/>
+    <category term="TinyML" scheme="https://zhaodongyu.com/tags/TinyML/"/>
     
   </entry>
   
   <entry>
     <title>ComfyUI</title>
-    <link href="https://zhao-dongyu.github.io/2024/10/31/106_ComfyUI/"/>
-    <id>https://zhao-dongyu.github.io/2024/10/31/106_ComfyUI/</id>
+    <link href="https://zhaodongyu.com/2024/10/31/106_ComfyUI/"/>
+    <id>https://zhaodongyu.com/2024/10/31/106_ComfyUI/</id>
     <published>2024-10-30T16:00:00.000Z</published>
     <updated>2026-11-03T10:51:02.273Z</updated>
     
@@ -455,16 +455,16 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     
     
     
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    <category term="技术" scheme="https://zhaodongyu.com/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-    <category term="LLM" scheme="https://zhao-dongyu.github.io/tags/LLM/"/>
+    <category term="LLM" scheme="https://zhaodongyu.com/tags/LLM/"/>
     
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    <category term="ComfyUI" scheme="https://zhaodongyu.com/tags/ComfyUI/"/>
     
-    <category term="ComfyUI" scheme="https://zhao-dongyu.github.io/tags/ComfyUI/"/>
+    <category term="Diffusion" scheme="https://zhaodongyu.com/tags/Diffusion/"/>
     
-    <category term="Diffusion" scheme="https://zhao-dongyu.github.io/tags/Diffusion/"/>
+    <category term="Tech" scheme="https://zhaodongyu.com/tags/Tech/"/>
     
   </entry>
   

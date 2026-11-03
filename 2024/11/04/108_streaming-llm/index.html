@@ -16,24 +16,24 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"zhao-dongyu.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.29.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"zhaodongyu.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.29.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="Deploy LLMs for infinite-length inputs without sacrificing efficiency and performance.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Efficient Streaming Language Models with Attention Sinks">
-<meta property="og:url" content="https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/">
+<meta property="og:url" content="https://zhaodongyu.com/2024/11/04/108_streaming-llm/">
 <meta property="og:site_name" content="Zhao Dongyu&#39;s Blog">
 <meta property="og:description" content="Deploy LLMs for infinite-length inputs without sacrificing efficiency and performance.">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/Llama-2-7b-hf.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/kvcache.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/kv-cache-optimization.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/large-kvcache.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/window.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/attention-sink.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/softmax.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/d_streaming_llm.png">
-<meta property="og:image" content="https://zhao-dongyu.github.io/images/108_streaming-llm/illustration.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/Llama-2-7b-hf.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/kvcache.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/kv-cache-optimization.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/large-kvcache.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/window.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/attention-sink.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/softmax.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/d_streaming_llm.png">
+<meta property="og:image" content="https://zhaodongyu.com/images/108_streaming-llm/illustration.png">
 <meta property="article:published_time" content="2024-11-03T16:00:00.000Z">
 <meta property="article:modified_time" content="2026-11-03T10:51:02.273Z">
 <meta property="article:author" content="Zhao Dongyu">
@@ -41,13 +41,13 @@
 <meta property="article:tag" content="LLM">
 <meta property="article:tag" content="Tech">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://zhao-dongyu.github.io/images/zhaodongyu-transparent.png">
+<meta name="twitter:image" content="https://zhaodongyu.com/images/zhaodongyu-transparent.png">
 
 
-<link rel="canonical" href="https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/">
+<link rel="canonical" href="https://zhaodongyu.com/2024/11/04/108_streaming-llm/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/","path":"2024/11/04/108_streaming-llm/","title":"Efficient Streaming Language Models with Attention Sinks"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://zhaodongyu.com/2024/11/04/108_streaming-llm/","path":"2024/11/04/108_streaming-llm/","title":"Efficient Streaming Language Models with Attention Sinks"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>Efficient Streaming Language Models with Attention Sinks | Zhao Dongyu's Blog</title>
@@ -241,7 +241,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://zhao-dongyu.github.io/2024/11/04/108_streaming-llm/">
+    <link itemprop="mainEntityOfPage" href="https://zhaodongyu.com/2024/11/04/108_streaming-llm/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/zhaodongyu-transparent.png">
@@ -510,13 +510,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2024/10/31/106_ComfyUI/" rel="prev" title="ComfyUI">
-                  <i class="fa fa-angle-left"></i> ComfyUI
+                <a href="/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/" rel="prev" title="TinyML and Efficient Deep Learning Computing">
+                  <i class="fa fa-angle-left"></i> TinyML and Efficient Deep Learning Computing
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2024/11/04/107_TinyML%20and%20Efficient%20Deep%20Learning%20Computing/" rel="next" title="TinyML and Efficient Deep Learning Computing">
-                  TinyML and Efficient Deep Learning Computing <i class="fa fa-angle-right"></i>
+                <a href="/2024/11/13/110_C++Primer/" rel="next" title="C++Primer学习">
+                  C++Primer学习 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
