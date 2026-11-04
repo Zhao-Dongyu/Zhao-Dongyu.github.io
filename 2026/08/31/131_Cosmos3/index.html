@@ -40,7 +40,7 @@
 <meta property="og:image" content="https://zhao-dongyu.github.io/images/131/video_contact_3.jpg">
 <meta property="og:image" content="https://zhao-dongyu.github.io/images/131/video_contact_4.jpg">
 <meta property="article:published_time" content="2026-08-31T10:53:00.000Z">
-<meta property="article:modified_time" content="2026-11-04T03:06:12.952Z">
+<meta property="article:modified_time" content="2026-11-04T03:47:44.968Z">
 <meta property="article:author" content="Zhao Dongyu">
 <meta property="article:tag" content="Cosmos3">
 <meta property="article:tag" content="Robot">
@@ -282,7 +282,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-11-04 11:06:12" itemprop="dateModified" datetime="2026-11-04T11:06:12+08:00">2026-11-04</time>
+      <time title="修改时间：2026-11-04 11:47:44" itemprop="dateModified" datetime="2026-11-04T11:47:44+08:00">2026-11-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -699,26 +699,38 @@ x_t=(1-t)x_0+t\epsilon,\qquad v^*=\epsilon-x_0.
 <h3 id="edge-在-rtx-5090-上的实测">5.1 Edge 在 RTX 5090 上的实测</h3>
 <p>以捡方块任务为例，Cosmos3-Edge 的端侧部署呈现出很直接的速度与平滑性取舍：</p>
 <table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 28%" />
+<col style="width: 28%" />
+<col style="width: 21%" />
+</colgroup>
 <thead>
 <tr>
-<th>降噪采样步数</th>
-<th style="text-align: right;">单次推理耗时</th>
-<th>动作表现</th>
-<th>适用方向</th>
+<th>配置</th>
+<th style="text-align: right;">耗时</th>
+<th style="text-align: right;">相对动作块预算</th>
+<th>说明</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>4 步</td>
+<td>4 步采样</td>
 <td style="text-align: right;">约 <strong>680 ms</strong></td>
-<td>响应快，但动作有些抖动</td>
-<td>低延迟闭环的优化起点</td>
+<td style="text-align: right;">约 32%，有机会与执行重叠</td>
+<td>响应快，但动作有些抖动；低延迟闭环的优化起点</td>
 </tr>
 <tr>
-<td>50 步</td>
+<td>32 步动作 @ 15 Hz</td>
+<td style="text-align: right;">约 <strong>2.13 s</strong></td>
+<td style="text-align: right;">动作块预算本身</td>
+<td>沿用当前动作块长度与执行频率时的时间预算参考</td>
+</tr>
+<tr>
+<td>50 步采样</td>
 <td style="text-align: right;">约 <strong>7.5 s</strong></td>
-<td>动作平滑很多</td>
-<td>平滑性参照、允许等待的分段执行</td>
+<td style="text-align: right;">约 3.5 倍，连续控制会明显等待</td>
+<td>动作平滑很多；平滑性参照、允许等待的分段执行</td>
 </tr>
 </tbody>
 </table>
@@ -729,7 +741,7 @@ x_t=(1-t)x_0+t\epsilon,\qquad v^*=\epsilon-x_0.
 <p>从 4 步增加到 50 步，推理耗时约增加到 <strong>11 倍</strong>。更多步数改善了这次测试中的动作平滑性，但还需要结合抓取和任务得分判断整体收益。benchmark 评分表未记录采样步数，因此不将 8.7 分归属于某一档配置。</p>
 <h3 id="部署怎样取舍">5.2 部署怎样取舍</h3>
 <p><strong>先在 4—50 步之间寻找满足平滑性要求的最小采样步数。</strong> 下一轮可固定 checkpoint、指令与初始摆放，依次测试 8、12、16、20 步，同时记录任务得分、动作抖动、整体完成时间和推理 p50/p95。这些中间档位尚未实测，不能按两端耗时直接认定最佳值。</p>
-<p>如果沿用 32 步动作和 15 Hz 执行频率，一个动作块覆盖约 <strong>2.13 秒</strong>。4 步推理约占这一预算的 32%，有机会与执行重叠；50 步耗时约为预算的 3.5 倍，连续控制会明显等待。若每次只执行动作前缀，预算还会更短，例如执行 8 步只有约 0.53 秒，即使 680 ms 也可能跟不上。实际部署需按控制器频率重新计算。</p>
+<p>若每次只执行动作前缀，预算还会更短，例如执行 8 步只有约 0.53 秒，即使 680 ms 也可能跟不上。实际部署需按控制器频率重新计算。</p>
 <p>在选步数之外，可以逐项尝试动作块衔接、重叠段融合、适度插值或关节速度/加速度约束，观察抖动来自单块内部还是两块交界。平滑处理会增加滞后，夹爪开合也应单独处理。异步推理可隐藏部分等待，但不能持续弥补动作产出速度低于消耗速度的问题。</p>
 <p>当前服务通过 <code>--num-steps</code> 调整步数；<code>decode_video=False</code> 仅跳过视频解码，仍保留联合去噪中的视觉计算。</p>
 <h3 id="nano-a100-的早期部署记录">5.3 Nano / A100 的早期部署记录</h3>
