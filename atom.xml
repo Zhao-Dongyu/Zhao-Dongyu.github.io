@@ -6,7 +6,7 @@
   <link href="https://zhao-dongyu.github.io/atom.xml" rel="self"/>
   
   <link href="https://zhao-dongyu.github.io/"/>
-  <updated>2026-11-04T03:47:44.968Z</updated>
+  <updated>2026-11-04T03:52:14.759Z</updated>
   <id>https://zhao-dongyu.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/"/>
     <id>https://zhao-dongyu.github.io/2026/08/31/131_Cosmos3/</id>
     <published>2026-08-31T10:53:00.000Z</published>
-    <updated>2026-11-04T03:47:44.968Z</updated>
+    <updated>2026-11-04T03:52:14.759Z</updated>
     
     
     <summary type="html">&lt;p&gt;这篇记录整理了 Cosmos3 的核心原理，以及我在 Astribot 上从数据适配、模型训练到部署和实机测试的过程。前期使用 Nano 打通训练与推理流程，Edge 开源后转向 Edge 训练，完成 20k checkpoint，并保存了 20 段方块分类任务录像。&lt;/p&gt;
@@ -159,9 +159,9 @@
     
     <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
     
-    <category term="CUDA" scheme="https://zhao-dongyu.github.io/tags/CUDA/"/>
-    
     <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="CUDA" scheme="https://zhao-dongyu.github.io/tags/CUDA/"/>
     
     <category term="flash attention" scheme="https://zhao-dongyu.github.io/tags/flash-attention/"/>
     
@@ -330,27 +330,6 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
   </entry>
   
   <entry>
-    <title>树莓派Zero实验</title>
-    <link href="https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
-    <id>https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
-    <published>2024-11-13T16:00:00.000Z</published>
-    <updated>2026-11-03T10:51:02.273Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt; 上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
-    
-    
-    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
-    
-    <category term="Raspberry" scheme="https://zhao-dongyu.github.io/tags/Raspberry/"/>
-    
-  </entry>
-  
-  <entry>
     <title>triton</title>
     <link href="https://zhao-dongyu.github.io/2024/11/14/112_triton/"/>
     <id>https://zhao-dongyu.github.io/2024/11/14/112_triton/</id>
@@ -371,6 +350,27 @@ With care and craft, its power’s thine.&lt;/code&gt;&lt;/pre&gt;</summary>
     <category term="HPC" scheme="https://zhao-dongyu.github.io/tags/HPC/"/>
     
     <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>树莓派Zero实验</title>
+    <link href="https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/"/>
+    <id>https://zhao-dongyu.github.io/2024/11/14/111_%E6%A0%91%E8%8E%93%E6%B4%BE%E5%AE%9E%E9%AA%8C/</id>
+    <published>2024-11-13T16:00:00.000Z</published>
+    <updated>2026-11-03T10:51:02.273Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;做一些在树莓派&lt;code&gt;zero w&lt;/code&gt; 上面的实验，这里记录一下整体流程。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="技术" scheme="https://zhao-dongyu.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="Tech" scheme="https://zhao-dongyu.github.io/tags/Tech/"/>
+    
+    <category term="Raspberry" scheme="https://zhao-dongyu.github.io/tags/Raspberry/"/>
     
   </entry>
   
